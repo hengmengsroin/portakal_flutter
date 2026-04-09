@@ -1,3 +1,10 @@
+## 0.1.1
+
+* Migrated package tooling to pure Dart (`dart test`, `dart analyze`) and removed Flutter SDK dependency requirements.
+* Updated README examples to use public package imports (`package:portakal_flutter/portakal_flutter.dart`).
+* Expanded and clarified the Label Elements capability matrix across all supported printer languages.
+* Added and corrected release metadata/doc alignment for publish readiness.
+
 ## 0.1.0
 
 * Initial public release of `portakal_flutter`.

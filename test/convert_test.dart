@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:portakal_flutter/src/convert.dart';
 
 void main() {

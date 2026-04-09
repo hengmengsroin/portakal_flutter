@@ -29,7 +29,7 @@ Text, images, and printer-native barcode/QR commands. **Pure Dart, zero runtime 
 
 ```yaml
 dependencies:
-  portakal_flutter: ^0.1.0
+  portakal_flutter: ^0.1.1
 ```
 
 ## Quick Start
@@ -37,10 +37,7 @@ dependencies:
 ### Build & compile a label
 
 ```dart
-import 'package:portakal_flutter/src/builder.dart';
-import 'package:portakal_flutter/src/lang/tsc.dart';
-import 'package:portakal_flutter/src/lang/zpl.dart';
-import 'package:portakal_flutter/src/types.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 // Build a label with the fluent API
 final myLabel = label(LabelConfig(width: 40, height: 30, unit: Unit.mm))
@@ -70,8 +67,7 @@ final zplCode = zpl.compile(myLabel);
 ### HTML-like markup
 
 ```dart
-import 'package:portakal_flutter/src/markup.dart';
-import 'package:portakal_flutter/src/lang/tsc.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 final code = tsc.compile(markup('''
   <label width="100mm" height="150mm" dpi="203">
@@ -87,7 +83,7 @@ final code = tsc.compile(markup('''
 ### Cross-compilation
 
 ```dart
-import 'package:portakal_flutter/src/convert.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 // Convert TSC code to ZPL
 final result = convert(tscCode, 'tsc', 'zpl');
@@ -101,8 +97,7 @@ print(receipt.output); // Uint8List
 ### Parse printer commands
 
 ```dart
-import 'package:portakal_flutter/src/lang/tsc.dart';
-import 'package:portakal_flutter/src/lang/zpl.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 // Parse TSC
 final tscResult = tsc.parse('SIZE 40 mm,30 mm\nCLS\nTEXT 10,10,"2",0,1,1,"Hello"\nPRINT 1');
@@ -118,9 +113,7 @@ print(zplResult.commands.length); // 6
 ### SVG preview
 
 ```dart
-import 'package:portakal_flutter/src/builder.dart';
-import 'package:portakal_flutter/src/lang/tsc.dart';
-import 'package:portakal_flutter/src/types.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 final svg = tsc.preview(
   label(LabelConfig(width: 40, height: 30))
@@ -133,8 +126,7 @@ final svg = tsc.preview(
 ### Validate commands
 
 ```dart
-import 'package:portakal_flutter/src/lang/tsc.dart';
-import 'package:portakal_flutter/src/lang/zpl.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 // Validate TSC
 final r = tsc.validate('SIZE 40 mm,30 mm\nCLS\nTEXT 10,10,"2",0,1,1,"Hi"\nPRINT 1');
@@ -151,7 +143,7 @@ print(bad.issues); // [CLS must appear before label elements]
 
 ```dart
 import 'dart:typed_data';
-import 'package:portakal_flutter/src/image.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 // Convert RGBA pixels to monochrome bitmap
 final rgba = Uint8List(100 * 100 * 4); // 100x100 RGBA image
@@ -167,7 +159,7 @@ final myLabel = label(LabelConfig(width: 40, height: 30))
 ### Printer profiles
 
 ```dart
-import 'package:portakal_flutter/src/profiles.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 // Get a specific profile
 final profile = getProfile('zebra-zd420');
@@ -191,7 +183,7 @@ final myLabel = label(LabelConfig(
 ### Receipt formatting (ESC/POS)
 
 ```dart
-import 'package:portakal_flutter/src/receipt.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
 
 // Format a receipt line
 final line = formatPair('Hamburger', '\$12.99', 32);
@@ -225,17 +217,19 @@ final rows = formatTable(
 
 ## Label Elements
 
-| Element | Description | TSC | ZPL | EPL | ESC/POS | CPCL |
-|---------|-------------|-----|-----|-----|---------|------|
-| `text` | Text with font, size, rotation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `image` | Monochrome bitmap | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `box` | Rectangle with optional radius | ✅ | ✅ | ✅ | — | ✅ |
-| `line` | Line between two points | ✅ | ✅ | ✅ | — | ✅ |
-| `circle` | Circle with thickness | ✅ | ✅ | — | — | — |
-| `ellipse` | Ellipse | ✅ | — | — | — | — |
-| `reverse` | Invert colors in region | ✅ | — | — | — | — |
-| `erase` | Clear region to white | ✅ | — | — | — | — |
-| `raw` | Raw command passthrough | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Element | Description | TSC | ZPL | EPL | ESC/POS | CPCL | DPL | IPL | SBPL | Star PRNT |
+|---------|-------------|-----|-----|-----|---------|------|-----|-----|------|-----------|
+| `text` | Text with font, size, rotation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `image` | Monochrome bitmap | ✅ | ✅ | ✅ | ✅ | ✅ | — | — | ✅ | ✅ |
+| `box` | Rectangle with optional radius | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | — |
+| `line` | Line between two points | ✅ | ✅ | ⚠️ | — | ✅ | ⚠️ | ⚠️ | ⚠️ | — |
+| `circle` | Circle with thickness | ✅ | ✅ | — | — | — | — | — | — | — |
+| `ellipse` | Ellipse | ✅ | — | — | — | — | — | — | — | — |
+| `reverse` | Invert colors in region | ✅ | — | — | — | — | — | — | — | — |
+| `erase` | Clear region to white | ✅ | ✅ | — | — | — | — | — | — | — |
+| `raw` | Raw command passthrough | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+`⚠️` indicates a best-effort approximation (for example, non-diagonal-only line behavior).
 
 ## Dithering Algorithms
 
@@ -275,13 +269,13 @@ Result        validate(String code, String language)              // Validate co
 
 ```bash
 # Run tests
-flutter test
+dart test
 
 # Run a specific test
-flutter test test/tsc_test.dart
+dart test test/tsc_test.dart
 
 # Static analysis
-flutter analyze
+dart analyze
 ```
 
 ## Credits

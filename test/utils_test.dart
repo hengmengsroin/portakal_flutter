@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:portakal_flutter/src/utils.dart';
 import 'package:portakal_flutter/src/types.dart';
 

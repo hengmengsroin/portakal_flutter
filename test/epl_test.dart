@@ -1,6 +1,6 @@
 
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:portakal_flutter/src/builder.dart';
 import 'package:portakal_flutter/src/lang/epl.dart';
 import 'package:portakal_flutter/src/types.dart';

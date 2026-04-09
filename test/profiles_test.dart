@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:portakal_flutter/src/profiles.dart';
 
 void main() {

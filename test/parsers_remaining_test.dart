@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:portakal_flutter/src/parsers/dpl.dart';
 import 'package:portakal_flutter/src/parsers/ipl.dart';
 import 'package:portakal_flutter/src/parsers/sbpl.dart';
