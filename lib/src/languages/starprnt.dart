@@ -1,0 +1,86 @@
+import 'dart:typed_data';
+import '../types.dart';
+
+/// Compile a resolved label to Star PRNT binary commands.
+Uint8List compileToStarPRNT(ResolvedLabel label) {
+  final bytes = <int>[];
+
+  // ESC @ — Initialize
+  bytes.addAll([0x1B, 0x40]);
+
+  for (final el in label.elements) {
+    switch (el) {
+      case TextElement():
+        final o = el.options;
+
+        // Alignment: ESC GS a n
+        if (o.align != null) {
+          int n = 0;
+          if (o.align == 'center') n = 1;
+          if (o.align == 'right') n = 2;
+          bytes.addAll([0x1B, 0x1D, 0x61, n]);
+        }
+
+        // Bold: ESC E
+        if (o.bold == true) {
+          bytes.addAll([0x1B, 0x45]);
+        }
+
+        // Size: ESC i h w
+        if (o.size != null && o.size! > 1) {
+          bytes.addAll([0x1B, 0x69, o.size!, o.size!]);
+        }
+
+        // Text content
+        bytes.addAll(el.content.codeUnits);
+        bytes.add(0x0A); // LF
+
+        // Reset size
+        if (o.size != null && o.size! > 1) {
+          bytes.addAll([0x1B, 0x69, 1, 1]);
+        }
+
+        // Bold off: ESC F
+        if (o.bold == true) {
+          bytes.addAll([0x1B, 0x46]);
+        }
+
+        // Reset alignment
+        if (o.align != null) {
+          bytes.addAll([0x1B, 0x1D, 0x61, 0]);
+        }
+
+      case ImageElement():
+        final bmp = el.bitmap;
+        // Enter raster mode: ESC * r A
+        bytes.addAll([0x1B, 0x2A, 0x72, 0x41]);
+        // Send each row
+        for (int y = 0; y < bmp.height; y++) {
+          final rowStart = y * bmp.bytesPerRow;
+          // b nL nH data...
+          bytes.add(0x62); // b
+          bytes.addAll([bmp.bytesPerRow & 0xFF, (bmp.bytesPerRow >> 8) & 0xFF]);
+          for (int i = 0; i < bmp.bytesPerRow; i++) {
+            bytes.add(bmp.data[rowStart + i]);
+          }
+        }
+        // Exit raster mode: ESC * r B
+        bytes.addAll([0x1B, 0x2A, 0x72, 0x42]);
+
+      case RawElement():
+        if (el.content is String) {
+          bytes.addAll((el.content as String).codeUnits);
+        } else if (el.content is Uint8List) {
+          bytes.addAll(el.content as Uint8List);
+        }
+
+      default:
+        break;
+    }
+  }
+
+  // ESC d 1 — Partial cut
+  bytes.addAll([0x1B, 0x64, 1]);
+
+  return Uint8List.fromList(bytes);
+}
