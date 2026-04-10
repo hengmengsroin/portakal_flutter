@@ -32,6 +32,12 @@ dependencies:
   portakal_flutter: ^0.1.1
 ```
 
+## Example
+
+```bash
+dart run example/main.dart
+```
+
 ## Quick Start
 
 ### Build & compile a label
