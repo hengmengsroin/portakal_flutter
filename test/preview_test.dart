@@ -7,14 +7,18 @@ import 'package:portakal_flutter/src/types.dart';
 void main() {
   group('SVG preview renderer', () {
     test('returns valid SVG string', () {
-      final svg = renderPreview(label(LabelConfig(width: 40, height: 30)).resolve());
+      final svg = renderPreview(
+        label(LabelConfig(width: 40, height: 30)).resolve(),
+      );
       expect(svg, contains('<svg'));
       expect(svg, contains('</svg>'));
       expect(svg, contains('xmlns="http://www.w3.org/2000/svg"'));
     });
 
     test('renders label background with correct dimensions', () {
-      final svg = renderPreview(label(LabelConfig(width: 40, height: 30)).resolve());
+      final svg = renderPreview(
+        label(LabelConfig(width: 40, height: 30)).resolve(),
+      );
       expect(svg, contains('width="320"'));
       expect(svg, contains('height="240"'));
       expect(svg, contains('320×240 dots'));
@@ -23,7 +27,9 @@ void main() {
 
     test('renders text element', () {
       final svg = renderPreview(
-        label(LabelConfig(width: 40, height: 30)).text('Hello World', TextOptions(x: 10, y: 20, size: 2)).resolve(),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello World', TextOptions(x: 10, y: 20, size: 2)).resolve(),
       );
       expect(svg, contains('Hello World'));
       expect(svg, contains('<text'));
@@ -31,21 +37,27 @@ void main() {
 
     test('escapes XML special characters in text', () {
       final svg = renderPreview(
-        label(LabelConfig(width: 40, height: 30)).text('A<B>C&D', TextOptions(x: 10, y: 10)).resolve(),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('A<B>C&D', TextOptions(x: 10, y: 10)).resolve(),
       );
       expect(svg, contains('A&lt;B&gt;C&amp;D'));
     });
 
     test('renders bold text with font-weight', () {
       final svg = renderPreview(
-        label(LabelConfig(width: 40, height: 30)).text('Bold', TextOptions(x: 10, y: 10, bold: true)).resolve(),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Bold', TextOptions(x: 10, y: 10, bold: true)).resolve(),
       );
       expect(svg, contains('font-weight="bold"'));
     });
 
     test('renders reverse text as white (XOR approximation)', () {
       final svg = renderPreview(
-        label(LabelConfig(width: 40, height: 30)).text('Reverse', TextOptions(x: 10, y: 10, reverse: true)).resolve(),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Reverse', TextOptions(x: 10, y: 10, reverse: true)).resolve(),
       );
       expect(svg, contains('fill="#fff"'));
       expect(svg, contains('Reverse'));
@@ -91,13 +103,19 @@ void main() {
         bytesPerRow: 1,
       );
       final svg = renderPreview(
-        label(LabelConfig(width: 40, height: 30)).image(bitmap, ImageOptions(x: 10, y: 10)).resolve(),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).image(bitmap, ImageOptions(x: 10, y: 10)).resolve(),
       );
       expect(svg, contains('<rect'));
     });
 
     test('ignores raw elements in preview', () {
-      final svg = renderPreview(label(LabelConfig(width: 40, height: 30)).raw('SET CUTTER ON').resolve());
+      final svg = renderPreview(
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).raw('SET CUTTER ON').resolve(),
+      );
       expect(svg, isNot(contains('SET CUTTER ON')));
     });
   });

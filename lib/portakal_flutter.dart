@@ -2,7 +2,7 @@
 ///
 /// TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT.
 /// Text, images, printer-native commands, and Flutter preview widgets.
-library portakal_flutter;
+library;
 
 // Core
 export 'src/types.dart';

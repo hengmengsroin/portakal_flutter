@@ -46,7 +46,9 @@ void main() {
 
   group('parseIPL', () {
     test('parses format creation', () {
-      final result = parseIPL('\x02\x1bC1\x03\x02\x1bP\x03\x02\x1bE1\x03\x02R\x03');
+      final result = parseIPL(
+        '\x02\x1bC1\x03\x02\x1bP\x03\x02\x1bE1\x03\x02R\x03',
+      );
       expect(result.commands.any((c) => c.type == 'CREATE_FORMAT'), isTrue);
       expect(result.commands.any((c) => c.type == 'PROGRAM_MODE'), isTrue);
       expect(result.commands.any((c) => c.type == 'END_FORMAT'), isTrue);
@@ -54,13 +56,17 @@ void main() {
     });
 
     test('parses label dimensions', () {
-      final result = parseIPL('\x02\x1bC1\x03\x02\x1bP\x03\x02<SI>L400\x03\x02<SI>W800\x03\x02\x1bE1\x03\x02R\x03');
+      final result = parseIPL(
+        '\x02\x1bC1\x03\x02\x1bP\x03\x02<SI>L400\x03\x02<SI>W800\x03\x02\x1bE1\x03\x02R\x03',
+      );
       expect(result.heightDots, equals(400));
       expect(result.widthDots, equals(800));
     });
 
     test('parses text field', () {
-      final result = parseIPL('\x02\x1bC1\x03\x02\x1bP\x03\x02H1;o50,100;f0;h12;w12;c26;d3,Hello\x03\x02\x1bE1\x03\x02R\x03');
+      final result = parseIPL(
+        '\x02\x1bC1\x03\x02\x1bP\x03\x02H1;o50,100;f0;h12;w12;c26;d3,Hello\x03\x02\x1bE1\x03\x02R\x03',
+      );
       final texts = result.elements.whereType<TextElement>().toList();
       expect(texts, hasLength(1));
       expect(texts[0].content, equals('Hello'));
@@ -69,7 +75,9 @@ void main() {
     });
 
     test('parses box field', () {
-      final result = parseIPL('\x02\x1bC1\x03\x02\x1bP\x03\x02W1;o10,20;f0;l200;h100;w2\x03\x02\x1bE1\x03\x02R\x03');
+      final result = parseIPL(
+        '\x02\x1bC1\x03\x02\x1bP\x03\x02W1;o10,20;f0;l200;h100;w2\x03\x02\x1bE1\x03\x02R\x03',
+      );
       final boxes = result.elements.whereType<BoxElement>().toList();
       expect(boxes, hasLength(1));
       expect(boxes[0].options.x, equals(10));
@@ -79,7 +87,9 @@ void main() {
     });
 
     test('parses line field', () {
-      final result = parseIPL('\x02\x1bC1\x03\x02\x1bP\x03\x02L1;o10,50;f0;l290;w2\x03\x02\x1bE1\x03\x02R\x03');
+      final result = parseIPL(
+        '\x02\x1bC1\x03\x02\x1bP\x03\x02L1;o10,50;f0;l290;w2\x03\x02\x1bE1\x03\x02R\x03',
+      );
       final lines = result.elements.whereType<LineElement>().toList();
       expect(lines, hasLength(1));
       expect(lines[0].options.x1, equals(10));
@@ -87,7 +97,9 @@ void main() {
     });
 
     test('parses multiple copies', () {
-      final result = parseIPL('\x02\x1bC1\x03\x02\x1bP\x03\x02\x1bM5\x03\x02\x1bE1\x03\x02R\x03');
+      final result = parseIPL(
+        '\x02\x1bC1\x03\x02\x1bP\x03\x02\x1bM5\x03\x02\x1bE1\x03\x02R\x03',
+      );
       final cmd = result.commands.firstWhere((c) => c.type == 'MULTIPLE');
       expect(cmd.params, equals('5'));
     });
@@ -128,7 +140,7 @@ void main() {
         0x1B, 0x40, // ESC @
         ...('Hello Star'.codeUnits),
         0x0A, // LF
-        0x1B, 0x64, 1 // partial cut
+        0x1B, 0x64, 1, // partial cut
       ];
       final result = parseStarPRNT(Uint8List.fromList(bytes));
       final texts = result.elements.whereType<TextElement>().toList();
@@ -225,11 +237,7 @@ void main() {
     });
 
     test('parses text content', () {
-      final bytes = [
-        0x1B, 0x40,
-        ...('Hello'.codeUnits),
-        0x0A,
-      ];
+      final bytes = [0x1B, 0x40, ...('Hello'.codeUnits), 0x0A];
       final result = parseESCPOS(Uint8List.fromList(bytes));
       final texts = result.elements.whereType<TextElement>().toList();
       expect(texts, hasLength(1));

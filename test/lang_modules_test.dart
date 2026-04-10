@@ -6,7 +6,9 @@ import 'package:portakal_flutter/src/types.dart';
 
 void main() {
   group('tsc language module', () {
-    LabelBuilder b() => label(LabelConfig(width: 40, height: 30)).text('Hello', TextOptions(x: 10, y: 10, size: 2));
+    LabelBuilder b() => label(
+      LabelConfig(width: 40, height: 30),
+    ).text('Hello', TextOptions(x: 10, y: 10, size: 2));
 
     test('compiles to TSC', () {
       expect(tsc.compile(b()), contains('TEXT 10,10,"2",0,2,2,"Hello"'));
@@ -22,12 +24,16 @@ void main() {
     });
 
     test('parses TSC code', () {
-      final result = tsc.parse('SIZE 40 mm,30 mm\nCLS\nTEXT 10,10,"2",0,2,2,"Hello"\nPRINT 1');
+      final result = tsc.parse(
+        'SIZE 40 mm,30 mm\nCLS\nTEXT 10,10,"2",0,2,2,"Hello"\nPRINT 1',
+      );
       expect(result.commands.length, greaterThan(0));
     });
 
     test('validates TSC code', () {
-      final result = tsc.validate('SIZE 40 mm,30 mm\nCLS\nTEXT 10,10,"2",0,1,1,"Hi"\nPRINT 1');
+      final result = tsc.validate(
+        'SIZE 40 mm,30 mm\nCLS\nTEXT 10,10,"2",0,1,1,"Hi"\nPRINT 1',
+      );
       expect(result.valid, isTrue);
     });
 
@@ -58,15 +64,24 @@ void main() {
     });
 
     test('renders filled box when thickness >= side', () {
-      final b2 = label(LabelConfig(width: 40, height: 30))
-          .box(BoxOptions(x: 50, y: 50, width: 100, height: 100, thickness: 100));
+      final b2 = label(
+        LabelConfig(width: 40, height: 30),
+      ).box(BoxOptions(x: 50, y: 50, width: 100, height: 100, thickness: 100));
       final svg = zpl.preview(b2);
       expect(svg, contains('fill="#000"'));
     });
 
     test('renders corner radius correctly', () {
-      final b2 = label(LabelConfig(width: 40, height: 30))
-          .box(BoxOptions(x: 10, y: 10, width: 200, height: 100, thickness: 3, radius: 4));
+      final b2 = label(LabelConfig(width: 40, height: 30)).box(
+        BoxOptions(
+          x: 10,
+          y: 10,
+          width: 200,
+          height: 100,
+          thickness: 3,
+          radius: 4,
+        ),
+      );
       final svg = zpl.preview(b2);
       expect(svg, contains('rx="4"'));
     });
@@ -89,14 +104,18 @@ void main() {
 
   group('TSC vs ZPL preview differences', () {
     test('produces different SVGs for same label', () {
-      final b = label(LabelConfig(width: 40, height: 30)).text('Test', TextOptions(x: 10, y: 10, font: '2', size: 2));
+      final b = label(
+        LabelConfig(width: 40, height: 30),
+      ).text('Test', TextOptions(x: 10, y: 10, font: '2', size: 2));
       final tscSvg = tsc.preview(b);
       final zplSvg = zpl.preview(b);
       expect(tscSvg, isNot(equals(zplSvg)));
     });
 
     test('labels show language name', () {
-      final b = label(LabelConfig(width: 40, height: 30)).text('Test', TextOptions(x: 10, y: 10));
+      final b = label(
+        LabelConfig(width: 40, height: 30),
+      ).text('Test', TextOptions(x: 10, y: 10));
       expect(tsc.preview(b), contains('— TSC'));
       expect(zpl.preview(b), contains('— ZPL'));
     });

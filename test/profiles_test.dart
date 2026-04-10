@@ -103,7 +103,11 @@ void main() {
         expect(p.vendor.isNotEmpty, isTrue, reason: '$id missing vendor');
         expect(p.language.isNotEmpty, isTrue, reason: '$id missing language');
         expect(p.paperWidth, greaterThan(0), reason: '$id missing paperWidth');
-        expect(p.dotsPerLine, greaterThan(0), reason: '$id missing dotsPerLine');
+        expect(
+          p.dotsPerLine,
+          greaterThan(0),
+          reason: '$id missing dotsPerLine',
+        );
         expect(p.dpi, greaterThan(0), reason: '$id missing dpi');
       }
     });

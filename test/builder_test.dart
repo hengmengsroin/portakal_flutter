@@ -46,15 +46,17 @@ void main() {
     });
 
     test('resolves with custom config', () {
-      final resolved = label(LabelConfig(
-        width: 4,
-        height: 6,
-        unit: Unit.inch,
-        dpi: 300,
-        speed: 6,
-        density: 12,
-        copies: 3,
-      )).resolve();
+      final resolved = label(
+        LabelConfig(
+          width: 4,
+          height: 6,
+          unit: Unit.inch,
+          dpi: 300,
+          speed: 6,
+          density: 12,
+          copies: 3,
+        ),
+      ).resolve();
 
       expect(resolved.widthDots, equals(1200));
       expect(resolved.heightDots, equals(1800));
@@ -70,10 +72,9 @@ void main() {
     });
 
     test('collects elements in order', () {
-      final resolved = label(LabelConfig(width: 40, height: 30))
-          .text('First')
-          .text('Last')
-          .resolve();
+      final resolved = label(
+        LabelConfig(width: 40, height: 30),
+      ).text('First').text('Last').resolve();
 
       expect(resolved.elements, hasLength(2));
       expect(resolved.elements[0].type, equals('text'));

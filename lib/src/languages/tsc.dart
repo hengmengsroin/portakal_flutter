@@ -36,7 +36,9 @@ String compileToTSC(ResolvedLabel label) {
         final rotation = o.rotation ?? 0;
         final xMul = o.xScale ?? o.size ?? 1;
         final yMul = o.yScale ?? o.size ?? 1;
-        buf.write('TEXT $x,$y,"$font",$rotation,$xMul,$yMul,"${el.content}"\r\n');
+        buf.write(
+          'TEXT $x,$y,"$font",$rotation,$xMul,$yMul,"${el.content}"\r\n',
+        );
 
       case ImageElement():
         final o = el.options;
@@ -85,7 +87,9 @@ String compileToTSC(ResolvedLabel label) {
 
       case EllipseElement():
         final o = el.options;
-        buf.write('ELLIPSE ${o.x},${o.y},${o.width},${o.height},${o.thickness ?? 1}\r\n');
+        buf.write(
+          'ELLIPSE ${o.x},${o.y},${o.width},${o.height},${o.thickness ?? 1}\r\n',
+        );
 
       case ReverseElement():
         final o = el.options;

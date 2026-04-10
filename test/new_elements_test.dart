@@ -1,4 +1,3 @@
-
 import 'package:test/test.dart';
 import 'package:portakal_flutter/src/builder.dart';
 import 'package:portakal_flutter/src/lang/cpcl.dart';
@@ -17,8 +16,9 @@ void main() {
   group('Ellipse element', () {
     test('generates TSC ELLIPSE', () {
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .ellipse(EllipseOptions(x: 50, y: 50, width: 100, height: 60, thickness: 2)),
+        label(LabelConfig(width: 40, height: 30)).ellipse(
+          EllipseOptions(x: 50, y: 50, width: 100, height: 60, thickness: 2),
+        ),
       );
       expect(output, contains('ELLIPSE 50,50,100,60,2'));
     });
@@ -26,7 +26,15 @@ void main() {
     test('renders in preview as SVG ellipse', () {
       final svg = renderPreview(
         label(LabelConfig(width: 40, height: 30))
-            .ellipse(EllipseOptions(x: 50, y: 50, width: 100, height: 60, thickness: 2))
+            .ellipse(
+              EllipseOptions(
+                x: 50,
+                y: 50,
+                width: 100,
+                height: 60,
+                thickness: 2,
+              ),
+            )
             .resolve(),
       );
       expect(svg, contains('<ellipse'));
@@ -38,8 +46,9 @@ void main() {
   group('Reverse element', () {
     test('generates TSC REVERSE', () {
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .reverse(ReverseOptions(x: 10, y: 10, width: 200, height: 30)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).reverse(ReverseOptions(x: 10, y: 10, width: 200, height: 30)),
       );
       expect(output, contains('REVERSE 10,10,200,30'));
     });
@@ -58,17 +67,18 @@ void main() {
   group('Erase element', () {
     test('generates TSC ERASE', () {
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .erase(EraseOptions(x: 10, y: 10, width: 50, height: 50)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).erase(EraseOptions(x: 10, y: 10, width: 50, height: 50)),
       );
       expect(output, contains('ERASE 10,10,50,50'));
     });
 
     test('renders in preview as white rect', () {
       final svg = renderPreview(
-        label(LabelConfig(width: 40, height: 30))
-            .erase(EraseOptions(x: 10, y: 10, width: 50, height: 50))
-            .resolve(),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).erase(EraseOptions(x: 10, y: 10, width: 50, height: 50)).resolve(),
       );
       expect(svg, contains('fill="#fff"'));
     });

@@ -15,7 +15,10 @@ LabelBuilder markup(String source) {
   final trimmed = source.trim();
 
   // Extract <label ...> attributes
-  final labelMatch = RegExp(r'<label((?:\s+[\w-]+(?:="[^"]*")?)*)\s*>', caseSensitive: false).firstMatch(trimmed);
+  final labelMatch = RegExp(
+    r'<label((?:\s+[\w-]+(?:="[^"]*")?)*)\s*>',
+    caseSensitive: false,
+  ).firstMatch(trimmed);
   if (labelMatch == null) {
     throw ArgumentError('Markup must contain a <label> root element');
   }
@@ -25,26 +28,44 @@ LabelBuilder markup(String source) {
 
   final config = LabelConfig(
     width: _parseUnitValue(labelAttrs['width'] ?? '40mm'),
-    height: labelAttrs.containsKey('height') ? _parseUnitValue(labelAttrs['height']!) : null,
+    height: labelAttrs.containsKey('height')
+        ? _parseUnitValue(labelAttrs['height']!)
+        : null,
     unit: Unit.fromString(unit),
-    dpi: labelAttrs.containsKey('dpi') ? int.tryParse(labelAttrs['dpi']!) : null,
-    gap: labelAttrs.containsKey('gap') ? _parseUnitValue(labelAttrs['gap']!) : null,
-    speed: labelAttrs.containsKey('speed') ? int.tryParse(labelAttrs['speed']!) : null,
-    density: labelAttrs.containsKey('density') ? int.tryParse(labelAttrs['density']!) : null,
-    copies: labelAttrs.containsKey('copies') ? int.tryParse(labelAttrs['copies']!) : null,
+    dpi: labelAttrs.containsKey('dpi')
+        ? int.tryParse(labelAttrs['dpi']!)
+        : null,
+    gap: labelAttrs.containsKey('gap')
+        ? _parseUnitValue(labelAttrs['gap']!)
+        : null,
+    speed: labelAttrs.containsKey('speed')
+        ? int.tryParse(labelAttrs['speed']!)
+        : null,
+    density: labelAttrs.containsKey('density')
+        ? int.tryParse(labelAttrs['density']!)
+        : null,
+    copies: labelAttrs.containsKey('copies')
+        ? int.tryParse(labelAttrs['copies']!)
+        : null,
     printer: labelAttrs['printer'],
   );
 
   final b = label(config);
 
   // Extract inner content between <label> and </label>
-  final innerMatch = RegExp(r'<label[^>]*>([\s\S]*)</label>', caseSensitive: false).firstMatch(trimmed);
+  final innerMatch = RegExp(
+    r'<label[^>]*>([\s\S]*)</label>',
+    caseSensitive: false,
+  ).firstMatch(trimmed);
   if (innerMatch == null) return b;
 
   final inner = innerMatch.group(1)!;
 
   // Find all tags
-  final tagRegex = RegExp(r'<(\w+)((?:\s+[\w-]+(?:="[^"]*")?)*)\s*(?:/>|>([\s\S]*?)</\1>)', caseSensitive: false);
+  final tagRegex = RegExp(
+    r'<(\w+)((?:\s+[\w-]+(?:="[^"]*")?)*)\s*(?:/>|>([\s\S]*?)</\1>)',
+    caseSensitive: false,
+  );
 
   for (final match in tagRegex.allMatches(inner)) {
     final tagName = match.group(1)!.toLowerCase();
@@ -53,64 +74,102 @@ LabelBuilder markup(String source) {
 
     switch (tagName) {
       case 'text':
-        b.text(content, TextOptions(
-          x: attrs.containsKey('x') ? int.tryParse(attrs['x']!) : null,
-          y: attrs.containsKey('y') ? int.tryParse(attrs['y']!) : null,
-          font: attrs['font'],
-          size: attrs.containsKey('size') ? int.tryParse(attrs['size']!) : null,
-          rotation: attrs.containsKey('rotation') ? int.tryParse(attrs['rotation']!) : null,
-          bold: attrs.containsKey('bold') ? true : null,
-          underline: attrs.containsKey('underline') ? true : null,
-          reverse: attrs.containsKey('reverse') ? true : null,
-          align: attrs['align'],
-          maxWidth: attrs.containsKey('maxwidth') ? int.tryParse(attrs['maxwidth']!) : attrs.containsKey('max-width') ? int.tryParse(attrs['max-width']!) : null,
-        ));
+        b.text(
+          content,
+          TextOptions(
+            x: attrs.containsKey('x') ? int.tryParse(attrs['x']!) : null,
+            y: attrs.containsKey('y') ? int.tryParse(attrs['y']!) : null,
+            font: attrs['font'],
+            size: attrs.containsKey('size')
+                ? int.tryParse(attrs['size']!)
+                : null,
+            rotation: attrs.containsKey('rotation')
+                ? int.tryParse(attrs['rotation']!)
+                : null,
+            bold: attrs.containsKey('bold') ? true : null,
+            underline: attrs.containsKey('underline') ? true : null,
+            reverse: attrs.containsKey('reverse') ? true : null,
+            align: attrs['align'],
+            maxWidth: attrs.containsKey('maxwidth')
+                ? int.tryParse(attrs['maxwidth']!)
+                : attrs.containsKey('max-width')
+                ? int.tryParse(attrs['max-width']!)
+                : null,
+          ),
+        );
       case 'line':
-        b.line(LineOptions(
-          x1: int.tryParse(attrs['x1'] ?? '0') ?? 0,
-          y1: int.tryParse(attrs['y1'] ?? '0') ?? 0,
-          x2: int.tryParse(attrs['x2'] ?? '0') ?? 0,
-          y2: int.tryParse(attrs['y2'] ?? '0') ?? 0,
-          thickness: attrs.containsKey('thickness') ? int.tryParse(attrs['thickness']!) : attrs.containsKey('border') ? int.tryParse(attrs['border']!) : null,
-        ));
+        b.line(
+          LineOptions(
+            x1: int.tryParse(attrs['x1'] ?? '0') ?? 0,
+            y1: int.tryParse(attrs['y1'] ?? '0') ?? 0,
+            x2: int.tryParse(attrs['x2'] ?? '0') ?? 0,
+            y2: int.tryParse(attrs['y2'] ?? '0') ?? 0,
+            thickness: attrs.containsKey('thickness')
+                ? int.tryParse(attrs['thickness']!)
+                : attrs.containsKey('border')
+                ? int.tryParse(attrs['border']!)
+                : null,
+          ),
+        );
       case 'box':
-        b.box(BoxOptions(
-          x: int.tryParse(attrs['x'] ?? '0') ?? 0,
-          y: int.tryParse(attrs['y'] ?? '0') ?? 0,
-          width: int.tryParse(attrs['width'] ?? '100') ?? 100,
-          height: int.tryParse(attrs['height'] ?? '100') ?? 100,
-          thickness: attrs.containsKey('thickness') ? int.tryParse(attrs['thickness']!) : attrs.containsKey('border') ? int.tryParse(attrs['border']!) : null,
-          radius: attrs.containsKey('radius') ? int.tryParse(attrs['radius']!) : null,
-        ));
+        b.box(
+          BoxOptions(
+            x: int.tryParse(attrs['x'] ?? '0') ?? 0,
+            y: int.tryParse(attrs['y'] ?? '0') ?? 0,
+            width: int.tryParse(attrs['width'] ?? '100') ?? 100,
+            height: int.tryParse(attrs['height'] ?? '100') ?? 100,
+            thickness: attrs.containsKey('thickness')
+                ? int.tryParse(attrs['thickness']!)
+                : attrs.containsKey('border')
+                ? int.tryParse(attrs['border']!)
+                : null,
+            radius: attrs.containsKey('radius')
+                ? int.tryParse(attrs['radius']!)
+                : null,
+          ),
+        );
       case 'circle':
-        b.circle(CircleOptions(
-          x: int.tryParse(attrs['x'] ?? '0') ?? 0,
-          y: int.tryParse(attrs['y'] ?? '0') ?? 0,
-          diameter: int.tryParse(attrs['diameter'] ?? attrs['size'] ?? '50') ?? 50,
-          thickness: attrs.containsKey('thickness') ? int.tryParse(attrs['thickness']!) : null,
-        ));
+        b.circle(
+          CircleOptions(
+            x: int.tryParse(attrs['x'] ?? '0') ?? 0,
+            y: int.tryParse(attrs['y'] ?? '0') ?? 0,
+            diameter:
+                int.tryParse(attrs['diameter'] ?? attrs['size'] ?? '50') ?? 50,
+            thickness: attrs.containsKey('thickness')
+                ? int.tryParse(attrs['thickness']!)
+                : null,
+          ),
+        );
       case 'ellipse':
-        b.ellipse(EllipseOptions(
-          x: int.tryParse(attrs['x'] ?? '0') ?? 0,
-          y: int.tryParse(attrs['y'] ?? '0') ?? 0,
-          width: int.tryParse(attrs['width'] ?? '100') ?? 100,
-          height: int.tryParse(attrs['height'] ?? '60') ?? 60,
-          thickness: attrs.containsKey('thickness') ? int.tryParse(attrs['thickness']!) : null,
-        ));
+        b.ellipse(
+          EllipseOptions(
+            x: int.tryParse(attrs['x'] ?? '0') ?? 0,
+            y: int.tryParse(attrs['y'] ?? '0') ?? 0,
+            width: int.tryParse(attrs['width'] ?? '100') ?? 100,
+            height: int.tryParse(attrs['height'] ?? '60') ?? 60,
+            thickness: attrs.containsKey('thickness')
+                ? int.tryParse(attrs['thickness']!)
+                : null,
+          ),
+        );
       case 'reverse':
-        b.reverse(ReverseOptions(
-          x: int.tryParse(attrs['x'] ?? '0') ?? 0,
-          y: int.tryParse(attrs['y'] ?? '0') ?? 0,
-          width: int.tryParse(attrs['width'] ?? '100') ?? 100,
-          height: int.tryParse(attrs['height'] ?? '30') ?? 30,
-        ));
+        b.reverse(
+          ReverseOptions(
+            x: int.tryParse(attrs['x'] ?? '0') ?? 0,
+            y: int.tryParse(attrs['y'] ?? '0') ?? 0,
+            width: int.tryParse(attrs['width'] ?? '100') ?? 100,
+            height: int.tryParse(attrs['height'] ?? '30') ?? 30,
+          ),
+        );
       case 'erase':
-        b.erase(EraseOptions(
-          x: int.tryParse(attrs['x'] ?? '0') ?? 0,
-          y: int.tryParse(attrs['y'] ?? '0') ?? 0,
-          width: int.tryParse(attrs['width'] ?? '100') ?? 100,
-          height: int.tryParse(attrs['height'] ?? '30') ?? 30,
-        ));
+        b.erase(
+          EraseOptions(
+            x: int.tryParse(attrs['x'] ?? '0') ?? 0,
+            y: int.tryParse(attrs['y'] ?? '0') ?? 0,
+            width: int.tryParse(attrs['width'] ?? '100') ?? 100,
+            height: int.tryParse(attrs['height'] ?? '30') ?? 30,
+          ),
+        );
       case 'raw':
         b.raw(content);
     }
@@ -131,7 +190,10 @@ Map<String, String> _parseAttrs(String s) {
 
 /// Parse unit value (strip units, return number).
 double _parseUnitValue(String s) {
-  return double.tryParse(s.replaceAll(RegExp(r'\s*(mm|inch|dot|px)$', caseSensitive: false), '')) ?? 0;
+  return double.tryParse(
+        s.replaceAll(RegExp(r'\s*(mm|inch|dot|px)$', caseSensitive: false), ''),
+      ) ??
+      0;
 }
 
 /// Get unit from attribute string.

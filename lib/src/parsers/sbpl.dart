@@ -37,31 +37,44 @@ SBPLParseResult parseSBPL(String code) {
       } else if (code[i] == 'H') {
         i++;
         final start = i;
-        while (i < code.length && code.codeUnitAt(i) != 0x1B) i++;
+        while (i < code.length && code.codeUnitAt(i) != 0x1B) {
+          i++;
+        }
         final params = code.substring(start, i);
         commands.add(SBPLCommand(cmd: 'H', params: params));
         curX = int.tryParse(params) ?? curX;
       } else if (code[i] == 'V') {
         i++;
         final start = i;
-        while (i < code.length && code.codeUnitAt(i) != 0x1B) i++;
+        while (i < code.length && code.codeUnitAt(i) != 0x1B) {
+          i++;
+        }
         final params = code.substring(start, i);
         commands.add(SBPLCommand(cmd: 'V', params: params));
         curY = int.tryParse(params) ?? curY;
-      } else if (code[i] == 'K' && i + 2 < code.length && code[i + 1] == '9' && code[i + 2] == 'B') {
+      } else if (code[i] == 'K' &&
+          i + 2 < code.length &&
+          code[i + 1] == '9' &&
+          code[i + 2] == 'B') {
         i += 3;
         final start = i;
-        while (i < code.length && code.codeUnitAt(i) != 0x1B) i++;
+        while (i < code.length && code.codeUnitAt(i) != 0x1B) {
+          i++;
+        }
         final text = code.substring(start, i);
         commands.add(SBPLCommand(cmd: 'K9B', params: text));
-        elements.add(TextElement(
-          content: text,
-          options: TextOptions(x: curX, y: curY),
-        ));
+        elements.add(
+          TextElement(
+            content: text,
+            options: TextOptions(x: curX, y: curY),
+          ),
+        );
       } else {
         // Skip other ESC commands
         i++;
-        while (i < code.length && code.codeUnitAt(i) != 0x1B) i++;
+        while (i < code.length && code.codeUnitAt(i) != 0x1B) {
+          i++;
+        }
       }
     } else {
       i++;

@@ -205,14 +205,16 @@ void main() {
         final cmd = result.commands.firstWhere((c) => c.cmd == 'BARCODE');
         expect(cmd.x, equals(50));
         expect(cmd.y, equals(100));
-        expect(cmd.type_str, equals('128'));
+        expect(cmd.typeStr, equals('128'));
         expect(cmd.height, equals(60));
         expect(cmd.readable, equals(1));
         expect(cmd.content, equals('ABC123'));
       });
 
       test('parses QRCODE', () {
-        final result = parseTSPL('QRCODE 100,200,L,4,A,0,M2,S3,"https://example.com"');
+        final result = parseTSPL(
+          'QRCODE 100,200,L,4,A,0,M2,S3,"https://example.com"',
+        );
         final cmd = result.commands.firstWhere((c) => c.cmd == 'QRCODE');
         expect(cmd.x, equals(100));
         expect(cmd.y, equals(200));
@@ -355,7 +357,7 @@ void main() {
         final cmd = result.commands.firstWhere((c) => c.cmd == 'FOR');
         expect(cmd.variable, equals('I'));
         expect(cmd.start, equals('1'));
-        expect(cmd.end_val, equals('10'));
+        expect(cmd.endVal, equals('10'));
         expect(cmd.step, equals('2'));
       });
 
@@ -378,13 +380,13 @@ void main() {
       test('parses GOTO', () {
         final result = parseTSPL('GOTO STARTLOOP');
         final cmd = result.commands.firstWhere((c) => c.cmd == 'GOTO');
-        expect(cmd.label_name, equals('STARTLOOP'));
+        expect(cmd.labelName, equals('STARTLOOP'));
       });
 
       test('parses GOSUB', () {
         final result = parseTSPL('GOSUB MYSUB');
         final cmd = result.commands.firstWhere((c) => c.cmd == 'GOSUB');
-        expect(cmd.label_name, equals('MYSUB'));
+        expect(cmd.labelName, equals('MYSUB'));
       });
 
       test('parses REM comment', () {
@@ -451,7 +453,7 @@ void main() {
     test('parses COUNTRY', () {
       final result = parseTSPL('COUNTRY 001');
       final cmd = result.commands.firstWhere((c) => c.cmd == 'COUNTRY');
-      expect(cmd.code_str, equals('001'));
+      expect(cmd.codeStr, equals('001'));
     });
 
     // --- Multi-line Command Parsing ---

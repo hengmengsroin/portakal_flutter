@@ -13,8 +13,8 @@ class MockTransport implements PrinterTransport {
   int _failsRemaining;
 
   MockTransport({int failCount = 0})
-      : state = ConnectionState.connected,
-        _failsRemaining = failCount;
+    : state = ConnectionState.connected,
+      _failsRemaining = failCount;
 
   @override
   Future<void> connect() async {
@@ -47,7 +47,11 @@ void main() {
     test('writes small data in one chunk', () async {
       final transport = MockTransport();
       final data = Uint8List.fromList([1, 2, 3, 4, 5]);
-      await chunkedWrite(transport, data, ChunkOptions(chunkSize: 512, chunkDelay: 0));
+      await chunkedWrite(
+        transport,
+        data,
+        ChunkOptions(chunkSize: 512, chunkDelay: 0),
+      );
       expect(transport.written, hasLength(1));
       expect(transport.written[0], equals(data));
     });
@@ -55,7 +59,11 @@ void main() {
     test('splits large data into chunks', () async {
       final transport = MockTransport();
       final data = Uint8List(100);
-      await chunkedWrite(transport, data, ChunkOptions(chunkSize: 30, chunkDelay: 0));
+      await chunkedWrite(
+        transport,
+        data,
+        ChunkOptions(chunkSize: 30, chunkDelay: 0),
+      );
       expect(transport.written, hasLength(4)); // 30+30+30+10
       expect(transport.written[0].length, equals(30));
       expect(transport.written[3].length, equals(10));
@@ -68,7 +76,11 @@ void main() {
         data[i] = i;
       }
 
-      await chunkedWrite(transport, data, ChunkOptions(chunkSize: 20, chunkDelay: 0));
+      await chunkedWrite(
+        transport,
+        data,
+        ChunkOptions(chunkSize: 20, chunkDelay: 0),
+      );
 
       final reassembled = <int>[];
       for (final chunk in transport.written) {
@@ -88,14 +100,22 @@ void main() {
     test('writes successfully on first attempt', () async {
       final transport = MockTransport();
       final data = Uint8List.fromList([1, 2, 3]);
-      await writeWithRetry(transport, data, RetryOptions(maxRetries: 3, initialDelay: 1));
+      await writeWithRetry(
+        transport,
+        data,
+        RetryOptions(maxRetries: 3, initialDelay: 1),
+      );
       expect(transport.written, hasLength(1));
     });
 
     test('retries on failure and succeeds', () async {
       final transport = MockTransport(failCount: 2);
       final data = Uint8List.fromList([1, 2, 3]);
-      await writeWithRetry(transport, data, RetryOptions(maxRetries: 3, initialDelay: 1));
+      await writeWithRetry(
+        transport,
+        data,
+        RetryOptions(maxRetries: 3, initialDelay: 1),
+      );
       expect(transport.written, hasLength(1));
     });
 
@@ -103,7 +123,11 @@ void main() {
       final transport = MockTransport(failCount: 10);
       final data = Uint8List.fromList([1]);
       expect(
-        () => writeWithRetry(transport, data, RetryOptions(maxRetries: 2, initialDelay: 1)),
+        () => writeWithRetry(
+          transport,
+          data,
+          RetryOptions(maxRetries: 2, initialDelay: 1),
+        ),
         throwsA(isA<Exception>()),
       );
     });
@@ -112,7 +136,11 @@ void main() {
       final transport = MockTransport();
       transport.state = ConnectionState.disconnected;
       final data = Uint8List.fromList([1]);
-      await writeWithRetry(transport, data, RetryOptions(maxRetries: 1, initialDelay: 1));
+      await writeWithRetry(
+        transport,
+        data,
+        RetryOptions(maxRetries: 1, initialDelay: 1),
+      );
       expect(transport.connectCalls, equals(1));
     });
   });

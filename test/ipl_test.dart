@@ -28,15 +28,18 @@ void main() {
     });
 
     test('generates speed and density config', () {
-      final output = ipl.compile(label(LabelConfig(width: 40, height: 30, speed: 6, density: 10)));
+      final output = ipl.compile(
+        label(LabelConfig(width: 40, height: 30, speed: 6, density: 10)),
+      );
       expect(output, contains('<SI>S60'));
       expect(output, contains('<SI>d10'));
     });
 
     test('generates text field (H command)', () {
       final output = ipl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Hello IPL', TextOptions(x: 50, y: 30)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello IPL', TextOptions(x: 50, y: 30)),
       );
       expect(output, contains('H1;o50,30'));
       expect(output, contains('Hello IPL'));
@@ -44,16 +47,18 @@ void main() {
 
     test('generates rotated text', () {
       final output = ipl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Rotated', TextOptions(x: 10, y: 20, rotation: 90)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Rotated', TextOptions(x: 10, y: 20, rotation: 90)),
       );
       expect(output, contains(';f1;')); // rotation 1 = 90 degrees
     });
 
     test('generates box field (W command)', () {
       final output = ipl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .box(BoxOptions(x: 10, y: 20, width: 200, height: 100, thickness: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).box(BoxOptions(x: 10, y: 20, width: 200, height: 100, thickness: 2)),
       );
       expect(output, contains('W1;o10,20'));
       expect(output, contains('l200'));
@@ -63,8 +68,9 @@ void main() {
 
     test('generates horizontal line (L command)', () {
       final output = ipl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .line(LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).line(LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)),
       );
       expect(output, contains('L1;o10,50'));
       expect(output, contains('l290'));
@@ -72,20 +78,25 @@ void main() {
 
     test('generates vertical line', () {
       final output = ipl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .line(LineOptions(x1: 50, y1: 10, x2: 50, y2: 200)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).line(LineOptions(x1: 50, y1: 10, x2: 50, y2: 200)),
       );
       expect(output, contains(';f1;')); // vertical
       expect(output, contains('l190'));
     });
 
     test('generates multiple copies', () {
-      final output = ipl.compile(label(LabelConfig(width: 40, height: 30, copies: 5)));
+      final output = ipl.compile(
+        label(LabelConfig(width: 40, height: 30, copies: 5)),
+      );
       expect(output, contains('\x1bM5'));
     });
 
     test('handles raw passthrough', () {
-      final output = ipl.compile(label(LabelConfig(width: 40, height: 30)).raw('CUSTOM_CMD'));
+      final output = ipl.compile(
+        label(LabelConfig(width: 40, height: 30)).raw('CUSTOM_CMD'),
+      );
       expect(output, contains('CUSTOM_CMD'));
     });
   });

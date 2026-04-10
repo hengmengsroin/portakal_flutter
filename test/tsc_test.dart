@@ -18,13 +18,17 @@ void main() {
     });
 
     test('generates SPEED and DENSITY', () {
-      final output = tsc.compile(label(LabelConfig(width: 40, height: 30, speed: 6, density: 10)));
+      final output = tsc.compile(
+        label(LabelConfig(width: 40, height: 30, speed: 6, density: 10)),
+      );
       expect(output, contains('SPEED 6'));
       expect(output, contains('DENSITY 10'));
     });
 
     test('generates DIRECTION', () {
-      final output = tsc.compile(label(LabelConfig(width: 40, height: 30, direction: 1)));
+      final output = tsc.compile(
+        label(LabelConfig(width: 40, height: 30, direction: 1)),
+      );
       expect(output, contains('DIRECTION 1'));
     });
 
@@ -35,32 +39,36 @@ void main() {
 
     test('generates TEXT with position and font', () {
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Hello TSC', TextOptions(x: 10, y: 20, font: '3', size: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello TSC', TextOptions(x: 10, y: 20, font: '3', size: 2)),
       );
       expect(output, contains('TEXT 10,20,"3",0,2,2,"Hello TSC"'));
     });
 
     test('generates BOX', () {
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
       );
       expect(output, contains('BOX 5,5,315,235,2'));
     });
 
     test('generates BAR (horizontal line)', () {
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .line(LineOptions(x1: 5, y1: 55, x2: 315, y2: 55, thickness: 1)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).line(LineOptions(x1: 5, y1: 55, x2: 315, y2: 55, thickness: 1)),
       );
       expect(output, contains('BAR 5,55,310,1'));
     });
 
     test('generates CIRCLE', () {
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .circle(CircleOptions(x: 250, y: 180, diameter: 40, thickness: 1)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).circle(CircleOptions(x: 250, y: 180, diameter: 40, thickness: 1)),
       );
       expect(output, contains('CIRCLE 250,180,40,1'));
     });
@@ -73,8 +81,9 @@ void main() {
         bytesPerRow: 1,
       );
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .image(bitmap, ImageOptions(x: 10, y: 10)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).image(bitmap, ImageOptions(x: 10, y: 10)),
       );
       expect(output, contains('BITMAP 10,10,1,2,0,'));
     });
@@ -87,7 +96,9 @@ void main() {
     });
 
     test('generates PRINT with copies', () {
-      final output = tsc.compile(label(LabelConfig(width: 40, height: 30, copies: 5)));
+      final output = tsc.compile(
+        label(LabelConfig(width: 40, height: 30, copies: 5)),
+      );
       expect(output, contains('PRINT 5'));
     });
 

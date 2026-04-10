@@ -26,18 +26,20 @@ String compileToDPL(ResolvedLabel label) {
         final xMul = o.xScale ?? o.size ?? 1;
         final yMul = o.yScale ?? o.size ?? 1;
         // DPL text record: rotation y x font xmul ymul
-        buf.write('$rotation');
-        buf.write('${_pad4(y)}');
-        buf.write('${_pad4(x)}');
-        buf.write('$font');
-        buf.write('${xMul.toString().padLeft(2, '0')}');
-        buf.write('${yMul.toString().padLeft(2, '0')}');
+        buf.write(rotation);
+        buf.write(_pad4(y));
+        buf.write(_pad4(x));
+        buf.write(font);
+        buf.write(xMul.toString().padLeft(2, '0'));
+        buf.write(yMul.toString().padLeft(2, '0'));
         buf.write('${el.content}\n');
 
       case BoxElement():
         final o = el.options;
         final t = o.thickness ?? 1;
-        buf.write('1e${_pad4(o.y)}${_pad4(o.x)}${_pad4(o.width)}${_pad4(o.height)}${_pad4(t)}\n');
+        buf.write(
+          '1e${_pad4(o.y)}${_pad4(o.x)}${_pad4(o.width)}${_pad4(o.height)}${_pad4(t)}\n',
+        );
 
       case LineElement():
         final o = el.options;

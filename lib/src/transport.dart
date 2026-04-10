@@ -1,11 +1,7 @@
 import 'dart:typed_data';
 
 /// Printer connection state.
-enum ConnectionState {
-  disconnected,
-  connecting,
-  connected,
-}
+enum ConnectionState { disconnected, connecting, connected }
 
 /// Abstract transport interface for printer communication.
 abstract class PrinterTransport {

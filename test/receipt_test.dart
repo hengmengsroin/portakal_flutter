@@ -104,7 +104,10 @@ void main() {
     });
 
     test('wraps at word boundary', () {
-      final result = wordWrap('The quick brown fox jumps over the lazy dog', 20);
+      final result = wordWrap(
+        'The quick brown fox jumps over the lazy dog',
+        20,
+      );
       expect(result.length, greaterThan(1));
       for (final line in result) {
         expect(line.length, lessThanOrEqualTo(20));

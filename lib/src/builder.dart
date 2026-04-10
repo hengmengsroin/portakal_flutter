@@ -27,19 +27,17 @@ class LabelBuilder {
 
   /// Add a text element.
   LabelBuilder text(String content, [TextOptions? options]) {
-    _elements.add(TextElement(
-      content: content,
-      options: options ?? const TextOptions(),
-    ));
+    _elements.add(
+      TextElement(content: content, options: options ?? const TextOptions()),
+    );
     return this;
   }
 
   /// Add an image element.
   LabelBuilder image(MonochromeBitmap bitmap, [ImageOptions? options]) {
-    _elements.add(ImageElement(
-      bitmap: bitmap,
-      options: options ?? const ImageOptions(),
-    ));
+    _elements.add(
+      ImageElement(bitmap: bitmap, options: options ?? const ImageOptions()),
+    );
     return this;
   }
 

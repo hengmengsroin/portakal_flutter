@@ -21,32 +21,36 @@ void main() {
 
     test('generates ^FO position', () {
       final output = zpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Hello', TextOptions(x: 50, y: 100)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello', TextOptions(x: 50, y: 100)),
       );
       expect(output, contains('^FO50,100'));
     });
 
     test('generates ^FD...^FS text', () {
       final output = zpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Hello ZPL', TextOptions(x: 10, y: 10)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello ZPL', TextOptions(x: 10, y: 10)),
       );
       expect(output, contains('^FDHello ZPL^FS'));
     });
 
     test('generates ^GB for box', () {
       final output = zpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .box(BoxOptions(x: 10, y: 10, width: 300, height: 220, thickness: 3)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).box(BoxOptions(x: 10, y: 10, width: 300, height: 220, thickness: 3)),
       );
       expect(output, contains('^GB'));
     });
 
     test('generates ^GC for circle', () {
       final output = zpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .circle(CircleOptions(x: 100, y: 100, diameter: 60, thickness: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).circle(CircleOptions(x: 100, y: 100, diameter: 60, thickness: 2)),
       );
       expect(output, contains('^GC60,2'));
     });
@@ -59,8 +63,9 @@ void main() {
         bytesPerRow: 1,
       );
       final output = zpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .image(bitmap, ImageOptions(x: 10, y: 10)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).image(bitmap, ImageOptions(x: 10, y: 10)),
       );
       expect(output, contains('^GFA,2,2,1,FF00'));
     });

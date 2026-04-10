@@ -42,7 +42,9 @@ void main() {
 
     test('generates alignment (ESC a n)', () {
       final output = escpos.compile(
-        label(LabelConfig(width: 80)).text('Center', TextOptions(align: 'center')),
+        label(
+          LabelConfig(width: 80),
+        ).text('Center', TextOptions(align: 'center')),
       );
       final bytes = output.toList();
       final idx = _findSequence(bytes, [0x1B, 0x61, 1]);

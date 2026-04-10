@@ -4,7 +4,8 @@ import 'package:portakal_flutter/src/convert.dart';
 
 void main() {
   group('convert — cross-compilation', () {
-    final tscCode = 'SIZE 40 mm,30 mm\nGAP 3 mm,0 mm\nCLS\nTEXT 10,10,"2",0,2,2,"Hello World"\nBOX 5,5,315,235,2\nPRINT 1';
+    final tscCode =
+        'SIZE 40 mm,30 mm\nGAP 3 mm,0 mm\nCLS\nTEXT 10,10,"2",0,2,2,"Hello World"\nBOX 5,5,315,235,2\nPRINT 1';
 
     test('TSC → ZPL', () {
       final result = convert(tscCode, 'tsc', 'zpl');

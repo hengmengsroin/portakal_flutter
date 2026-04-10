@@ -1,5 +1,3 @@
-
-
 /// Cutter type for printer profiles.
 enum CutterType { full, partial, none }
 
@@ -246,7 +244,5 @@ List<PrinterProfile> findByVendorId(int vendorId) {
 
 /// Find profiles by printer language.
 List<PrinterProfile> findByLanguage(String language) {
-  return printerProfiles.values
-      .where((p) => p.language == language)
-      .toList();
+  return printerProfiles.values.where((p) => p.language == language).toList();
 }

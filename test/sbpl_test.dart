@@ -20,8 +20,9 @@ void main() {
 
     test('generates text with position and font', () {
       final output = sbpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Hello SATO', TextOptions(x: 100, y: 50, size: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello SATO', TextOptions(x: 100, y: 50, size: 2)),
       );
       expect(output, contains('\x1bH0100')); // H position
       expect(output, contains('\x1bV0050')); // V position
@@ -31,16 +32,18 @@ void main() {
 
     test('generates rotated text', () {
       final output = sbpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Rotated', TextOptions(x: 10, y: 20, rotation: 90)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Rotated', TextOptions(x: 10, y: 20, rotation: 90)),
       );
       expect(output, contains('\x1b%1')); // 90 degree rotation
     });
 
     test('generates box with FW command', () {
       final output = sbpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .box(BoxOptions(x: 10, y: 20, width: 200, height: 100, thickness: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).box(BoxOptions(x: 10, y: 20, width: 200, height: 100, thickness: 2)),
       );
       expect(output, contains('\x1bH0010'));
       expect(output, contains('\x1bV0020'));
@@ -49,16 +52,18 @@ void main() {
 
     test('generates horizontal line', () {
       final output = sbpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .line(LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).line(LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)),
       );
       expect(output, contains('\x1bFW02H0290'));
     });
 
     test('generates vertical line', () {
       final output = sbpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .line(LineOptions(x1: 50, y1: 10, x2: 50, y2: 200, thickness: 1)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).line(LineOptions(x1: 50, y1: 10, x2: 50, y2: 200, thickness: 1)),
       );
       expect(output, contains('\x1bFW01V0190'));
     });
@@ -71,19 +76,24 @@ void main() {
         bytesPerRow: 1,
       );
       final output = sbpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .image(bitmap, ImageOptions(x: 10, y: 10)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).image(bitmap, ImageOptions(x: 10, y: 10)),
       );
       expect(output, contains('\x1bGM00002,FF00'));
     });
 
     test('generates copies with ESC Q', () {
-      final output = sbpl.compile(label(LabelConfig(width: 40, height: 30, copies: 3)));
+      final output = sbpl.compile(
+        label(LabelConfig(width: 40, height: 30, copies: 3)),
+      );
       expect(output, contains('\x1bQ3'));
     });
 
     test('omits ESC Q for single copy', () {
-      final output = sbpl.compile(label(LabelConfig(width: 40, height: 30, copies: 1)));
+      final output = sbpl.compile(
+        label(LabelConfig(width: 40, height: 30, copies: 1)),
+      );
       expect(output, isNot(contains('\x1bQ')));
     });
 

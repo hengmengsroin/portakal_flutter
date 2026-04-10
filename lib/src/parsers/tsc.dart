@@ -52,7 +52,7 @@ class TSPLCommand {
   int? get y1 => _data['y1'] as int?;
   int? get x2 => _data['x2'] as int?;
   int? get y2 => _data['y2'] as int?;
-  String? get type_str => _data['type'] as String?;
+  String? get typeStr => _data['type'] as String?;
   int? get readable => _data['readable'] as int?;
   int? get narrow => _data['narrow'] as int?;
   int? get wide => _data['wide'] as int?;
@@ -66,22 +66,22 @@ class TSPLCommand {
   int? get copies => _data['copies'] as int?;
   dynamic get value => _data['value'];
   int? get widthBytes => _data['widthBytes'] as int?;
-  int? get mode_int => _data['mode'] is int ? _data['mode'] as int : null;
+  int? get modeInt => _data['mode'] is int ? _data['mode'] as int : null;
   int? get radius => _data['radius'] as int?;
   String? get key => _data['key'] as String?;
   String? get filename => _data['filename'] as String?;
   String? get raw => _data['raw'] as String?;
   String? get variable => _data['variable'] as String?;
   String? get start => _data['start'] as String?;
-  String? get end_val => _data['end'] as String?;
+  String? get endVal => _data['end'] as String?;
   String? get step => _data['step'] as String?;
   String? get condition => _data['condition'] as String?;
-  String? get label_name => _data['label'] as String?;
+  String? get labelName => _data['label'] as String?;
   String? get comment => _data['comment'] as String?;
   String? get name => _data['name'] as String?;
   String? get subcommand => _data['subcommand'] as String?;
   String? get codepage => _data['codepage'] as String?;
-  String? get code_str => _data['code'] as String?;
+  String? get codeStr => _data['code'] as String?;
   int? get dots => _data['dots'] as int?;
   int? get level => _data['level'] as int?;
   int? get interval => _data['interval'] as int?;
@@ -328,7 +328,10 @@ TSPLCommand? _parseTSPLLine(String line, List<String> lines, int lineIdx) {
     case 'NEXT':
       return TSPLCommand('NEXT');
     case 'IF':
-      final cond = rest.replaceAll(RegExp(r'\s+THEN$', caseSensitive: false), '');
+      final cond = rest.replaceAll(
+        RegExp(r'\s+THEN$', caseSensitive: false),
+        '',
+      );
       return TSPLCommand('IF', {'condition': cond});
     case 'ENDIF':
       return TSPLCommand('ENDIF');
@@ -392,7 +395,8 @@ TSPLCommand _parseSize(String rest) {
   }
 
   final parts = cleaned.split(',').map((s) => s.trim()).toList();
-  final w = double.tryParse(parts[0].replaceAll(RegExp(r'\s*(mm|dot)'), '')) ?? 0;
+  final w =
+      double.tryParse(parts[0].replaceAll(RegExp(r'\s*(mm|dot)'), '')) ?? 0;
   final h = parts.length > 1
       ? double.tryParse(parts[1].replaceAll(RegExp(r'\s*(mm|dot)'), '')) ?? 0
       : 0;
@@ -726,8 +730,10 @@ TSPLCommand _parsePutPCX(String rest) {
 
 TSPLCommand _parseFor(String rest) {
   // FOR I = 1 TO 10 STEP 2
-  final m = RegExp(r'(\w+)\s*=\s*(\S+)\s+TO\s+(\S+)(?:\s+STEP\s+(\S+))?', caseSensitive: false)
-      .firstMatch(rest);
+  final m = RegExp(
+    r'(\w+)\s*=\s*(\S+)\s+TO\s+(\S+)(?:\s+STEP\s+(\S+))?',
+    caseSensitive: false,
+  ).firstMatch(rest);
   if (m == null) return TSPLCommand('FOR', {'raw': rest});
   return TSPLCommand('FOR', {
     'variable': m.group(1)!,

@@ -259,7 +259,10 @@ class TextElement extends LabelElement {
   final String content;
   final TextOptions options;
 
-  const TextElement({required this.content, this.options = const TextOptions()});
+  const TextElement({
+    required this.content,
+    this.options = const TextOptions(),
+  });
 
   @override
   String get type => 'text';

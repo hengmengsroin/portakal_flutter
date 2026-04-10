@@ -22,21 +22,21 @@
 - [x] Run tests → GREEN ✅ (122/122 passed, 312 cumulative)
 
 ## Phase 5: Preview & Validation
-- [ ] Port `preview_test.dart`, `validate_test.dart`, `new_elements_test.dart`
-- [ ] Implement
-- [ ] Run tests → GREEN ✅
+- [x] Port `preview_test.dart`, `validate_test.dart`, `new_elements_test.dart`
+- [x] Implement
+- [x] Run tests → GREEN ✅
 
 ## Phase 6: Cross-Compilation & Markup
-- [ ] Port `convert_test.dart`, `markup_test.dart`
-- [ ] Implement
-- [ ] Run tests → GREEN ✅
+- [x] Port `convert_test.dart`, `markup_test.dart`
+- [x] Implement
+- [x] Run tests → GREEN ✅
 
 ## Phase 7: Lang Module Integration
-- [ ] Port `lang_modules_test.dart`
-- [ ] Implement
-- [ ] Run tests → GREEN ✅
+- [x] Port `lang_modules_test.dart`
+- [x] Implement
+- [x] Run tests → GREEN ✅
 
 ## Phase 8: Final Package Setup
-- [ ] Update `pubspec.yaml`, barrel exports
-- [ ] Full test suite pass
-- [ ] `dart analyze` clean
+- [x] Update `pubspec.yaml`, barrel exports
+- [x] Full test suite pass
+- [x] `dart analyze` clean

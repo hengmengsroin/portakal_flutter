@@ -43,18 +43,22 @@ CPCLParseResult parseCPCL(String code) {
     }
 
     // TEXT font size x y  (content on next line)
-    final textMatch = RegExp(r'^(TEXT(?:90|180|270)?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$').firstMatch(line);
+    final textMatch = RegExp(
+      r'^(TEXT(?:90|180|270)?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$',
+    ).firstMatch(line);
     if (textMatch != null) {
       final nextLine = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
       i++; // consume next line
-      elements.add(TextElement(
-        content: nextLine,
-        options: TextOptions(
-          x: int.parse(textMatch.group(4)!),
-          y: int.parse(textMatch.group(5)!),
-          font: textMatch.group(2),
+      elements.add(
+        TextElement(
+          content: nextLine,
+          options: TextOptions(
+            x: int.parse(textMatch.group(4)!),
+            y: int.parse(textMatch.group(5)!),
+            font: textMatch.group(2),
+          ),
         ),
-      ));
+      );
       continue;
     }
 
@@ -66,15 +70,17 @@ CPCLParseResult parseCPCL(String code) {
         final y1 = int.tryParse(p[1]) ?? 0;
         final x2 = int.tryParse(p[2]) ?? 0;
         final y2 = int.tryParse(p[3]) ?? 0;
-        elements.add(BoxElement(
-          options: BoxOptions(
-            x: x1,
-            y: y1,
-            width: x2 - x1,
-            height: y2 - y1,
-            thickness: int.tryParse(p[4]),
+        elements.add(
+          BoxElement(
+            options: BoxOptions(
+              x: x1,
+              y: y1,
+              width: x2 - x1,
+              height: y2 - y1,
+              thickness: int.tryParse(p[4]),
+            ),
           ),
-        ));
+        );
       }
       continue;
     }
@@ -83,15 +89,17 @@ CPCLParseResult parseCPCL(String code) {
     if (line.startsWith('LINE ')) {
       final p = line.substring(5).split(RegExp(r'\s+'));
       if (p.length >= 5) {
-        elements.add(LineElement(
-          options: LineOptions(
-            x1: int.tryParse(p[0]) ?? 0,
-            y1: int.tryParse(p[1]) ?? 0,
-            x2: int.tryParse(p[2]) ?? 0,
-            y2: int.tryParse(p[3]) ?? 0,
-            thickness: int.tryParse(p[4]),
+        elements.add(
+          LineElement(
+            options: LineOptions(
+              x1: int.tryParse(p[0]) ?? 0,
+              y1: int.tryParse(p[1]) ?? 0,
+              x2: int.tryParse(p[2]) ?? 0,
+              y2: int.tryParse(p[3]) ?? 0,
+              thickness: int.tryParse(p[4]),
+            ),
           ),
-        ));
+        );
       }
     }
   }

@@ -37,8 +37,12 @@ String _renderElement(LabelElement el) {
       final bl = _baselineRatio(o.font);
       final ff = _fontFamily(o.font);
       final weight = (o.bold == true) ? 'bold' : 'normal';
-      final decoration = (o.underline == true) ? ' text-decoration="underline"' : '';
-      final transform = (o.rotation != null && o.rotation != 0) ? ' transform="rotate(${o.rotation} $x $y)"' : '';
+      final decoration = (o.underline == true)
+          ? ' text-decoration="underline"'
+          : '';
+      final transform = (o.rotation != null && o.rotation != 0)
+          ? ' transform="rotate(${o.rotation} $x $y)"'
+          : '';
 
       var anchor = '';
       var textX = x;
@@ -72,7 +76,9 @@ String _renderElement(LabelElement el) {
           final bitIdx = 7 - (px % 8);
           final isBlack = (bmp.data[byteIdx] >> bitIdx) & 1;
           if (isBlack == 1) {
-            buf.write('<rect x="${x + px * scaleX}" y="${y + py * scaleY}" width="${step * scaleX}" height="${step * scaleY}" fill="#000"/>');
+            buf.write(
+              '<rect x="${x + px * scaleX}" y="${y + py * scaleY}" width="${step * scaleX}" height="${step * scaleY}" fill="#000"/>',
+            );
           }
         }
       }
@@ -144,7 +150,7 @@ String renderPreview(ResolvedLabel label, {String? languageName}) {
     '<g transform="translate($padding,$padding)">',
     elements.toString(),
     '</g>',
-    '<text x="${svgW / 2}" y="${svgH - 1}" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="monospace">${w}×$h dots (${label.dpi} DPI)$langSuffix</text>',
+    '<text x="${svgW / 2}" y="${svgH - 1}" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="monospace">$w×$h dots (${label.dpi} DPI)$langSuffix</text>',
     '</svg>',
   ].join('\n');
 }

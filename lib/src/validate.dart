@@ -39,7 +39,13 @@ ValidationResult validate(String code, String language) {
 
   if (code.trim().isEmpty) {
     issues.add(const ValidationIssue(level: 'error', message: 'Empty input'));
-    return ValidationResult(valid: false, issues: issues, errors: 1, warnings: 0, infos: 0);
+    return ValidationResult(
+      valid: false,
+      issues: issues,
+      errors: 1,
+      warnings: 0,
+      infos: 0,
+    );
   }
 
   switch (language) {
@@ -48,17 +54,26 @@ ValidationResult validate(String code, String language) {
     case 'zpl':
       _validateZPL(code, issues);
     default:
-      issues.add(ValidationIssue(
-        level: 'info',
-        message: 'Validation for ${language.toUpperCase()} is basic — only structure checks',
-      ));
+      issues.add(
+        ValidationIssue(
+          level: 'info',
+          message:
+              'Validation for ${language.toUpperCase()} is basic — only structure checks',
+        ),
+      );
   }
 
   final errors = issues.where((i) => i.level == 'error').length;
   final warnings = issues.where((i) => i.level == 'warning').length;
   final infos = issues.where((i) => i.level == 'info').length;
 
-  return ValidationResult(valid: errors == 0, issues: issues, errors: errors, warnings: warnings, infos: infos);
+  return ValidationResult(
+    valid: errors == 0,
+    issues: issues,
+    errors: errors,
+    warnings: warnings,
+    infos: infos,
+  );
 }
 
 void _validateTSC(String code, List<ValidationIssue> issues) {
@@ -66,23 +81,58 @@ void _validateTSC(String code, List<ValidationIssue> issues) {
   final cmds = result.commands;
 
   // SIZE should be first non-comment command
-  final firstCmd = cmds.where((c) => c.cmd != 'UNKNOWN' && c.cmd != 'REM').firstOrNull;
+  final firstCmd = cmds
+      .where((c) => c.cmd != 'UNKNOWN' && c.cmd != 'REM')
+      .firstOrNull;
   if (firstCmd != null && firstCmd.cmd != 'SIZE') {
-    issues.add(const ValidationIssue(level: 'warning', command: 'SIZE', message: 'SIZE should be the first command'));
+    issues.add(
+      const ValidationIssue(
+        level: 'warning',
+        command: 'SIZE',
+        message: 'SIZE should be the first command',
+      ),
+    );
   }
 
   // CLS before label elements
-  final elementCmds = {'TEXT', 'BLOCK', 'BAR', 'BOX', 'CIRCLE', 'ELLIPSE', 'BITMAP', 'BARCODE', 'QRCODE', 'DMATRIX', 'PDF417', 'AZTEC', 'MAXICODE', 'RSS'};
+  final elementCmds = {
+    'TEXT',
+    'BLOCK',
+    'BAR',
+    'BOX',
+    'CIRCLE',
+    'ELLIPSE',
+    'BITMAP',
+    'BARCODE',
+    'QRCODE',
+    'DMATRIX',
+    'PDF417',
+    'AZTEC',
+    'MAXICODE',
+    'RSS',
+  };
   final clsIdx = cmds.indexWhere((c) => c.cmd == 'CLS');
   final firstElement = cmds.indexWhere((c) => elementCmds.contains(c.cmd));
   if (firstElement >= 0 && (clsIdx < 0 || clsIdx > firstElement)) {
-    issues.add(const ValidationIssue(level: 'error', command: 'CLS', message: 'CLS must appear before label elements (TEXT, BOX, etc.)'));
+    issues.add(
+      const ValidationIssue(
+        level: 'error',
+        command: 'CLS',
+        message: 'CLS must appear before label elements (TEXT, BOX, etc.)',
+      ),
+    );
   }
 
   // PRINT at end
   final printIdx = cmds.indexWhere((c) => c.cmd == 'PRINT');
   if (printIdx < 0) {
-    issues.add(const ValidationIssue(level: 'warning', command: 'PRINT', message: 'No PRINT command found — label will not print'));
+    issues.add(
+      const ValidationIssue(
+        level: 'warning',
+        command: 'PRINT',
+        message: 'No PRINT command found — label will not print',
+      ),
+    );
   }
 
   // Validate values
@@ -90,18 +140,38 @@ void _validateTSC(String code, List<ValidationIssue> issues) {
     if (c.cmd == 'DENSITY') {
       final v = c.value as num;
       if (v < 0 || v > 15) {
-        issues.add(ValidationIssue(level: 'error', command: 'DENSITY', message: 'DENSITY value $v out of range (0-15)'));
+        issues.add(
+          ValidationIssue(
+            level: 'error',
+            command: 'DENSITY',
+            message: 'DENSITY value $v out of range (0-15)',
+          ),
+        );
       }
     }
     if (c.cmd == 'SPEED') {
       final v = c.value as num;
       if (v < 1 || v > 18) {
-        issues.add(ValidationIssue(level: 'warning', command: 'SPEED', message: 'SPEED value $v may be out of range (1-18, model-dependent)'));
+        issues.add(
+          ValidationIssue(
+            level: 'warning',
+            command: 'SPEED',
+            message:
+                'SPEED value $v may be out of range (1-18, model-dependent)',
+          ),
+        );
       }
     }
     if (c.cmd == 'UNKNOWN') {
       final raw = c.raw ?? '';
-      issues.add(ValidationIssue(level: 'warning', command: raw.length > 20 ? raw.substring(0, 20) : raw, message: 'Unrecognized command: ${raw.length > 40 ? raw.substring(0, 40) : raw}'));
+      issues.add(
+        ValidationIssue(
+          level: 'warning',
+          command: raw.length > 20 ? raw.substring(0, 20) : raw,
+          message:
+              'Unrecognized command: ${raw.length > 40 ? raw.substring(0, 40) : raw}',
+        ),
+      );
     }
   }
 }
@@ -112,12 +182,24 @@ void _validateZPL(String code, List<ValidationIssue> issues) {
 
   // ^XA at start
   if (cmds.isEmpty || cmds[0].code != '^XA') {
-    issues.add(const ValidationIssue(level: 'error', command: '^XA', message: 'Label must start with ^XA'));
+    issues.add(
+      const ValidationIssue(
+        level: 'error',
+        command: '^XA',
+        message: 'Label must start with ^XA',
+      ),
+    );
   }
 
   // ^XZ at end
   if (cmds.isEmpty || cmds.last.code != '^XZ') {
-    issues.add(const ValidationIssue(level: 'error', command: '^XZ', message: 'Label must end with ^XZ'));
+    issues.add(
+      const ValidationIssue(
+        level: 'error',
+        command: '^XZ',
+        message: 'Label must end with ^XZ',
+      ),
+    );
   }
 
   // ^FD without preceding ^FO
@@ -125,7 +207,13 @@ void _validateZPL(String code, List<ValidationIssue> issues) {
   for (final c in cmds) {
     if (c.code == '^FO' || c.code == '^FT') hasFieldOrigin = true;
     if (c.code == '^FD' && !hasFieldOrigin) {
-      issues.add(const ValidationIssue(level: 'warning', command: '^FD', message: '^FD without preceding ^FO — field position undefined'));
+      issues.add(
+        const ValidationIssue(
+          level: 'warning',
+          command: '^FD',
+          message: '^FD without preceding ^FO — field position undefined',
+        ),
+      );
     }
     if (c.code == '^FS') hasFieldOrigin = false;
   }
@@ -135,7 +223,13 @@ void _validateZPL(String code, List<ValidationIssue> issues) {
   if (pw != null && pw.params.isNotEmpty) {
     final w = int.tryParse(pw.params[0]) ?? 0;
     if (w < 2 || w > 65535) {
-      issues.add(ValidationIssue(level: 'error', command: '^PW', message: '^PW value $w out of range (2-65535)'));
+      issues.add(
+        ValidationIssue(
+          level: 'error',
+          command: '^PW',
+          message: '^PW value $w out of range (2-65535)',
+        ),
+      );
     }
   }
 }

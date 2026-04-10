@@ -38,7 +38,9 @@ void main() {
 
     test('generates Star alignment: ESC GS a n', () {
       final output = starprnt.compile(
-        label(LabelConfig(width: 80)).text('Center', TextOptions(align: 'center')),
+        label(
+          LabelConfig(width: 80),
+        ).text('Center', TextOptions(align: 'center')),
       );
       final bytes = output.toList();
       // ESC GS a 1 (center)
@@ -101,9 +103,7 @@ void main() {
 
     test('generates raw passthrough', () {
       final raw = Uint8List.fromList([0x07]); // BEL (cash drawer)
-      final output = starprnt.compile(
-        label(LabelConfig(width: 80)).raw(raw),
-      );
+      final output = starprnt.compile(label(LabelConfig(width: 80)).raw(raw));
       expect(output.toList(), contains(0x07));
     });
   });

@@ -10,7 +10,11 @@ class DPLParseResult {
   final List<DPLCommand> commands;
   final List<LabelElement> elements;
   int widthDots;
-  DPLParseResult({required this.commands, required this.elements, this.widthDots = 0});
+  DPLParseResult({
+    required this.commands,
+    required this.elements,
+    this.widthDots = 0,
+  });
 }
 
 DPLParseResult parseDPL(String code) {
@@ -38,5 +42,9 @@ DPLParseResult parseDPL(String code) {
     }
   }
 
-  return DPLParseResult(commands: commands, elements: elements, widthDots: widthDots);
+  return DPLParseResult(
+    commands: commands,
+    elements: elements,
+    widthDots: widthDots,
+  );
 }

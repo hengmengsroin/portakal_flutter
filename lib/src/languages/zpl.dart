@@ -34,7 +34,11 @@ String compileToZPL(ResolvedLabel label) {
         buf.write('^FO$x,$y');
         buf.write('^A0$r,$h,$w');
         if (o.maxWidth != null) {
-          final align = o.align == 'center' ? 'C' : o.align == 'right' ? 'R' : 'L';
+          final align = o.align == 'center'
+              ? 'C'
+              : o.align == 'right'
+              ? 'R'
+              : 'L';
           buf.write('^FB${o.maxWidth},1,0,$align');
         }
         if (o.reverse == true) {
@@ -49,7 +53,9 @@ String compileToZPL(ResolvedLabel label) {
         final bmp = el.bitmap;
         final totalBytes = bmp.data.length;
         final hexData = bmp.data.map(_hex).join();
-        buf.write('^FO$x,$y^GFA,$totalBytes,$totalBytes,${bmp.bytesPerRow},$hexData^FS\n');
+        buf.write(
+          '^FO$x,$y^GFA,$totalBytes,$totalBytes,${bmp.bytesPerRow},$hexData^FS\n',
+        );
 
       case BoxElement():
         final o = el.options;
@@ -82,7 +88,9 @@ String compileToZPL(ResolvedLabel label) {
 
       case CircleElement():
         final o = el.options;
-        buf.write('^FO${o.x},${o.y}^GC${o.diameter},${o.thickness ?? 1},B^FS\n');
+        buf.write(
+          '^FO${o.x},${o.y}^GC${o.diameter},${o.thickness ?? 1},B^FS\n',
+        );
 
       case EllipseElement():
         // ZPL has no native ellipse — skip
@@ -94,7 +102,9 @@ String compileToZPL(ResolvedLabel label) {
 
       case EraseElement():
         final o = el.options;
-        buf.write('^FO${o.x},${o.y}^GB${o.width},${o.height},${o.width},W^FS\n');
+        buf.write(
+          '^FO${o.x},${o.y}^GB${o.width},${o.height},${o.width},W^FS\n',
+        );
 
       case RawElement():
         if (el.content is String) {

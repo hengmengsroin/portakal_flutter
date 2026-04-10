@@ -25,7 +25,12 @@ Uint8List rgbaToGrayscale(Uint8List rgba, int width, int height) {
 }
 
 /// Simple threshold dithering.
-Uint8List ditherThreshold(Uint8List gray, int width, int height, [int threshold = 128]) {
+Uint8List ditherThreshold(
+  Uint8List gray,
+  int width,
+  int height, [
+  int threshold = 128,
+]) {
   final result = Uint8List(gray.length);
   for (int i = 0; i < gray.length; i++) {
     result[i] = gray[i] >= threshold ? 255 : 0;

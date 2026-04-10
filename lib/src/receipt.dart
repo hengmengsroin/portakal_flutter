@@ -1,5 +1,3 @@
-
-
 /// Column definition for receipt table formatting.
 class Column {
   final int width;
@@ -58,7 +56,10 @@ String formatRow(List<Column> columns, List<String> values, int lineWidth) {
 
 /// Format multiple rows as a table.
 List<String> formatTable(
-    List<Column> columns, List<List<String>> rows, int lineWidth) {
+  List<Column> columns,
+  List<List<String>> rows,
+  int lineWidth,
+) {
   return rows.map((row) => formatRow(columns, row, lineWidth)).toList();
 }
 

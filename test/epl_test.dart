@@ -1,5 +1,3 @@
-
-
 import 'package:test/test.dart';
 import 'package:portakal_flutter/src/builder.dart';
 import 'package:portakal_flutter/src/lang/epl.dart';
@@ -24,8 +22,9 @@ void main() {
 
     test('generates A (text) field', () {
       final output = epl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Hello EPL', TextOptions(x: 10, y: 20, font: '3', size: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello EPL', TextOptions(x: 10, y: 20, font: '3', size: 2)),
       );
       expect(output, contains('"Hello EPL"'));
       expect(output, contains('A10,20,'));
@@ -33,22 +32,26 @@ void main() {
 
     test('generates X (box) field', () {
       final output = epl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
       );
       expect(output, contains('X5,5,315,235,2'));
     });
 
     test('generates LO (line) field', () {
       final output = epl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .line(LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).line(LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)),
       );
       expect(output, contains('LO10,50,290,2'));
     });
 
     test('generates P (copies)', () {
-      final output = epl.compile(label(LabelConfig(width: 40, height: 30, copies: 3)));
+      final output = epl.compile(
+        label(LabelConfig(width: 40, height: 30, copies: 3)),
+      );
       expect(output, contains('P3'));
     });
   });

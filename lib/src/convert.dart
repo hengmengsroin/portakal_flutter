@@ -34,29 +34,70 @@ class ConvertResult {
 }
 
 /// Parse source code into elements.
-({List<LabelElement> elements, int widthDots, int heightDots, List<String> warnings}) _parseSource(String code, String from) {
+({
+  List<LabelElement> elements,
+  int widthDots,
+  int heightDots,
+  List<String> warnings,
+})
+_parseSource(String code, String from) {
   switch (from) {
     case 'tsc':
       final r = parseTSC(code);
-      return (elements: r.elements, widthDots: r.widthDots, heightDots: r.heightDots, warnings: <String>[]);
+      return (
+        elements: r.elements,
+        widthDots: r.widthDots,
+        heightDots: r.heightDots,
+        warnings: <String>[],
+      );
     case 'zpl':
       final r = parseZPL(code);
-      return (elements: r.elements, widthDots: r.widthDots, heightDots: r.heightDots, warnings: r.warnings);
+      return (
+        elements: r.elements,
+        widthDots: r.widthDots,
+        heightDots: r.heightDots,
+        warnings: r.warnings,
+      );
     case 'epl':
       final r = parseEPL(code);
-      return (elements: r.elements, widthDots: r.widthDots, heightDots: r.heightDots > 0 ? r.heightDots : 240, warnings: <String>[]);
+      return (
+        elements: r.elements,
+        widthDots: r.widthDots,
+        heightDots: r.heightDots > 0 ? r.heightDots : 240,
+        warnings: <String>[],
+      );
     case 'cpcl':
       final r = parseCPCL(code);
-      return (elements: r.elements, widthDots: r.widthDots, heightDots: r.heightDots, warnings: <String>[]);
+      return (
+        elements: r.elements,
+        widthDots: r.widthDots,
+        heightDots: r.heightDots,
+        warnings: <String>[],
+      );
     case 'dpl':
       final r = parseDPL(code);
-      return (elements: r.elements, widthDots: r.widthDots, heightDots: 240, warnings: <String>[]);
+      return (
+        elements: r.elements,
+        widthDots: r.widthDots,
+        heightDots: 240,
+        warnings: <String>[],
+      );
     case 'sbpl':
       final r = parseSBPL(code);
-      return (elements: r.elements, widthDots: 320, heightDots: 240, warnings: <String>[]);
+      return (
+        elements: r.elements,
+        widthDots: 320,
+        heightDots: 240,
+        warnings: <String>[],
+      );
     case 'ipl':
       final r = parseIPL(code);
-      return (elements: r.elements, widthDots: r.widthDots, heightDots: r.heightDots, warnings: <String>[]);
+      return (
+        elements: r.elements,
+        widthDots: r.widthDots,
+        heightDots: r.heightDots,
+        warnings: <String>[],
+      );
     default:
       throw ArgumentError('Unsupported source language: $from');
   }
@@ -89,7 +130,15 @@ Object _compileTarget(ResolvedLabel resolved, String to) {
 }
 
 /// Convert printer commands from one language to another.
-ConvertResult convert(String code, String from, String to, {int? dpi, int? speed, int? density, int? copies}) {
+ConvertResult convert(
+  String code,
+  String from,
+  String to, {
+  int? dpi,
+  int? speed,
+  int? density,
+  int? copies,
+}) {
   final parsed = _parseSource(code, from);
 
   final resolved = ResolvedLabel(

@@ -12,12 +12,16 @@ void main() {
     });
 
     test('generates density', () {
-      final output = dpl.compile(label(LabelConfig(width: 40, height: 30, density: 8)));
+      final output = dpl.compile(
+        label(LabelConfig(width: 40, height: 30, density: 8)),
+      );
       expect(output, contains('D08'));
     });
 
     test('generates speed', () {
-      final output = dpl.compile(label(LabelConfig(width: 40, height: 30, speed: 4)));
+      final output = dpl.compile(
+        label(LabelConfig(width: 40, height: 30, speed: 4)),
+      );
       expect(output, contains('S04'));
     });
 
@@ -27,14 +31,17 @@ void main() {
     });
 
     test('generates copies', () {
-      final output = dpl.compile(label(LabelConfig(width: 40, height: 30, copies: 3)));
+      final output = dpl.compile(
+        label(LabelConfig(width: 40, height: 30, copies: 3)),
+      );
       expect(output, contains('Q0003'));
     });
 
     test('generates text record', () {
       final output = dpl.compile(
-        label(LabelConfig(width: 40, height: 30))
-            .text('Hello DPL', TextOptions(x: 50, y: 30)),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello DPL', TextOptions(x: 50, y: 30)),
       );
       expect(output, contains('Hello DPL'));
     });

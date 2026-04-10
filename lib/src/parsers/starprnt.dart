@@ -46,22 +46,28 @@ StarPRNTParseResult parseStarPRNT(Uint8List data) {
           continue;
         case 0x64: // ESC d (partial cut)
           if (i + 2 < data.length) {
-            commands.add(StarPRNTCommand(name: 'ESC d', params: {'n': data[i + 2]}));
+            commands.add(
+              StarPRNTCommand(name: 'ESC d', params: {'n': data[i + 2]}),
+            );
           }
           i += 3;
           continue;
         case 0x69: // ESC i (size)
           if (i + 3 < data.length) {
-            commands.add(StarPRNTCommand(name: 'ESC i', params: {
-              'height': data[i + 2],
-              'width': data[i + 3],
-            }));
+            commands.add(
+              StarPRNTCommand(
+                name: 'ESC i',
+                params: {'height': data[i + 2], 'width': data[i + 3]},
+              ),
+            );
           }
           i += 4;
           continue;
         case 0x1D: // ESC GS
           if (i + 3 < data.length && data[i + 2] == 0x61) {
-            commands.add(StarPRNTCommand(name: 'ESC GS a', params: {'n': data[i + 3]}));
+            commands.add(
+              StarPRNTCommand(name: 'ESC GS a', params: {'n': data[i + 3]}),
+            );
             i += 4;
             continue;
           }
@@ -74,13 +80,17 @@ StarPRNTParseResult parseStarPRNT(Uint8List data) {
               i += 4;
               // Parse raster rows until ESC * r B
               while (i < data.length) {
-                if (data[i] == 0x1B && i + 3 < data.length &&
-                    data[i + 1] == 0x2A && data[i + 2] == 0x72 && data[i + 3] == 0x42) {
+                if (data[i] == 0x1B &&
+                    i + 3 < data.length &&
+                    data[i + 1] == 0x2A &&
+                    data[i + 2] == 0x72 &&
+                    data[i + 3] == 0x42) {
                   commands.add(StarPRNTCommand(name: 'ESC * r B'));
                   i += 4;
                   break;
                 }
-                if (data[i] == 0x62) { // b command
+                if (data[i] == 0x62) {
+                  // b command
                   if (i + 2 < data.length) {
                     final n = data[i + 1] | (data[i + 2] << 8);
                     i += 3 + n;
@@ -106,12 +116,16 @@ StarPRNTParseResult parseStarPRNT(Uint8List data) {
     // Text
     if (data[i] >= 0x20 && data[i] <= 0x7E) {
       final start = i;
-      while (i < data.length && data[i] >= 0x20 && data[i] <= 0x7E) i++;
+      while (i < data.length && data[i] >= 0x20 && data[i] <= 0x7E) {
+        i++;
+      }
       final text = String.fromCharCodes(data.sublist(start, i));
-      elements.add(TextElement(
-        content: text,
-        options: TextOptions(bold: boldOn ? true : null),
-      ));
+      elements.add(
+        TextElement(
+          content: text,
+          options: TextOptions(bold: boldOn ? true : null),
+        ),
+      );
       commands.add(StarPRNTCommand(name: 'TEXT', params: {'text': text}));
       continue;
     }

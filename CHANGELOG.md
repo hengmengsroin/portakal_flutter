@@ -1,3 +1,11 @@
+## 0.1.4
+
+* Cleaned up analyzer findings and code style across parser/language modules.
+* Standardized formatting across source and test files for maintainability.
+* Updated parser test accessors to lowerCamelCase (`typeStr`, `endVal`, `labelName`, `codeStr`).
+* Updated internal task tracker milestones to reflect completed phases.
+* Added `.pubignore` to exclude internal workspace files from the published package.
+
 ## 0.1.3
 
 * Added Flutter `LabelPreview` widget for in-app label rendering before printing.

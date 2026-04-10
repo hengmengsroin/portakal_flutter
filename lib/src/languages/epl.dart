@@ -24,7 +24,9 @@ String compileToEPL(ResolvedLabel label) {
         final xMul = o.xScale ?? o.size ?? 1;
         final yMul = o.yScale ?? o.size ?? 1;
         final reverse = o.reverse == true ? 'R' : 'N';
-        buf.write('A$x,$y,$rotation,$font,$xMul,$yMul,$reverse,"${el.content}"\n');
+        buf.write(
+          'A$x,$y,$rotation,$font,$xMul,$yMul,$reverse,"${el.content}"\n',
+        );
 
       case ImageElement():
         final o = el.options;
@@ -61,7 +63,9 @@ String compileToEPL(ResolvedLabel label) {
           buf.write('LO${o.x1},$y,$t,$h\n');
         } else {
           // EPL doesn't support diagonal — approximate with LO
-          buf.write('LO${o.x1},${o.y1},${(o.x2 - o.x1).abs()},${(o.y2 - o.y1).abs()}\n');
+          buf.write(
+            'LO${o.x1},${o.y1},${(o.x2 - o.x1).abs()},${(o.y2 - o.y1).abs()}\n',
+          );
         }
 
       case CircleElement():

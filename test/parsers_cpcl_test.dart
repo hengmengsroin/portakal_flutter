@@ -18,7 +18,8 @@ void main() {
     });
 
     test('parses TEXT with content on next line', () {
-      final code = '! 0 200 200 400 1\r\nTEXT 0 3 50 100\r\nHello World\r\nPRINT\r\n';
+      final code =
+          '! 0 200 200 400 1\r\nTEXT 0 3 50 100\r\nHello World\r\nPRINT\r\n';
       final result = parseCPCL(code);
       final texts = result.elements.whereType<TextElement>().toList();
       expect(texts, hasLength(1));

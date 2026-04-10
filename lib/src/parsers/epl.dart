@@ -48,20 +48,24 @@ EPLParseResult parseEPL(String code) {
         heightDots = int.tryParse(p[0]) ?? 0;
       case 'A':
         // A x,y,rotation,font,xmul,ymul,N/R,"text"
-        final m = RegExp(r'^(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),([NR]),"([^"]*)"').firstMatch(rest);
+        final m = RegExp(
+          r'^(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),([NR]),"([^"]*)"',
+        ).firstMatch(rest);
         if (m != null) {
-          elements.add(TextElement(
-            content: m.group(8)!,
-            options: TextOptions(
-              x: int.parse(m.group(1)!),
-              y: int.parse(m.group(2)!),
-              rotation: int.parse(m.group(3)!) * 90,
-              font: m.group(4),
-              xScale: int.parse(m.group(5)!),
-              yScale: int.parse(m.group(6)!),
-              reverse: m.group(7) == 'R' ? true : null,
+          elements.add(
+            TextElement(
+              content: m.group(8)!,
+              options: TextOptions(
+                x: int.parse(m.group(1)!),
+                y: int.parse(m.group(2)!),
+                rotation: int.parse(m.group(3)!) * 90,
+                font: m.group(4),
+                xScale: int.parse(m.group(5)!),
+                yScale: int.parse(m.group(6)!),
+                reverse: m.group(7) == 'R' ? true : null,
+              ),
             ),
-          ));
+          );
         }
       case 'X':
         // X x1,y1,x2,y2,thickness
@@ -71,30 +75,34 @@ EPLParseResult parseEPL(String code) {
           final y1 = int.tryParse(p[1]) ?? 0;
           final x2 = int.tryParse(p[2]) ?? 0;
           final y2 = int.tryParse(p[3]) ?? 0;
-          elements.add(BoxElement(
-            options: BoxOptions(
-              x: x1,
-              y: y1,
-              width: x2 - x1,
-              height: y2 - y1,
-              thickness: int.tryParse(p[4]),
+          elements.add(
+            BoxElement(
+              options: BoxOptions(
+                x: x1,
+                y: y1,
+                width: x2 - x1,
+                height: y2 - y1,
+                thickness: int.tryParse(p[4]),
+              ),
             ),
-          ));
+          );
         }
       case 'L':
         if (rest.startsWith('O')) {
           // LO x,y,w,h
           final p = rest.substring(1).split(',');
           if (p.length >= 4) {
-            elements.add(LineElement(
-              options: LineOptions(
-                x1: int.tryParse(p[0]) ?? 0,
-                y1: int.tryParse(p[1]) ?? 0,
-                x2: (int.tryParse(p[0]) ?? 0) + (int.tryParse(p[2]) ?? 0),
-                y2: int.tryParse(p[1]) ?? 0,
-                thickness: int.tryParse(p[3]),
+            elements.add(
+              LineElement(
+                options: LineOptions(
+                  x1: int.tryParse(p[0]) ?? 0,
+                  y1: int.tryParse(p[1]) ?? 0,
+                  x2: (int.tryParse(p[0]) ?? 0) + (int.tryParse(p[2]) ?? 0),
+                  y2: int.tryParse(p[1]) ?? 0,
+                  thickness: int.tryParse(p[3]),
+                ),
               ),
-            ));
+            );
           }
         }
     }

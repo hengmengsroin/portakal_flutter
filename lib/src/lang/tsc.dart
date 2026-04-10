@@ -8,7 +8,8 @@ import '../validate.dart' as v;
 class TscLang {
   String compile(LabelBuilder builder) => compileToTSC(builder.resolve());
   TSPLParseResult parse(String code) => parseTSPL(code);
-  String preview(LabelBuilder builder) => renderPreview(builder.resolve(), languageName: 'TSC');
+  String preview(LabelBuilder builder) =>
+      renderPreview(builder.resolve(), languageName: 'TSC');
   v.ValidationResult validate(String code) => v.validate(code, 'tsc');
 }
 
