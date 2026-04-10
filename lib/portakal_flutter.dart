@@ -1,7 +1,7 @@
 /// Portakal Flutter — Universal printer language SDK.
 ///
 /// TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT.
-/// Text, images, and printer-native commands. Pure Dart, zero runtime dependencies.
+/// Text, images, printer-native commands, and Flutter preview widgets.
 library portakal_flutter;
 
 // Core
@@ -20,6 +20,7 @@ export 'src/transport.dart';
 // Preview & Validation
 export 'src/preview.dart';
 export 'src/validate.dart';
+export 'src/widgets/label_preview.dart';
 
 // Cross-compilation & Markup
 export 'src/convert.dart';

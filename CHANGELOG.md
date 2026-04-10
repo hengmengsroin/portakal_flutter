@@ -1,6 +1,14 @@
+## 0.1.3
+
+* Added Flutter `LabelPreview` widget for in-app label rendering before printing.
+* Added `example/flutter_preview.dart` for a ready-to-run Flutter preview screen.
+* Updated package metadata and README content to document Flutter preview support.
+
 ## 0.1.2
 
+* Added `LabelPreview` Flutter widget for in-app label preview before printing.
 * Added runnable package example under `example/main.dart`.
+* Added Flutter UI example under `example/flutter_preview.dart`.
 * Declared support for all pub.dev platforms in package metadata.
 * Improved README with example run instructions and updated installation version.
 

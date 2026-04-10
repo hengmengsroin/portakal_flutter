@@ -1,12 +1,21 @@
 import 'package:portakal_flutter/portakal_flutter.dart';
 
 void main() {
-  final labelBuilder = label(
-    LabelConfig(width: 40, height: 30, unit: Unit.mm, printer: 'zebra-zd420'),
-  )
-      .text('Hello Portakal', TextOptions(x: 16, y: 20, size: 2, bold: true))
-      .line(LineOptions(x1: 16, y1: 60, x2: 280, y2: 60, thickness: 2))
-      .box(BoxOptions(x: 12, y: 12, width: 296, height: 200, thickness: 2));
+  final labelBuilder =
+      label(
+            LabelConfig(
+              width: 40,
+              height: 30,
+              unit: Unit.mm,
+              printer: 'zebra-zd420',
+            ),
+          )
+          .text(
+            'Hello Portakal',
+            TextOptions(x: 16, y: 20, size: 2, bold: true),
+          )
+          .line(LineOptions(x1: 16, y1: 60, x2: 280, y2: 60, thickness: 2))
+          .box(BoxOptions(x: 12, y: 12, width: 296, height: 200, thickness: 2));
 
   final tscCode = tsc.compile(labelBuilder);
   final zplCode = zpl.compile(labelBuilder);
@@ -29,5 +38,10 @@ void main() {
   print('Validation valid: ${validation.valid}');
   print('Validation issues: ${validation.issues.length}');
   print('SVG preview length: ${svg.length}');
-  print('Printer profile example (zebra-zd420): ${getProfile('zebra-zd420') != null}');
+  print(
+    'Printer profile example (zebra-zd420): ${getProfile('zebra-zd420') != null}',
+  );
+  print(
+    'Flutter widget preview example: flutter run -t example/flutter_preview.dart',
+  );
 }

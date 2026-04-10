@@ -2,7 +2,7 @@
 
 Universal printer language SDK for Flutter & Dart — **TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT** and more.
 
-Text, images, and printer-native barcode/QR commands. **Pure Dart, zero runtime dependencies.**
+Text, images, printer-native barcode/QR commands, and Flutter preview widgets.
 
 [![Tests](https://img.shields.io/badge/tests-392_passing-brightgreen)]()
 [![Dart](https://img.shields.io/badge/dart-%3E%3D3.11-blue)]()
@@ -20,22 +20,27 @@ Text, images, and printer-native barcode/QR commands. **Pure Dart, zero runtime 
 - 📝 **HTML-like markup** — `<label><text>Hello</text></label>` DSL
 - 🔍 **Parsers** — parse raw printer commands back to structured data
 - 👁️ **SVG preview** — render labels as SVG strings for visual inspection
+- 📱 **Flutter preview widget** — preview labels in-app before sending to printer
 - ✅ **Validation** — check command ordering, parameter ranges, and structure
 - 🖼️ **Image processing** — RGBA to monochrome with 4 dithering algorithms
 - 📇 **17 printer profiles** — Epson, Zebra, TSC, Star, Bixolon, Citizen, SATO, Honeywell
-- 💯 **Pure Dart** — no Flutter dependency, works on server, CLI, and mobile
+- 💯 **Works across Flutter targets** — mobile, desktop, and web
 
 ## Installation
 
 ```yaml
 dependencies:
-  portakal_flutter: ^0.1.2
+  portakal_flutter: ^0.1.3
 ```
 
 ## Example
 
 ```bash
 dart run example/main.dart
+```
+
+```bash
+flutter run -t example/flutter_preview.dart
 ```
 
 ## Quick Start
@@ -127,6 +132,31 @@ final svg = tsc.preview(
       .box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
 );
 // Returns SVG string — render in a WebView or save to file
+```
+
+### Flutter widget preview
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:portakal_flutter/portakal_flutter.dart';
+
+class LabelPreviewCard extends StatelessWidget {
+  const LabelPreviewCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final myLabel = label(LabelConfig(width: 40, height: 30))
+        .text('Preview before print', TextOptions(x: 12, y: 20, size: 2))
+        .box(BoxOptions(x: 8, y: 8, width: 300, height: 200, thickness: 2));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: LabelPreview(label: myLabel),
+      ),
+    );
+  }
+}
 ```
 
 ### Validate commands
