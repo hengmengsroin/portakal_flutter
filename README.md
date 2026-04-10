@@ -30,7 +30,7 @@ Text, images, printer-native barcode/QR commands, and Flutter preview widgets.
 
 ```yaml
 dependencies:
-  portakal_flutter: ^0.1.3
+  portakal_flutter: ^0.1.6
 ```
 
 ## Example
