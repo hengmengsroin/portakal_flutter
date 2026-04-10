@@ -29,7 +29,7 @@ Text, images, and printer-native barcode/QR commands. **Pure Dart, zero runtime 
 
 ```yaml
 dependencies:
-  portakal_flutter: ^0.1.1
+  portakal_flutter: ^0.1.2
 ```
 
 ## Example

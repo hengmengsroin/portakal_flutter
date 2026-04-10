@@ -1,6 +1,6 @@
 name: portakal_flutter
 description: "Universal printer language SDK — TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT. Text, images, and printer-native commands. Pure Dart, zero runtime dependencies."
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/productdevbook/portakal
 repository: https://github.com/productdevbook/portakal
 issue_tracker: https://github.com/productdevbook/portakal/issues

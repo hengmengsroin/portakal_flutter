@@ -1,3 +1,9 @@
+## 0.1.2
+
+* Added runnable package example under `example/main.dart`.
+* Declared support for all pub.dev platforms in package metadata.
+* Improved README with example run instructions and updated installation version.
+
 ## 0.1.1
 
 * Migrated package tooling to pure Dart (`dart test`, `dart analyze`) and removed Flutter SDK dependency requirements.
