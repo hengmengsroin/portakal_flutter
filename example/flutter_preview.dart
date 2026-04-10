@@ -21,7 +21,7 @@ class PreviewApp extends StatelessWidget {
               label: label(LabelConfig(width: 40, height: 30))
                   .text(
                     'Preview before print',
-                    TextOptions(x: 12, y: 20, size: 2, bold: true),
+                    TextOptions(x: 12, y: 20, size: 1, bold: true),
                   )
                   .line(
                     LineOptions(x1: 12, y1: 54, x2: 300, y2: 54, thickness: 2),
@@ -32,11 +32,11 @@ class PreviewApp extends StatelessWidget {
                       y: 8,
                       width: 304,
                       height: 210,
-                      thickness: 2,
+                      thickness: 1,
                     ),
                   )
                   .circle(
-                    CircleOptions(x: 220, y: 90, diameter: 60, thickness: 2),
+                    CircleOptions(x: 220, y: 90, diameter: 60, thickness: 1),
                   ),
             ),
           ),
