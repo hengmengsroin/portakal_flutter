@@ -84,11 +84,37 @@ void main() {
     });
   });
 
+  group('Barcode element', () {
+    test('generates TSC BARCODE', () {
+      final output = tsc.compile(
+        label(LabelConfig(width: 40, height: 30)).barcode(
+          '12345',
+          BarcodeOptions(x: 10, y: 10, type: '128', height: 40),
+        ),
+      );
+      expect(output, contains('BARCODE 10,10,"128",40,0,0,2,4,"12345"'));
+    });
+  });
+
+  group('QRCode element', () {
+    test('generates TSC QRCODE', () {
+      final output = tsc.compile(
+        label(LabelConfig(width: 40, height: 30)).qrcode(
+          'https://test.com',
+          QRCodeOptions(x: 10, y: 10, cellWidth: 4),
+        ),
+      );
+      expect(output, contains('QRCODE 10,10,"H",4,"A",0,"https://test.com"'));
+    });
+  });
+
   group('All compilers handle new elements without error', () {
     LabelBuilder b() => label(LabelConfig(width: 40, height: 30))
         .ellipse(EllipseOptions(x: 50, y: 50, width: 100, height: 60))
         .reverse(ReverseOptions(x: 10, y: 10, width: 200, height: 30))
-        .erase(EraseOptions(x: 10, y: 10, width: 50, height: 50));
+        .erase(EraseOptions(x: 10, y: 10, width: 50, height: 50))
+        .barcode('12345', BarcodeOptions(x: 10, y: 10, type: '128', height: 40))
+        .qrcode('https://test.com', QRCodeOptions(x: 10, y: 10, cellWidth: 4));
 
     test('TSC', () {
       expect(tsc.compile(b()), contains('ELLIPSE'));

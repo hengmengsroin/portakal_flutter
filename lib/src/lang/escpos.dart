@@ -1,24 +1,17 @@
 import 'dart:typed_data';
 import '../builder.dart';
 import '../languages/escpos.dart';
+import '../parsers/escpos.dart';
+import '../preview.dart';
+import '../validate.dart' as v;
 
 /// ESC/POS language module.
 class EscposLang {
-  Uint8List compile(LabelBuilder builder) {
-    return compileToESCPOS(builder.resolve());
-  }
-
-  dynamic parse(Uint8List data) {
-    throw UnimplementedError('ESC/POS parse not yet implemented');
-  }
-
-  String preview(LabelBuilder builder) {
-    throw UnimplementedError('ESC/POS preview not yet implemented');
-  }
-
-  dynamic validate(String code) {
-    throw UnimplementedError('ESC/POS validate not yet implemented');
-  }
+  Uint8List compile(LabelBuilder builder) => compileToESCPOS(builder.resolve());
+  ESCPOSParseResult parse(Uint8List data) => parseESCPOS(data);
+  String preview(LabelBuilder builder) =>
+      renderPreview(builder.resolve(), languageName: 'ESC/POS');
+  v.ValidationResult validate(String code) => v.validate(code, 'escpos');
 }
 
 final escpos = EscposLang();
