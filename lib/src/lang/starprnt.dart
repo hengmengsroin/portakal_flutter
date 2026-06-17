@@ -6,7 +6,8 @@ import '../preview.dart';
 import '../validate.dart' as v;
 
 class StarprntLang {
-  Uint8List compile(LabelBuilder builder) => compileToStarPRNT(builder.resolve());
+  Uint8List compile(LabelBuilder builder) =>
+      compileToStarPRNT(builder.resolve());
   StarPRNTParseResult parse(Uint8List data) => parseStarPRNT(data);
   String preview(LabelBuilder builder) =>
       renderPreview(builder.resolve(), languageName: 'StarPRNT');

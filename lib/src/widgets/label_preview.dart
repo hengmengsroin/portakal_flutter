@@ -345,11 +345,8 @@ class _LabelPreviewPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: w);
-    
-    textPainter.paint(
-      canvas,
-      Offset(x + 4, y + (h - textPainter.height) / 2),
-    );
+
+    textPainter.paint(canvas, Offset(x + 4, y + (h - textPainter.height) / 2));
   }
 
   void _drawQRCode(Canvas canvas, QRCodeElement el) {

@@ -81,7 +81,9 @@ String compileToCPCL(ResolvedLabel label) {
         if (o.readable == 1) {
           buf.write('BARCODE-TEXT 7 0 5\r\n');
         }
-        buf.write('BARCODE $type $n $ratio ${o.height} ${o.x} ${o.y} ${el.content}\r\n');
+        buf.write(
+          'BARCODE $type $n $ratio ${o.height} ${o.x} ${o.y} ${el.content}\r\n',
+        );
         if (o.readable == 1) {
           buf.write('BARCODE-TEXT OFF\r\n');
         }

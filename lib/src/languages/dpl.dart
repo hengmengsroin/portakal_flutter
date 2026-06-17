@@ -63,7 +63,13 @@ String compileToDPL(ResolvedLabel label) {
 
       case BarcodeElement():
         final o = el.options;
-        final rot = o.rotation == 90 ? '1' : o.rotation == 180 ? '2' : o.rotation == 270 ? '3' : '1';
+        final rot = o.rotation == 90
+            ? '1'
+            : o.rotation == 180
+            ? '2'
+            : o.rotation == 270
+            ? '3'
+            : '1';
         final type = o.type == '39' ? 'A' : 'E'; // E=Code128
         final w = o.wide ?? 2;
         final h = o.height.toString().padLeft(3, '0');

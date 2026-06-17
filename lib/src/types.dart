@@ -335,10 +335,7 @@ class BarcodeElement extends LabelElement {
   final String content;
   final BarcodeOptions options;
 
-  const BarcodeElement({
-    required this.content,
-    required this.options,
-  });
+  const BarcodeElement({required this.content, required this.options});
 
   @override
   String get type => 'barcode';
@@ -349,10 +346,7 @@ class QRCodeElement extends LabelElement {
   final String content;
   final QRCodeOptions options;
 
-  const QRCodeElement({
-    required this.content,
-    required this.options,
-  });
+  const QRCodeElement({required this.content, required this.options});
 
   @override
   String get type => 'qrcode';

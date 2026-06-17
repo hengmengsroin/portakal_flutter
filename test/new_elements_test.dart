@@ -99,10 +99,9 @@ void main() {
   group('QRCode element', () {
     test('generates TSC QRCODE', () {
       final output = tsc.compile(
-        label(LabelConfig(width: 40, height: 30)).qrcode(
-          'https://test.com',
-          QRCodeOptions(x: 10, y: 10, cellWidth: 4),
-        ),
+        label(
+          LabelConfig(width: 40, height: 30),
+        ).qrcode('https://test.com', QRCodeOptions(x: 10, y: 10, cellWidth: 4)),
       );
       expect(output, contains('QRCODE 10,10,"H",4,"A",0,"https://test.com"'));
     });

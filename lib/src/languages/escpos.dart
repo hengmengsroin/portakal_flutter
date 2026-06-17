@@ -83,11 +83,17 @@ Uint8List compileToESCPOS(ResolvedLabel label) {
         final len = contentBytes.length + 3;
         final pL = len & 0xFF;
         final pH = (len >> 8) & 0xFF;
-        
+
         bytes.addAll([0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00]);
         final cw = o.cellWidth ?? 4;
         bytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, cw]);
-        final ecc = o.eccLevel == 'L' ? 0x30 : o.eccLevel == 'Q' ? 0x32 : o.eccLevel == 'H' ? 0x33 : 0x31;
+        final ecc = o.eccLevel == 'L'
+            ? 0x30
+            : o.eccLevel == 'Q'
+            ? 0x32
+            : o.eccLevel == 'H'
+            ? 0x33
+            : 0x31;
         bytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, ecc]);
         bytes.addAll([0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30]);
         bytes.addAll(contentBytes);

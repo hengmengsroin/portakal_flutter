@@ -1,3 +1,12 @@
+## 0.1.7
+
+- Added `BarcodeElement` and `QRCodeElement` to the `LabelBuilder` API (`.barcode()` and `.qrcode()`).
+- Implemented Barcode and QRCode native compilation support across all 9 printer languages (TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT).
+- Added visual placeholder rendering for Barcodes and QRCodes in the Flutter `LabelPreview` widget.
+- Completed language facade methods (`parse`, `preview`, `validate`) for all supported language modules.
+- Updated `example/flutter_preview.dart` to showcase a complete invoice layout.
+- Added comprehensive unit tests for new elements across builder, preview, and compilers.
+
 ## 0.1.6
 
 - Fixed analyzer warnings for `avoid_print` in example project.

@@ -78,11 +78,19 @@ String compileToEPL(ResolvedLabel label) {
       case BarcodeElement():
         final o = el.options;
         final type = o.type == '39' ? '3' : '1'; // 3=Code39, 1=Code128
-        final rot = o.rotation == 90 ? 1 : o.rotation == 180 ? 2 : o.rotation == 270 ? 3 : 0;
+        final rot = o.rotation == 90
+            ? 1
+            : o.rotation == 180
+            ? 2
+            : o.rotation == 270
+            ? 3
+            : 0;
         final hr = o.readable == 1 ? 'B' : 'N';
         final n = o.narrow ?? 2;
         final w = o.wide ?? 4;
-        buf.write('B${o.x},${o.y},$rot,$type,$n,$w,${o.height},$hr,"${el.content}"\n');
+        buf.write(
+          'B${o.x},${o.y},$rot,$type,$n,$w,${o.height},$hr,"${el.content}"\n',
+        );
 
       case QRCodeElement():
         final o = el.options;
