@@ -41,6 +41,18 @@ class LabelBuilder {
     return this;
   }
 
+  /// Add a barcode element.
+  LabelBuilder barcode(String content, BarcodeOptions options) {
+    _elements.add(BarcodeElement(content: content, options: options));
+    return this;
+  }
+
+  /// Add a QRCode element.
+  LabelBuilder qrcode(String content, QRCodeOptions options) {
+    _elements.add(QRCodeElement(content: content, options: options));
+    return this;
+  }
+
   /// Add a box element.
   LabelBuilder box(BoxOptions options) {
     _elements.add(BoxElement(options: options));

@@ -61,6 +61,23 @@ String compileToDPL(ResolvedLabel label) {
       case EraseElement():
         break;
 
+      case BarcodeElement():
+        final o = el.options;
+        final rot = o.rotation == 90 ? '1' : o.rotation == 180 ? '2' : o.rotation == 270 ? '3' : '1';
+        final type = o.type == '39' ? 'A' : 'E'; // E=Code128
+        final w = o.wide ?? 2;
+        final h = o.height.toString().padLeft(3, '0');
+        final x = o.x.toString().padLeft(4, '0');
+        final y = o.y.toString().padLeft(4, '0');
+        buf.write('$rot$type${w}0${h}0000$x$y${el.content}\n');
+
+      case QRCodeElement():
+        final o = el.options;
+        final x = o.x.toString().padLeft(4, '0');
+        final y = o.y.toString().padLeft(4, '0');
+        final cw = (o.cellWidth ?? 4).toString().padLeft(3, '0');
+        buf.write('1W1c${cw}0000$x$y${el.content}\n');
+
       case RawElement():
         if (el.content is String) {
           buf.write('${el.content}\n');

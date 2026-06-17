@@ -74,6 +74,24 @@ Uint8List compileToStarPRNT(ResolvedLabel label) {
           bytes.addAll(el.content as Uint8List);
         }
 
+      case BarcodeElement():
+        final o = el.options;
+        final typeByte = o.type == '39' ? 1 : 5; // 1=Code39, 5=Code128
+        bytes.addAll([0x1B, 0x62, typeByte, o.readable == 1 ? 2 : 1, o.wide ?? 2, o.height > 255 ? 255 : o.height]);
+        bytes.addAll(el.content.codeUnits);
+        bytes.add(0x1E);
+
+      case QRCodeElement():
+        final o = el.options;
+        bytes.addAll([0x1B, 0x1D, 0x79, 0x53, 0x30, o.cellWidth ?? 4]);
+        final ecc = o.eccLevel == 'L' ? 0 : o.eccLevel == 'M' ? 1 : o.eccLevel == 'Q' ? 2 : 3;
+        bytes.addAll([0x1B, 0x1D, 0x79, 0x53, 0x31, ecc]);
+        bytes.addAll([0x1B, 0x1D, 0x79, 0x53, 0x32, 2]); // model 2
+        final len = el.content.length;
+        bytes.addAll([0x1B, 0x1D, 0x79, 0x44, 0x31, 0x30, len & 0xFF, (len >> 8) & 0xFF]);
+        bytes.addAll(el.content.codeUnits);
+        bytes.addAll([0x1B, 0x1D, 0x79, 0x50]);
+
       default:
         break;
     }

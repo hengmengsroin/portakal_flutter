@@ -85,6 +85,18 @@ String compileToSBPL(ResolvedLabel label) {
       case EraseElement():
         break;
 
+      case BarcodeElement():
+        final o = el.options;
+        final type = o.type == '39' ? 'B1' : 'BG'; // BG is Code128
+        final n = o.narrow ?? 2;
+        final h = o.height.toString().padLeft(3, '0');
+        buf.write('<ESC>V${o.y}<ESC>H${o.x}<ESC>$type${n}0$h${el.content}\n');
+
+      case QRCodeElement():
+        final o = el.options;
+        final cw = (o.cellWidth ?? 4).toString().padLeft(2, '0');
+        buf.write('<ESC>V${o.y}<ESC>H${o.x}<ESC>BQ${cw}200${el.content}\n');
+
       case RawElement():
         if (el.content is String) {
           buf.write(el.content as String);

@@ -123,6 +123,10 @@ String _renderElement(LabelElement el) {
       final o = el.options;
       return '<rect x="${o.x}" y="${o.y}" width="${o.width}" height="${o.height}" fill="#fff"/>';
 
+    case BarcodeElement():
+    case QRCodeElement():
+      return '';
+
     case RawElement():
       return '';
   }

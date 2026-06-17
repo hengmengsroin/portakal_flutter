@@ -73,6 +73,26 @@ String compileToCPCL(ResolvedLabel label) {
       case EraseElement():
         break;
 
+      case BarcodeElement():
+        final o = el.options;
+        final type = o.type == '39' ? '39' : '128';
+        final n = o.narrow ?? 1;
+        final ratio = (o.wide ?? 2) ~/ n;
+        if (o.readable == 1) {
+          buf.write('BARCODE-TEXT 7 0 5\r\n');
+        }
+        buf.write('BARCODE $type $n $ratio ${o.height} ${o.x} ${o.y} ${el.content}\r\n');
+        if (o.readable == 1) {
+          buf.write('BARCODE-TEXT OFF\r\n');
+        }
+
+      case QRCodeElement():
+        final o = el.options;
+        final cw = o.cellWidth ?? 4;
+        buf.write('BARCODE QR ${o.x} ${o.y} M 2 U $cw\r\n');
+        buf.write('MA,${el.content}\r\n');
+        buf.write('ENDQR\r\n');
+
       case RawElement():
         if (el.content is String) {
           buf.write('${el.content}\r\n');

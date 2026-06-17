@@ -75,6 +75,21 @@ String compileToEPL(ResolvedLabel label) {
         // EPL doesn't support these natively
         break;
 
+      case BarcodeElement():
+        final o = el.options;
+        final type = o.type == '39' ? '3' : '1'; // 3=Code39, 1=Code128
+        final rot = o.rotation == 90 ? 1 : o.rotation == 180 ? 2 : o.rotation == 270 ? 3 : 0;
+        final hr = o.readable == 1 ? 'B' : 'N';
+        final n = o.narrow ?? 2;
+        final w = o.wide ?? 4;
+        buf.write('B${o.x},${o.y},$rot,$type,$n,$w,${o.height},$hr,"${el.content}"\n');
+
+      case QRCodeElement():
+        final o = el.options;
+        final cw = o.cellWidth ?? 4;
+        final ecc = o.eccLevel ?? 'Q';
+        buf.write('b${o.x},${o.y},"Q",m2,s$cw,e$ecc,"${el.content}"\n');
+
       case RawElement():
         if (el.content is String) {
           buf.write('${el.content}\n');

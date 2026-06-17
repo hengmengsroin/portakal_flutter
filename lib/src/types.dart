@@ -232,6 +232,54 @@ class ImageOptions {
   const ImageOptions({this.x, this.y, this.width, this.height});
 }
 
+/// Options for barcode elements.
+class BarcodeOptions {
+  final int x;
+  final int y;
+  final String type; // e.g. "128", "39", "EAN13"
+  final int height;
+  final int? readable; // 0: not readable, 1: human readable
+  final int? rotation;
+  final int? narrow;
+  final int? wide;
+  final int? alignment;
+
+  const BarcodeOptions({
+    required this.x,
+    required this.y,
+    required this.type,
+    required this.height,
+    this.readable,
+    this.rotation,
+    this.narrow,
+    this.wide,
+    this.alignment,
+  });
+}
+
+/// Options for QRCode elements.
+class QRCodeOptions {
+  final int x;
+  final int y;
+  final String? eccLevel; // L, M, Q, H
+  final int? cellWidth; // 1-10
+  final String? mode; // A, M
+  final int? rotation;
+  final String? model;
+  final String? mask;
+
+  const QRCodeOptions({
+    required this.x,
+    required this.y,
+    this.eccLevel,
+    this.cellWidth,
+    this.mode,
+    this.rotation,
+    this.model,
+    this.mask,
+  });
+}
+
 /// Monochrome bitmap (1-bit per pixel, MSB first).
 class MonochromeBitmap {
   final Uint8List data;
@@ -280,6 +328,34 @@ class ImageElement extends LabelElement {
 
   @override
   String get type => 'image';
+}
+
+/// Barcode element.
+class BarcodeElement extends LabelElement {
+  final String content;
+  final BarcodeOptions options;
+
+  const BarcodeElement({
+    required this.content,
+    required this.options,
+  });
+
+  @override
+  String get type => 'barcode';
+}
+
+/// QRCode element.
+class QRCodeElement extends LabelElement {
+  final String content;
+  final QRCodeOptions options;
+
+  const QRCodeElement({
+    required this.content,
+    required this.options,
+  });
+
+  @override
+  String get type => 'qrcode';
 }
 
 /// Box element.

@@ -91,6 +91,25 @@ String compileToTSC(ResolvedLabel label) {
           'ELLIPSE ${o.x},${o.y},${o.width},${o.height},${o.thickness ?? 1}\r\n',
         );
 
+      case BarcodeElement():
+        final o = el.options;
+        buf.write(
+          'BARCODE ${o.x},${o.y},"${o.type}",${o.height},${o.readable ?? 0},${o.rotation ?? 0},${o.narrow ?? 2},${o.wide ?? 4}',
+        );
+        if (o.alignment != null) buf.write(',${o.alignment}');
+        buf.write(',"${el.content}"\r\n');
+
+      case QRCodeElement():
+        final o = el.options;
+        final ecc = o.eccLevel ?? 'H';
+        final cw = o.cellWidth ?? 4;
+        final mode = o.mode ?? 'A';
+        final rot = o.rotation ?? 0;
+        buf.write('QRCODE ${o.x},${o.y},"$ecc",$cw,"$mode",$rot,');
+        if (o.model != null) buf.write('"${o.model}",');
+        if (o.mask != null) buf.write('"${o.mask}",');
+        buf.write('"${el.content}"\r\n');
+
       case ReverseElement():
         final o = el.options;
         buf.write('REVERSE ${o.x},${o.y},${o.width},${o.height}\r\n');

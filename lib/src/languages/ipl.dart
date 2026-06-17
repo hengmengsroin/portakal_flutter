@@ -63,6 +63,16 @@ String compileToIPL(ResolvedLabel label) {
       case EraseElement():
         break;
 
+      case BarcodeElement():
+        final o = el.options;
+        buf.write('<STX>B1;o0;f0;c0;h${o.height};w${o.wide ?? 2};d0,${o.y};<ETX>\n');
+        buf.write('<STX>${el.content}<ETX>\n');
+
+      case QRCodeElement():
+        final o = el.options;
+        buf.write('<STX>B2;o0;f0;c21;w${o.cellWidth ?? 4};h${o.cellWidth ?? 4};d0,${o.y};<ETX>\n');
+        buf.write('<STX>${el.content}<ETX>\n');
+
       case RawElement():
         if (el.content is String) {
           buf.write(el.content as String);

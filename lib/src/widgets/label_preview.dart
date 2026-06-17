@@ -130,6 +130,10 @@ class _LabelPreviewPainter extends CustomPainter {
         _drawCircle(canvas, el);
       case EllipseElement():
         _drawEllipse(canvas, el);
+      case BarcodeElement():
+        _drawBarcode(canvas, el);
+      case QRCodeElement():
+        _drawQRCode(canvas, el);
       case ReverseElement():
         final o = el.options;
         canvas.drawRect(
@@ -309,6 +313,74 @@ class _LabelPreviewPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = t,
     );
+  }
+
+  void _drawBarcode(Canvas canvas, BarcodeElement el) {
+    final o = el.options;
+    final x = o.x.toDouble();
+    final y = o.y.toDouble();
+    final h = o.height.toDouble();
+    final text = 'BARCODE: ${el.content}';
+
+    // Approximate width for placeholder
+    final w = math.max(100.0, text.length * 8.0);
+    final rect = Rect.fromLTWH(x, y, w, h);
+
+    canvas.drawRect(rect, Paint()..color = Colors.grey.withValues(alpha: 0.3));
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = Colors.black
+        ..style = PaintingStyle.stroke,
+    );
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 10,
+          fontFamily: 'monospace',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: w);
+    
+    textPainter.paint(
+      canvas,
+      Offset(x + 4, y + (h - textPainter.height) / 2),
+    );
+  }
+
+  void _drawQRCode(Canvas canvas, QRCodeElement el) {
+    final o = el.options;
+    final x = o.x.toDouble();
+    final y = o.y.toDouble();
+    // Approximate size for placeholder based on cell width
+    final size = (o.cellWidth ?? 4) * 20.0;
+    final rect = Rect.fromLTWH(x, y, size, size);
+
+    canvas.drawRect(rect, Paint()..color = Colors.grey.withValues(alpha: 0.3));
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = Colors.black
+        ..style = PaintingStyle.stroke,
+    );
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: 'QR:\n${el.content}',
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 8,
+          fontFamily: 'monospace',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: size - 4);
+
+    textPainter.paint(canvas, Offset(x + 2, y + 2));
   }
 
   int _calcFontSize(int? size, int? yScale) {

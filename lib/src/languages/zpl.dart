@@ -106,6 +106,20 @@ String compileToZPL(ResolvedLabel label) {
           '^FO${o.x},${o.y}^GB${o.width},${o.height},${o.width},W^FS\n',
         );
 
+      case BarcodeElement():
+        final o = el.options;
+        final type = o.type == '39' ? '3' : 'C'; // 3=Code39, C=Code128
+        final hr = o.readable == 1 ? 'Y' : 'N';
+        final rot = o.rotation == 90 ? 'R' : o.rotation == 180 ? 'I' : o.rotation == 270 ? 'B' : 'N';
+        buf.write('^FO${o.x},${o.y}^B$type$rot,${o.height},$hr,N,N^FD${el.content}^FS\n');
+
+      case QRCodeElement():
+        final o = el.options;
+        final cw = o.cellWidth ?? 4;
+        final ecc = o.eccLevel ?? 'Q';
+        final rot = o.rotation == 90 ? 'R' : o.rotation == 180 ? 'I' : o.rotation == 270 ? 'B' : 'N';
+        buf.write('^FO${o.x},${o.y}^BQ$rot,2,$cw,$ecc,7^FDQA,${el.content}^FS\n');
+
       case RawElement():
         if (el.content is String) {
           buf.write('${el.content}\n');
