@@ -41,10 +41,12 @@ jobs:
         run: flutter pub get
 
       - name: Static analysis (portakal_core)
-        run: dart analyze --fatal-infos packages/portakal_core
+        working-directory: packages/portakal_core
+        run: dart analyze --fatal-infos .
 
       - name: Run unit tests (portakal_core)
-        run: dart test packages/portakal_core
+        working-directory: packages/portakal_core
+        run: dart test
 
   core-stable:
     name: Core Package (Dart Stable)
@@ -66,13 +68,16 @@ jobs:
         run: flutter pub get
 
       - name: Static analysis (portakal_core)
-        run: dart analyze --fatal-infos packages/portakal_core
+        working-directory: packages/portakal_core
+        run: dart analyze --fatal-infos .
 
       - name: Run unit & documentation tests (portakal_core)
-        run: dart test packages/portakal_core
+        working-directory: packages/portakal_core
+        run: dart test
 
       - name: Verify Dartdoc generation (portakal_core)
-        run: dart doc --dry-run packages/portakal_core
+        working-directory: packages/portakal_core
+        run: dart doc --dry-run .
 
       - name: API Surface Freeze Guard
         run: |
@@ -80,9 +85,8 @@ jobs:
           git diff --exit-code tool/api_surface.txt
 
       - name: Publish dry-run (portakal_core)
-        run: |
-          cd packages/portakal_core
-          dart pub publish --dry-run
+        working-directory: packages/portakal_core
+        run: dart pub publish --dry-run
 
   flutter-minimum:
     name: Flutter Package (Minimum Flutter 3.27.0)
@@ -104,10 +108,12 @@ jobs:
         run: flutter pub get
 
       - name: Static analysis (portakal_flutter)
-        run: flutter analyze --fatal-infos packages/portakal_flutter
+        working-directory: packages/portakal_flutter
+        run: flutter analyze --fatal-infos .
 
       - name: Run widget & acceptance tests (portakal_flutter)
-        run: flutter test packages/portakal_flutter
+        working-directory: packages/portakal_flutter
+        run: flutter test
 
   flutter-stable:
     name: Flutter Package (Flutter Stable)
@@ -129,18 +135,20 @@ jobs:
         run: flutter pub get
 
       - name: Static analysis (portakal_flutter)
-        run: flutter analyze --fatal-infos packages/portakal_flutter
+        working-directory: packages/portakal_flutter
+        run: flutter analyze --fatal-infos .
 
       - name: Run widget & acceptance tests (portakal_flutter)
-        run: flutter test packages/portakal_flutter
+        working-directory: packages/portakal_flutter
+        run: flutter test
 
       - name: Verify Dartdoc generation (portakal_flutter)
-        run: dart doc --dry-run packages/portakal_flutter
+        working-directory: packages/portakal_flutter
+        run: dart doc --dry-run .
 
       - name: Publish dry-run (portakal_flutter)
-        run: |
-          cd packages/portakal_flutter
-          flutter pub publish --dry-run
+        working-directory: packages/portakal_flutter
+        run: flutter pub publish --dry-run
 
   example-bench-verification:
     name: Example Validation Bench (Flutter Stable)
@@ -157,7 +165,9 @@ jobs:
         run: flutter pub get
 
       - name: Static analysis (example)
-        run: flutter analyze --fatal-infos example
+        working-directory: example
+        run: flutter analyze --fatal-infos .
 
       - name: Run test bench suite (example)
-        run: flutter test example
+        working-directory: example
+        run: flutter test
