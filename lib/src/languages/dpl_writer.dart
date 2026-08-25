@@ -6,8 +6,17 @@ import '../errors.dart';
 ///
 /// Shared between the universal AST serializer (`compileToDPLBytes`) and the protocol-native
 /// builder (`DplPrinter`). Emits byte-exact DPL syntax directly to [PrinterByteWriter].
+///
+/// Standard DPL uses carriage return (`\r`, 0x0D) for record termination, while historical
+/// Portakal / upstream universal serializer uses line feed (`\n`, 0x0A).
 class DplCommandWriter {
   const DplCommandWriter._();
+
+  /// Default record terminator for native DPL streams (CR, 0x0D).
+  static const String defaultNativeTerminator = '\r';
+
+  /// Legacy record terminator for historical universal DPL streams (LF, 0x0A).
+  static const String legacyUniversalTerminator = '\n';
 
   /// Pads integer to 4-digit zero-prefixed string.
   static String pad4(int n) => n.toString().padLeft(4, '0');
@@ -18,58 +27,80 @@ class DplCommandWriter {
   /// Pads integer to 2-digit zero-prefixed string.
   static String pad2(int n) => n.toString().padLeft(2, '0');
 
-  /// Emits `<STX>L\n` (0x02, 'L', 0x0A) — Start Label Formatting Mode.
-  static void writeStartLabel(PrinterByteWriter writer) {
+  /// Emits `<STX>L<term>` (0x02, 'L', terminator) — Start Label Formatting Mode.
+  static void writeStartLabel(
+    PrinterByteWriter writer, {
+    String terminator = defaultNativeTerminator,
+  }) {
     writer.writeByte(0x02);
-    writer.writeAscii('L\n');
+    writer.writeAscii('L$terminator');
   }
 
-  /// Emits `E\n` (0x45, 0x0A) — End Label Formatting and Print.
-  static void writeEndLabel(PrinterByteWriter writer) {
-    writer.writeAscii('E\n');
+  /// Emits `E<term>` (0x45, terminator) — End Label Formatting and Print.
+  static void writeEndLabel(
+    PrinterByteWriter writer, {
+    String terminator = defaultNativeTerminator,
+  }) {
+    writer.writeAscii('E$terminator');
   }
 
-  /// Emits `D<heat:2>\n` — Set Print Heat / Darkness (00..30).
-  static void writeHeat(PrinterByteWriter writer, int heat) {
+  /// Emits `D<heat:2><term>` — Set Print Heat / Darkness (00..30).
+  static void writeHeat(
+    PrinterByteWriter writer,
+    int heat, {
+    String terminator = defaultNativeTerminator,
+  }) {
     if (heat < 0 || heat > 30) {
       throw InvalidConfigError(
         'DPL heat/darkness value must be between 0 and 30, got: $heat',
       );
     }
-    writer.writeAscii('D${pad2(heat)}\n');
+    writer.writeAscii('D${pad2(heat)}$terminator');
   }
 
-  /// Emits `S<speed:2>\n` — Set Print Speed (01..14).
-  static void writeSpeed(PrinterByteWriter writer, int speed) {
+  /// Emits `S<speed:2><term>` — Set Print Speed (01..14).
+  static void writeSpeed(
+    PrinterByteWriter writer,
+    int speed, {
+    String terminator = defaultNativeTerminator,
+  }) {
     if (speed < 1 || speed > 14) {
       throw InvalidConfigError(
         'DPL print speed must be between 1 and 14, got: $speed',
       );
     }
-    writer.writeAscii('S${pad2(speed)}\n');
+    writer.writeAscii('S${pad2(speed)}$terminator');
   }
 
-  /// Emits `A<widthDots:4>\n` — Set Label Width in dots (0001..9999).
-  static void writeWidth(PrinterByteWriter writer, int widthDots) {
+  /// Emits `A<widthDots:4><term>` — Set Label Width in dots (0001..9999).
+  static void writeWidth(
+    PrinterByteWriter writer,
+    int widthDots, {
+    String terminator = defaultNativeTerminator,
+  }) {
     if (widthDots <= 0 || widthDots > 9999) {
       throw InvalidConfigError(
         'DPL label width must be between 1 and 9999 dots, got: $widthDots',
       );
     }
-    writer.writeAscii('A${pad4(widthDots)}\n');
+    writer.writeAscii('A${pad4(widthDots)}$terminator');
   }
 
-  /// Emits `Q<copies:4>\n` — Set Print Quantity (0001..9999).
-  static void writeCopies(PrinterByteWriter writer, int copies) {
+  /// Emits `Q<copies:4><term>` — Set Print Quantity (0001..9999).
+  static void writeCopies(
+    PrinterByteWriter writer,
+    int copies, {
+    String terminator = defaultNativeTerminator,
+  }) {
     if (copies < 1 || copies > 9999) {
       throw InvalidConfigError(
         'DPL print copies must be between 1 and 9999, got: $copies',
       );
     }
-    writer.writeAscii('Q${pad4(copies)}\n');
+    writer.writeAscii('Q${pad4(copies)}$terminator');
   }
 
-  /// Emits a text record: `<rot><y:4><x:4><font><xMul:2><yMul:2><content>\n`.
+  /// Emits a text record: `<rot><y:4><x:4><font><xMul:2><yMul:2><content><term>`.
   static void writeText(
     PrinterByteWriter writer, {
     required int x,
@@ -81,6 +112,7 @@ class DplCommandWriter {
     required String text,
     required CodePageEncoder encoder,
     bool replaceUnsupported = false,
+    String terminator = defaultNativeTerminator,
   }) {
     if (x < 0 || y < 0 || x > 9999 || y > 9999) {
       throw InvalidConfigError(
@@ -117,10 +149,10 @@ class DplCommandWriter {
       replaceUnsupported: replaceUnsupported,
     );
     writer.writeBytes(textBytes);
-    writer.writeAscii('\n');
+    writer.writeAscii(terminator);
   }
 
-  /// Emits a 1D barcode: `<rot><type><wide:1>0<height:3>0000<x:4><y:4><content>\n`.
+  /// Emits a 1D barcode: `<rot><type><wide:1>0<height:3>0000<x:4><y:4><content><term>`.
   static void writeBarcode(
     PrinterByteWriter writer, {
     required int x,
@@ -130,6 +162,7 @@ class DplCommandWriter {
     required int height,
     required String rotationCode,
     required String content,
+    String terminator = defaultNativeTerminator,
   }) {
     if (x < 0 || y < 0 || x > 9999 || y > 9999) {
       throw InvalidConfigError(
@@ -158,17 +191,18 @@ class DplCommandWriter {
     }
 
     writer.writeAscii(
-      '$rotationCode$typeCode${wideMultiplier}0${pad3(height)}0000${pad4(x)}${pad4(y)}$content\n',
+      '$rotationCode$typeCode${wideMultiplier}0${pad3(height)}0000${pad4(x)}${pad4(y)}$content$terminator',
     );
   }
 
-  /// Emits a 2D QR Code: `1W1c<cellWidth:3>0000<x:4><y:4><content>\n`.
+  /// Emits a 2D QR Code: `1W1c<cellWidth:3>0000<x:4><y:4><content><term>`.
   static void writeQrCode(
     PrinterByteWriter writer, {
     required int x,
     required int y,
     required int cellWidth,
     required String content,
+    String terminator = defaultNativeTerminator,
   }) {
     if (x < 0 || y < 0 || x > 9999 || y > 9999) {
       throw InvalidConfigError(
@@ -192,11 +226,11 @@ class DplCommandWriter {
     }
 
     writer.writeAscii(
-      '1W1c${pad3(cellWidth)}0000${pad4(x)}${pad4(y)}$content\n',
+      '1W1c${pad3(cellWidth)}0000${pad4(x)}${pad4(y)}$content$terminator',
     );
   }
 
-  /// Emits `1e<y:4><x:4><width:4><height:4><thickness:4>\n` — Box Rectangle.
+  /// Emits `1e<y:4><x:4><width:4><height:4><thickness:4><term>` — Box Rectangle.
   static void writeBox(
     PrinterByteWriter writer, {
     required int x,
@@ -204,6 +238,7 @@ class DplCommandWriter {
     required int width,
     required int height,
     required int thickness,
+    String terminator = defaultNativeTerminator,
   }) {
     if (x < 0 || y < 0 || x > 9999 || y > 9999) {
       throw InvalidConfigError(
@@ -222,11 +257,11 @@ class DplCommandWriter {
     }
 
     writer.writeAscii(
-      '1e${pad4(y)}${pad4(x)}${pad4(width)}${pad4(height)}${pad4(thickness)}\n',
+      '1e${pad4(y)}${pad4(x)}${pad4(width)}${pad4(height)}${pad4(thickness)}$terminator',
     );
   }
 
-  /// Emits `1X<y:4><x:4>L<length:4><thickness>\n` — Line Segment.
+  /// Emits `1X<y:4><x:4>L<length:4><thickness><term>` — Line Segment.
   static void writeLine(
     PrinterByteWriter writer, {
     required int x1,
@@ -234,6 +269,7 @@ class DplCommandWriter {
     required int x2,
     required int y2,
     required int thickness,
+    String terminator = defaultNativeTerminator,
   }) {
     if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0 || thickness <= 0) {
       throw InvalidConfigError(
@@ -246,13 +282,17 @@ class DplCommandWriter {
       final x = x1 < x2 ? x1 : x2;
       final w = (x2 - x1).abs();
       final width = w == 0 ? 1 : w;
-      writer.writeAscii('1X${pad4(y1)}${pad4(x)}L${pad4(width)}$thickness\n');
+      writer.writeAscii(
+        '1X${pad4(y1)}${pad4(x)}L${pad4(width)}$thickness$terminator',
+      );
     } else {
       // Vertical / fallback line
       final y = y1 < y2 ? y1 : y2;
       final h = (y2 - y1).abs();
       final height = h == 0 ? 1 : h;
-      writer.writeAscii('1X${pad4(y)}${pad4(x1)}L${pad4(height)}$thickness\n');
+      writer.writeAscii(
+        '1X${pad4(y)}${pad4(x1)}L${pad4(height)}$thickness$terminator',
+      );
     }
   }
 
@@ -266,10 +306,11 @@ class DplCommandWriter {
     PrinterByteWriter writer,
     String text, {
     bool appendNewline = false,
+    String terminator = defaultNativeTerminator,
   }) {
     writer.writeAscii(text);
     if (appendNewline) {
-      writer.writeAscii('\n');
+      writer.writeAscii(terminator);
     }
   }
 }

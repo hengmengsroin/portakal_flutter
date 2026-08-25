@@ -9,6 +9,11 @@ import 'dpl_writer.dart';
 /// Compile a resolved label to DPL commands as a byte sequence ([Uint8List]).
 ///
 /// Uses actual control bytes (`STX` = 0x02, etc.).
+///
+/// NOTE: The legacy universal DPL serializer preserves historical Portakal / upstream
+/// LF (`0x0A`, `\n`) record termination for backward compatibility, whereas the
+/// protocol-native builder [DplPrinter] emits standard DPL CR (`0x0D`, `\r`) record termination.
+///
 /// If [encoding] is supplied, text fields are encoded using the configured [CodePageEncoder].
 /// If omitted, defaults to [DplEncoding.defaultEncoding] ([DplEncoding.legacy]), preserving
 /// exact historical DPL baseline output.
@@ -16,17 +21,27 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
   final enc = encoding ?? DplEncoding.defaultEncoding;
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
+  const term = DplCommandWriter.legacyUniversalTerminator;
 
   // STX L — Start label formatting mode (0x02, 'L', '\n')
-  DplCommandWriter.writeStartLabel(writer);
+  DplCommandWriter.writeStartLabel(writer, terminator: term);
 
-  DplCommandWriter.writeHeat(writer, label.density);
-  DplCommandWriter.writeSpeed(writer, label.speed > 0 ? label.speed : 4);
+  DplCommandWriter.writeHeat(writer, label.density, terminator: term);
+  DplCommandWriter.writeSpeed(
+    writer,
+    label.speed > 0 ? label.speed : 4,
+    terminator: term,
+  );
   DplCommandWriter.writeWidth(
     writer,
     label.widthDots > 0 ? label.widthDots : 320,
+    terminator: term,
   );
-  DplCommandWriter.writeCopies(writer, label.copies > 0 ? label.copies : 1);
+  DplCommandWriter.writeCopies(
+    writer,
+    label.copies > 0 ? label.copies : 1,
+    terminator: term,
+  );
 
   for (final el in label.elements) {
     switch (el) {
@@ -50,6 +65,7 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
           text: el.content,
           encoder: encoder,
           replaceUnsupported: enc.replaceUnsupported,
+          terminator: term,
         );
 
       case BoxElement():
@@ -62,6 +78,7 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
           width: o.width,
           height: o.height,
           thickness: t,
+          terminator: term,
         );
 
       case LineElement():
@@ -74,6 +91,7 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
           x2: o.x2,
           y2: o.y2,
           thickness: t,
+          terminator: term,
         );
 
       case ImageElement():
@@ -104,6 +122,7 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
           height: o.height,
           rotationCode: rot,
           content: el.content,
+          terminator: term,
         );
 
       case QRCodeElement():
@@ -115,6 +134,7 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
           y: o.y,
           cellWidth: cw,
           content: el.content,
+          terminator: term,
         );
 
       case RawElement():
@@ -127,13 +147,14 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
             writer,
             el.content as String,
             appendNewline: true,
+            terminator: term,
           );
         }
     }
   }
 
   // E — End label format & print
-  DplCommandWriter.writeEndLabel(writer);
+  DplCommandWriter.writeEndLabel(writer, terminator: term);
   return writer.toBytes();
 }
 
