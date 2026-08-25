@@ -68,3 +68,4 @@ export 'src/native/cpcl.dart';
 export 'src/native/dpl.dart';
 export 'src/native/ipl.dart';
 export 'src/native/sbpl.dart';
+export 'src/native/starprnt.dart';
