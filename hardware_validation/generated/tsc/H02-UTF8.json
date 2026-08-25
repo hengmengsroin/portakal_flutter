@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H02-UTF8",
+  "description": "UTF-8 Unicode encoding mode",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H02-UTF8.bin",
+    "hex": "H02-UTF8.hex",
+    "sha256": "d293dbd1d7b774247f92536b8215b2c6080926cded278d4da92fc38e69744be4",
+    "byte_count": 188
+  },
+  "expected": {
+    "payload": "Portakal Unicode: 日本語 / 한국어 / ខ្មែរ"
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

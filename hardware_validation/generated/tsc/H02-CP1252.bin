@@ -1,0 +1,6 @@
+CODEPAGE 1252
+SIZE 800 dot,600 dot
+CLS
+TEXT 50,50,"2",0,1,1,"PORTAKAL-HW | Case: H02-CP1252"
+TEXT 50,120,"2",0,1,1,"é à è “ ” ‘ ’ © ®"
+PRINT 1

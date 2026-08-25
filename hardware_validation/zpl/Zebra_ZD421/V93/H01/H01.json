@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "zpl",
+  "case_id": "H01",
+  "description": "ASCII Text with ^FO and ^FD",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "ZplPrinter"
+  },
+  "artifact": {
+    "bin": "H01.bin",
+    "hex": "H01.hex",
+    "sha256": "ec94deef4e48b5e3e7ca4ab1526cdf710729e8c4c6dc2d504d8728fb29ed9de4",
+    "byte_count": 134
+  },
+  "expected": {
+    "payload": "PORTAKAL 123 ABC xyz"
+  },
+  "hardware": {
+    "manufacturer": "Zebra",
+    "model": "ZD421",
+    "firmware": "V93.21.15Z",
+    "command_mode": "ZPL II"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

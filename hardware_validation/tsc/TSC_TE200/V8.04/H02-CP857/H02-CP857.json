@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H02-CP857",
+  "description": "Code Page 857 Turkish characters",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H02-CP857.bin",
+    "hex": "H02-CP857.hex",
+    "sha256": "9a616cc2ffee8fb37ee222172f55d5934996ee71bae2444d2060b33e4ef2239b",
+    "byte_count": 147
+  },
+  "expected": {
+    "payload": "Ğ ğ Ş ş İ ı ç ö ü"
+  },
+  "hardware": {
+    "manufacturer": "TSC",
+    "model": "TE200",
+    "firmware": "V8.04 EZ",
+    "command_mode": "TSPL2"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

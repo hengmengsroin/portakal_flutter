@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H05",
+  "description": "Font Scale multipliers (1x, 2x, 4x)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H05.bin",
+    "hex": "H05.hex",
+    "sha256": "dfa1ca81b00bda2e0231d458be143b989f5bd2c9d4afaba77a468447990efb18",
+    "byte_count": 67
+  },
+  "hardware": {
+    "manufacturer": "Epson",
+    "model": "TM-T88VI",
+    "firmware": "V2.01 ESC/POS",
+    "command_mode": "ESC/POS Standard"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "sdk_version": "0.3.0",
+  "total_cases": 16,
+  "generated_count": 15,
+  "unsupported_count": 1,
+  "cases": [
+    {
+      "case_id": "H01",
+      "description": "ASCII Text baseline layout",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "8e064319f18a1d446fcfadd0131d20c8ab346f4244ceded5814ef1893629bc24",
+      "byte_count": 167,
+      "bin_file": "H01.bin",
+      "hex_file": "H01.hex",
+      "json_file": "H01.json"
+    },
+    {
+      "case_id": "H02-CP437",
+      "description": "Code Page 437 Latin & special characters",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "76334c9bb5822d6a169047bbac044c18ec11d57f1a18192aa1c13d009879c3d6",
+      "byte_count": 141,
+      "bin_file": "H02-CP437.bin",
+      "hex_file": "H02-CP437.hex",
+      "json_file": "H02-CP437.json"
+    },
+    {
+      "case_id": "H02-CP850",
+      "description": "Code Page 850 Multilingual Latin-1",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "3062a103dd7b447b4c4a4fe6f671ca9a28f1fbe1b538fb7cde136de3b490c793",
+      "byte_count": 147,
+      "bin_file": "H02-CP850.bin",
+      "hex_file": "H02-CP850.hex",
+      "json_file": "H02-CP850.json"
+    },
+    {
+      "case_id": "H02-CP857",
+      "description": "Code Page 857 Turkish characters",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "9a616cc2ffee8fb37ee222172f55d5934996ee71bae2444d2060b33e4ef2239b",
+      "byte_count": 147,
+      "bin_file": "H02-CP857.bin",
+      "hex_file": "H02-CP857.hex",
+      "json_file": "H02-CP857.json"
+    },
+    {
+      "case_id": "H02-CP866",
+      "description": "Code Page 866 Cyrillic #2",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "94a14e32c2403c3f213c9b9a05e262b19a5f0f4bf090dc2940d9a33c0a03399c",
+      "byte_count": 145,
+      "bin_file": "H02-CP866.bin",
+      "hex_file": "H02-CP866.hex",
+      "json_file": "H02-CP866.json"
+    },
+    {
+      "case_id": "H02-CP1252",
+      "description": "Windows-1252 Western European",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "faebd54a70fb02c6f5b2a8737557f360d45edd5ed954d0f8533404c330c97e28",
+      "byte_count": 149,
+      "bin_file": "H02-CP1252.bin",
+      "hex_file": "H02-CP1252.hex",
+      "json_file": "H02-CP1252.json"
+    },
+    {
+      "case_id": "H02-UTF8",
+      "description": "UTF-8 Unicode encoding mode",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "d293dbd1d7b774247f92536b8215b2c6080926cded278d4da92fc38e69744be4",
+      "byte_count": 188,
+      "bin_file": "H02-UTF8.bin",
+      "hex_file": "H02-UTF8.hex",
+      "json_file": "H02-UTF8.json"
+    },
+    {
+      "case_id": "H04",
+      "description": "Rotation (0°, 90°, 180°, 270°)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "0c72ef779a83cef9e244ce6a3f7245aa012f0ce863c4eafcdeed39ddae685516",
+      "byte_count": 190,
+      "bin_file": "H04.bin",
+      "hex_file": "H04.hex",
+      "json_file": "H04.json"
+    },
+    {
+      "case_id": "H05",
+      "description": "Font Scaling (1x, 2x, 4x)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "50190d3f0aa7661d7bcdbc6538dca7df88cd8585835367c5cd9b4ca3cef98a4a",
+      "byte_count": 157,
+      "bin_file": "H05.bin",
+      "hex_file": "H05.hex",
+      "json_file": "H05.json"
+    },
+    {
+      "case_id": "H06",
+      "description": "1D Barcode (Code128)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "37756c0da132344e3235fad9ae3b86fad1656c4c8ead1f28bae64ed7085e223e",
+      "byte_count": 141,
+      "bin_file": "H06.bin",
+      "hex_file": "H06.hex",
+      "json_file": "H06.json"
+    },
+    {
+      "case_id": "H07",
+      "description": "2D QR Code",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "2c395221311a4886698ab6c0cbdf53232c307446d119464e676c0e57ef34af1a",
+      "byte_count": 157,
+      "bin_file": "H07.bin",
+      "hex_file": "H07.hex",
+      "json_file": "H07.json"
+    },
+    {
+      "case_id": "H08",
+      "description": "Drawing (Box, Line, Circle)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "cc91a4fc925762ada9c2b7d3a7dae4e238033ec40fe7db6ca2afebc0cd3da756",
+      "byte_count": 96,
+      "bin_file": "H08.bin",
+      "hex_file": "H08.hex",
+      "json_file": "H08.json"
+    },
+    {
+      "case_id": "H09",
+      "description": "1-Bit Raster Bitmap (64x64)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "743515de16b76c24747fb9b86b84e9c917ac0f1d3f35fe465ffd487ab26a55dc",
+      "byte_count": 631,
+      "bin_file": "H09.bin",
+      "hex_file": "H09.hex",
+      "json_file": "H09.json"
+    },
+    {
+      "case_id": "H10",
+      "description": "Copies (Batch 3 copies)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "131475c43d27e3771500d51429d76dcecebf5f0e54e9c5a60e086589144cf3c8",
+      "byte_count": 101,
+      "bin_file": "H10.bin",
+      "hex_file": "H10.hex",
+      "json_file": "H10.json"
+    },
+    {
+      "case_id": "H11",
+      "description": "Cutter command",
+      "status": "N/S-SDK",
+      "reason": "TSC cutter control is configured via printer-side SET CUTTER rather than per-label command stream in current baseline",
+      "generated": false
+    },
+    {
+      "case_id": "H12",
+      "description": "Initialization & CLS clear",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "ca51cc9362eb8b34f911287ffc21e078c21f39b54bef2f59bf6ef59a6724d768",
+      "byte_count": 5,
+      "bin_file": "H12.bin",
+      "hex_file": "H12.hex",
+      "json_file": "H12.json"
+    }
+  ]
+}

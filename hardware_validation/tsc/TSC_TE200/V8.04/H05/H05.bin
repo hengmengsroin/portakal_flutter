@@ -1,0 +1,6 @@
+SIZE 800 dot,600 dot
+CLS
+TEXT 50,50,"3",0,1,1,"Scale 1x Normal"
+TEXT 50,120,"3",0,2,2,"Scale 2x Medium"
+TEXT 50,220,"3",0,4,4,"Scale 4x Large"
+PRINT 1

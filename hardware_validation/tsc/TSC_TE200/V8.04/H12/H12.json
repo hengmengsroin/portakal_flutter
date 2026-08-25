@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H12",
+  "description": "Initialization & CLS clear",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H12.bin",
+    "hex": "H12.hex",
+    "sha256": "ca51cc9362eb8b34f911287ffc21e078c21f39b54bef2f59bf6ef59a6724d768",
+    "byte_count": 5
+  },
+  "hardware": {
+    "manufacturer": "TSC",
+    "model": "TE200",
+    "firmware": "V8.04 EZ",
+    "command_mode": "TSPL2"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "zpl",
+  "case_id": "H07",
+  "description": "2D QR Code (^BQ Model 2)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "ZplPrinter"
+  },
+  "artifact": {
+    "bin": "H07.bin",
+    "hex": "H07.hex",
+    "sha256": "183d29dbcc99c8a25a947d83a296b3ddffcc9218db5084fda97666ca8132a53b",
+    "byte_count": 142
+  },
+  "expected": {
+    "payload": "https://example.com/portakal-hw-test"
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H06",
+  "description": "1D Barcode (Code128)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H06.bin",
+    "hex": "H06.hex",
+    "sha256": "f634469af3f69c0cbec1200c09ffee3d9f75390e749863415013507cd4180497",
+    "byte_count": 73
+  },
+  "expected": {
+    "payload": "PORTAKAL123456"
+  },
+  "hardware": {
+    "manufacturer": "Epson",
+    "model": "TM-T88VI",
+    "firmware": "V2.01 ESC/POS",
+    "command_mode": "ESC/POS Standard"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

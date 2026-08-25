@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H02-CP1252",
+  "description": "Windows-1252 Western European (Table 16)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H02-CP1252.bin",
+    "hex": "H02-CP1252.hex",
+    "sha256": "5eaf03cf4cd19574e07e07305af24bc65403beb68d139be4ce025ca85a26a0c2",
+    "byte_count": 62
+  },
+  "expected": {
+    "payload": "é à è € “ ” ‘ ’ © ®"
+  },
+  "hardware": {
+    "manufacturer": "Epson",
+    "model": "TM-T88VI",
+    "firmware": "V2.01 ESC/POS",
+    "command_mode": "ESC/POS Standard"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

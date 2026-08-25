@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H05",
+  "description": "Font Scaling (1x, 2x, 4x)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H05.bin",
+    "hex": "H05.hex",
+    "sha256": "50190d3f0aa7661d7bcdbc6538dca7df88cd8585835367c5cd9b4ca3cef98a4a",
+    "byte_count": 157
+  },
+  "hardware": {
+    "manufacturer": "TSC",
+    "model": "TE200",
+    "firmware": "V8.04 EZ",
+    "command_mode": "TSPL2"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

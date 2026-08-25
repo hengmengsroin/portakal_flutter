@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H08",
+  "description": "Drawing (Box, Line, Circle)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H08.bin",
+    "hex": "H08.hex",
+    "sha256": "cc91a4fc925762ada9c2b7d3a7dae4e238033ec40fe7db6ca2afebc0cd3da756",
+    "byte_count": 96
+  },
+  "hardware": {
+    "manufacturer": "TSC",
+    "model": "TE200",
+    "firmware": "V8.04 EZ",
+    "command_mode": "TSPL2"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

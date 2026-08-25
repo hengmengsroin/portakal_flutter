@@ -1,0 +1,6 @@
+CODEPAGE 437
+SIZE 800 dot,600 dot
+CLS
+TEXT 50,50,"2",0,1,1,"PORTAKAL-HW | Case: H02-CP437"
+TEXT 50,120,"2",0,1,1,"Ñ î Å · Ò ¯"
+PRINT 1

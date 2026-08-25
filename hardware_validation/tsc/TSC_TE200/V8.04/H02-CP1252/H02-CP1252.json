@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H02-CP1252",
+  "description": "Windows-1252 Western European",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H02-CP1252.bin",
+    "hex": "H02-CP1252.hex",
+    "sha256": "faebd54a70fb02c6f5b2a8737557f360d45edd5ed954d0f8533404c330c97e28",
+    "byte_count": 149
+  },
+  "expected": {
+    "payload": "é à è “ ” ‘ ’ © ®"
+  },
+  "hardware": {
+    "manufacturer": "TSC",
+    "model": "TE200",
+    "firmware": "V8.04 EZ",
+    "command_mode": "TSPL2"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

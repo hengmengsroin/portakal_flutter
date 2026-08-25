@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "zpl",
+  "case_id": "H06",
+  "description": "1D Barcode (^BC Code128)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "ZplPrinter"
+  },
+  "artifact": {
+    "bin": "H06.bin",
+    "hex": "H06.hex",
+    "sha256": "1732f726096200e83eed885fc844cb6a675a7840209b22244904979d61c1dba6",
+    "byte_count": 128
+  },
+  "expected": {
+    "payload": "PORTAKAL123456"
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

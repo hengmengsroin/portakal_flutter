@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H02-CP857",
+  "description": "Code Page 857 Turkish (Table 13)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H02-CP857.bin",
+    "hex": "H02-CP857.hex",
+    "sha256": "b7a604bc2ecf7a31facb3ef78d3e300de522d2d94d64bb7d223ee7e37b38a60b",
+    "byte_count": 59
+  },
+  "expected": {
+    "payload": "Ğ ğ Ş ş İ ı ç ö ü"
+  },
+  "hardware": {
+    "manufacturer": "Generic",
+    "model": "POS-80",
+    "firmware": "V1.0",
+    "command_mode": "ESC/POS"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

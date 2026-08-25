@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H09",
+  "description": "1-Bit Raster Bitmap (64x64)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H09.bin",
+    "hex": "H09.hex",
+    "sha256": "743515de16b76c24747fb9b86b84e9c917ac0f1d3f35fe465ffd487ab26a55dc",
+    "byte_count": 631
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

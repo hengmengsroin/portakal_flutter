@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "protocol": "zpl",
+  "case_id": "H09",
+  "description": "1-Bit Raster Bitmap (^GFA ASCII Hex)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "ZplPrinter"
+  },
+  "artifact": {
+    "bin": "H09.bin",
+    "hex": "H09.hex",
+    "sha256": "1d85f7b29696196ad8aed0aa49df8088e31298312c2086e13ca85c28071c46df",
+    "byte_count": 1136
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

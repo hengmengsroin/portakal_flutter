@@ -1,0 +1,5 @@
+SIZE 800 dot,600 dot
+CLS
+TEXT 50,30,"2",0,1,1,"PORTAKAL-HW | Case: H07 QR Code"
+QRCODE 50,80,"M",5,"A",0,"https://example.com/portakal-hw-test"
+PRINT 1

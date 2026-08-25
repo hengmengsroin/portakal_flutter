@@ -1,0 +1,6 @@
+CODEPAGE UTF-8
+SIZE 800 dot,600 dot
+CLS
+TEXT 50,50,"2",0,1,1,"PORTAKAL-HW | Case: H02-UTF8"
+TEXT 50,120,"2",0,1,1,"Portakal Unicode: 日本語 / 한국어 / ខ្មែរ"
+PRINT 1

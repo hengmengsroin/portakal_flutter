@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "zpl",
+  "case_id": "H02-CP1252",
+  "description": "Legacy Western European without ^CI28",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "ZplPrinter"
+  },
+  "artifact": {
+    "bin": "H02-CP1252.bin",
+    "hex": "H02-CP1252.hex",
+    "sha256": "c5aa20175aca71efd12efe179c0dd5643009d7dc6d9c7faeaf6e9f514d383374",
+    "byte_count": 96
+  },
+  "expected": {
+    "payload": "é à è ç"
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H04",
+  "description": "Rotation (0°, 90°, 180°, 270°)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H04.bin",
+    "hex": "H04.hex",
+    "sha256": "0c72ef779a83cef9e244ce6a3f7245aa012f0ce863c4eafcdeed39ddae685516",
+    "byte_count": 190
+  },
+  "hardware": {
+    "manufacturer": "TSC",
+    "model": "TE200",
+    "firmware": "V8.04 EZ",
+    "command_mode": "TSPL2"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

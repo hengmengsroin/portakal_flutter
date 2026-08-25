@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H02-CP850",
+  "description": "Code Page 850 Multilingual Latin-1 (Table 2)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H02-CP850.bin",
+    "hex": "H02-CP850.hex",
+    "sha256": "6900075bc33a0c4ac26512b640b59c5686c611638ce9d321245563867958a30e",
+    "byte_count": 59
+  },
+  "expected": {
+    "payload": "é à è ù ç ñ Á Í Ó"
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

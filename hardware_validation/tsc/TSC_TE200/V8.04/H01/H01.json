@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "case_id": "H01",
+  "description": "ASCII Text baseline layout",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "TscPrinter"
+  },
+  "artifact": {
+    "bin": "H01.bin",
+    "hex": "H01.hex",
+    "sha256": "8e064319f18a1d446fcfadd0131d20c8ab346f4244ceded5814ef1893629bc24",
+    "byte_count": 167
+  },
+  "expected": {
+    "payload": "PORTAKAL 123 ABC xyz"
+  },
+  "hardware": {
+    "manufacturer": "TSC",
+    "model": "TE200",
+    "firmware": "V8.04 EZ",
+    "command_mode": "TSPL2"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

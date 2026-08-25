@@ -1,0 +1,6 @@
+CODEPAGE 850
+SIZE 800 dot,600 dot
+CLS
+TEXT 50,50,"2",0,1,1,"PORTAKAL-HW | Case: H02-CP850"
+TEXT 50,120,"2",0,1,1,"‚ … Š — ‡ ¤ µ Ö à"
+PRINT 1

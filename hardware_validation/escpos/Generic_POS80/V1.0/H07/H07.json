@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H07",
+  "description": "2D QR Code (Model 2 via GS ( k)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H07.bin",
+    "hex": "H07.hex",
+    "sha256": "a651cc1718742e0399712a7637ae8b10153df3b652950b1eced6da2a159c41dd",
+    "byte_count": 120
+  },
+  "expected": {
+    "payload": "https://example.com/portakal-hw-test"
+  },
+  "hardware": {
+    "manufacturer": "Generic",
+    "model": "POS-80",
+    "firmware": "V1.0",
+    "command_mode": "ESC/POS"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

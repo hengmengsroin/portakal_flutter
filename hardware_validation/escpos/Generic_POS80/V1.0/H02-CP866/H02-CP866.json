@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H02-CP866",
+  "description": "Code Page 866 Cyrillic #2 (Table 17)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H02-CP866.bin",
+    "hex": "H02-CP866.hex",
+    "sha256": "9e6a79d40ca16166ed83926b77bb14a3a46d4a4ef4376d2f14da395295d6613a",
+    "byte_count": 57
+  },
+  "expected": {
+    "payload": "Привет мир! 123"
+  },
+  "hardware": {
+    "manufacturer": "Generic",
+    "model": "POS-80",
+    "firmware": "V1.0",
+    "command_mode": "ESC/POS"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

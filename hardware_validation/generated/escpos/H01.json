@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H01",
+  "description": "ASCII Text formatting (Bold, Underline, Center)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H01.bin",
+    "hex": "H01.hex",
+    "sha256": "a10d4f8a3aa5505f04af365a50794cba3be4f62d9b07c77c9678e9336eff4636",
+    "byte_count": 77
+  },
+  "expected": {
+    "payload": "PORTAKAL 123 ABC xyz"
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

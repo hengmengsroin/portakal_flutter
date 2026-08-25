@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "protocol": "zpl",
+  "case_id": "H04",
+  "description": "Rotation (0°, 90°, 180°, 270°)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "ZplPrinter"
+  },
+  "artifact": {
+    "bin": "H04.bin",
+    "hex": "H04.hex",
+    "sha256": "76e03497c1e828d90abe248e586f8f68e7dcd214aa90f9595eb71ec9d8ddc593",
+    "byte_count": 163
+  },
+  "hardware": {
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

@@ -1,0 +1,5 @@
+SIZE 800 dot,600 dot
+CLS
+TEXT 50,50,"0",0,1,1,"PORTAKAL-HW | Proto: TSC | Case: H01 | SDK: 0.3.0 | Run: 001"
+TEXT 50,120,"0",0,2,2,"PORTAKAL 123 ABC xyz"
+PRINT 1

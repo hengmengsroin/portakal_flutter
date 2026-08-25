@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "sdk_version": "0.3.0",
+  "total_cases": 16,
+  "generated_count": 16,
+  "unsupported_count": 0,
+  "cases": [
+    {
+      "case_id": "H01",
+      "description": "ASCII Text formatting (Bold, Underline, Center)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "a10d4f8a3aa5505f04af365a50794cba3be4f62d9b07c77c9678e9336eff4636",
+      "byte_count": 77,
+      "bin_file": "H01.bin",
+      "hex_file": "H01.hex",
+      "json_file": "H01.json"
+    },
+    {
+      "case_id": "H02-CP437",
+      "description": "Code Page 437 Latin (Table 0)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "b8867c7ceb0b0c16bc9a28e2fd045d865f293baae59783e4b3fd743e5d533bb5",
+      "byte_count": 53,
+      "bin_file": "H02-CP437.bin",
+      "hex_file": "H02-CP437.hex",
+      "json_file": "H02-CP437.json"
+    },
+    {
+      "case_id": "H02-CP858",
+      "description": "Code Page 858 Western European with Euro sign € (Table 19)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "1602d910ad432563e0e8524ca78c783e05455bd9cb4e6ed364cb97f069f32552",
+      "byte_count": 68,
+      "bin_file": "H02-CP858.bin",
+      "hex_file": "H02-CP858.hex",
+      "json_file": "H02-CP858.json"
+    },
+    {
+      "case_id": "H02-CP850",
+      "description": "Code Page 850 Multilingual Latin-1 (Table 2)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "6900075bc33a0c4ac26512b640b59c5686c611638ce9d321245563867958a30e",
+      "byte_count": 59,
+      "bin_file": "H02-CP850.bin",
+      "hex_file": "H02-CP850.hex",
+      "json_file": "H02-CP850.json"
+    },
+    {
+      "case_id": "H02-CP1252",
+      "description": "Windows-1252 Western European (Table 16)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "5eaf03cf4cd19574e07e07305af24bc65403beb68d139be4ce025ca85a26a0c2",
+      "byte_count": 62,
+      "bin_file": "H02-CP1252.bin",
+      "hex_file": "H02-CP1252.hex",
+      "json_file": "H02-CP1252.json"
+    },
+    {
+      "case_id": "H02-CP857",
+      "description": "Code Page 857 Turkish (Table 13)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "b7a604bc2ecf7a31facb3ef78d3e300de522d2d94d64bb7d223ee7e37b38a60b",
+      "byte_count": 59,
+      "bin_file": "H02-CP857.bin",
+      "hex_file": "H02-CP857.hex",
+      "json_file": "H02-CP857.json"
+    },
+    {
+      "case_id": "H02-CP866",
+      "description": "Code Page 866 Cyrillic #2 (Table 17)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "9e6a79d40ca16166ed83926b77bb14a3a46d4a4ef4376d2f14da395295d6613a",
+      "byte_count": 57,
+      "bin_file": "H02-CP866.bin",
+      "hex_file": "H02-CP866.hex",
+      "json_file": "H02-CP866.json"
+    },
+    {
+      "case_id": "H04",
+      "description": "Rotation (0° and 180° upside down)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "371a671f68a47ec89dc60b22eae363c6919b9a63cb2cd48c710a1be1b33196a7",
+      "byte_count": 60,
+      "bin_file": "H04.bin",
+      "hex_file": "H04.hex",
+      "json_file": "H04.json"
+    },
+    {
+      "case_id": "H05",
+      "description": "Font Scale multipliers (1x, 2x, 4x)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "dfa1ca81b00bda2e0231d458be143b989f5bd2c9d4afaba77a468447990efb18",
+      "byte_count": 67,
+      "bin_file": "H05.bin",
+      "hex_file": "H05.hex",
+      "json_file": "H05.json"
+    },
+    {
+      "case_id": "H06",
+      "description": "1D Barcode (Code128)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "f634469af3f69c0cbec1200c09ffee3d9f75390e749863415013507cd4180497",
+      "byte_count": 73,
+      "bin_file": "H06.bin",
+      "hex_file": "H06.hex",
+      "json_file": "H06.json"
+    },
+    {
+      "case_id": "H07",
+      "description": "2D QR Code (Model 2 via GS ( k)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "a651cc1718742e0399712a7637ae8b10153df3b652950b1eced6da2a159c41dd",
+      "byte_count": 120,
+      "bin_file": "H07.bin",
+      "hex_file": "H07.hex",
+      "json_file": "H07.json"
+    },
+    {
+      "case_id": "H08",
+      "description": "Geometric Line separator",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "0a475fecbccb180ba86eddcf554a2e2c19077c1b15d3a2f661edae3d7ca7c906",
+      "byte_count": 96,
+      "bin_file": "H08.bin",
+      "hex_file": "H08.hex",
+      "json_file": "H08.json"
+    },
+    {
+      "case_id": "H09",
+      "description": "1-Bit Raster Bitmap (GS v 0)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "6fb45d9b4522056327a13620982062c0a369d061751f886dfee5c9a577bbd644",
+      "byte_count": 577,
+      "bin_file": "H09.bin",
+      "hex_file": "H09.hex",
+      "json_file": "H09.json"
+    },
+    {
+      "case_id": "H10",
+      "description": "Multiple copies via repeated print cycle",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "080bca2adb1d27a283bfa617e8dc2dcb43ac198c59d035f77e98fee61917ec9f",
+      "byte_count": 61,
+      "bin_file": "H10.bin",
+      "hex_file": "H10.hex",
+      "json_file": "H10.json"
+    },
+    {
+      "case_id": "H11",
+      "description": "Partial paper cut",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "14a098f9a45db66d7e54f72f65fbf4cfab4e529dcc31fd05d03526a9e3480597",
+      "byte_count": 43,
+      "bin_file": "H11.bin",
+      "hex_file": "H11.hex",
+      "json_file": "H11.json"
+    },
+    {
+      "case_id": "H12",
+      "description": "Printer initialize (ESC @)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "d376274f1c5409dac9df4be8f6fa47ebb103059e0b9ee2f5b6292fd808da6c17",
+      "byte_count": 8,
+      "bin_file": "H12.bin",
+      "hex_file": "H12.hex",
+      "json_file": "H12.json"
+    }
+  ]
+}

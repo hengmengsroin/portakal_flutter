@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "protocol": "zpl",
+  "sdk_version": "0.3.0",
+  "total_cases": 12,
+  "generated_count": 11,
+  "unsupported_count": 1,
+  "cases": [
+    {
+      "case_id": "H01",
+      "description": "ASCII Text with ^FO and ^FD",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "ec94deef4e48b5e3e7ca4ab1526cdf710729e8c4c6dc2d504d8728fb29ed9de4",
+      "byte_count": 134,
+      "bin_file": "H01.bin",
+      "hex_file": "H01.hex",
+      "json_file": "H01.json"
+    },
+    {
+      "case_id": "H02-UTF8",
+      "description": "UTF-8 multilingual text with ^CI28",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "83aa2e239b328e44aa4465e1aee3c950f8e58e47da148df795fbb312eeeb8af8",
+      "byte_count": 166,
+      "bin_file": "H02-UTF8.bin",
+      "hex_file": "H02-UTF8.hex",
+      "json_file": "H02-UTF8.json"
+    },
+    {
+      "case_id": "H02-CP1252",
+      "description": "Legacy Western European without ^CI28",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "c5aa20175aca71efd12efe179c0dd5643009d7dc6d9c7faeaf6e9f514d383374",
+      "byte_count": 96,
+      "bin_file": "H02-CP1252.bin",
+      "hex_file": "H02-CP1252.hex",
+      "json_file": "H02-CP1252.json"
+    },
+    {
+      "case_id": "H04",
+      "description": "Rotation (0°, 90°, 180°, 270°)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "76e03497c1e828d90abe248e586f8f68e7dcd214aa90f9595eb71ec9d8ddc593",
+      "byte_count": 163,
+      "bin_file": "H04.bin",
+      "hex_file": "H04.hex",
+      "json_file": "H04.json"
+    },
+    {
+      "case_id": "H05",
+      "description": "Font Sizing with ^A0",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "e8f3eeacca78ea9c83d4a177fa6f0da1346f4bc8a0411e5e533296ec86cd1b19",
+      "byte_count": 141,
+      "bin_file": "H05.bin",
+      "hex_file": "H05.hex",
+      "json_file": "H05.json"
+    },
+    {
+      "case_id": "H06",
+      "description": "1D Barcode (^BC Code128)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "1732f726096200e83eed885fc844cb6a675a7840209b22244904979d61c1dba6",
+      "byte_count": 128,
+      "bin_file": "H06.bin",
+      "hex_file": "H06.hex",
+      "json_file": "H06.json"
+    },
+    {
+      "case_id": "H07",
+      "description": "2D QR Code (^BQ Model 2)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "183d29dbcc99c8a25a947d83a296b3ddffcc9218db5084fda97666ca8132a53b",
+      "byte_count": 142,
+      "bin_file": "H07.bin",
+      "hex_file": "H07.hex",
+      "json_file": "H07.json"
+    },
+    {
+      "case_id": "H08",
+      "description": "Drawing (^GB Graphic Box & Line)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "7a0c1b69ebe0784135c23e360e83c93502955019181175149ca8935f6ea20e39",
+      "byte_count": 69,
+      "bin_file": "H08.bin",
+      "hex_file": "H08.hex",
+      "json_file": "H08.json"
+    },
+    {
+      "case_id": "H09",
+      "description": "1-Bit Raster Bitmap (^GFA ASCII Hex)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "1d85f7b29696196ad8aed0aa49df8088e31298312c2086e13ca85c28071c46df",
+      "byte_count": 1136,
+      "bin_file": "H09.bin",
+      "hex_file": "H09.hex",
+      "json_file": "H09.json"
+    },
+    {
+      "case_id": "H10",
+      "description": "Copies via ^PQ",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "2266e5d9808a78a98c3aecd12cc16979e8510dc5732e5cceb4927636d9cb299a",
+      "byte_count": 93,
+      "bin_file": "H10.bin",
+      "hex_file": "H10.hex",
+      "json_file": "H10.json"
+    },
+    {
+      "case_id": "H11",
+      "description": "Cutter command",
+      "status": "N/S-SDK",
+      "reason": "Zebra cutter actuation is controlled via media mode (^MM) or host config rather than per-label cut command in current baseline",
+      "generated": false
+    },
+    {
+      "case_id": "H12",
+      "description": "Label framing (^XA / ^XZ)",
+      "status": "SUPPORTED",
+      "generated": true,
+      "sha256": "97e1147617acb45f052c53d8744aacc18790c273a68648cfcb551acadf935e7d",
+      "byte_count": 14,
+      "bin_file": "H12.bin",
+      "hex_file": "H12.hex",
+      "json_file": "H12.json"
+    }
+  ]
+}

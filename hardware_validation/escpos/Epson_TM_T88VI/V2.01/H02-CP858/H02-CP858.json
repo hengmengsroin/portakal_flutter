@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "case_id": "H02-CP858",
+  "description": "Code Page 858 Western European with Euro sign € (Table 19)",
+  "sdk": {
+    "package": "portakal_core",
+    "version": "0.3.0",
+    "builder": "EscPosPrinter"
+  },
+  "artifact": {
+    "bin": "H02-CP858.bin",
+    "hex": "H02-CP858.hex",
+    "sha256": "1602d910ad432563e0e8524ca78c783e05455bd9cb4e6ed364cb97f069f32552",
+    "byte_count": 68
+  },
+  "expected": {
+    "payload": "é à è ù ç €"
+  },
+  "hardware": {
+    "manufacturer": "Epson",
+    "model": "TM-T88VI",
+    "firmware": "V2.01 ESC/POS",
+    "command_mode": "ESC/POS Standard"
+  },
+  "result": {
+    "level2": "N/T",
+    "level3": "N/T",
+    "simulator": "N/T"
+  }
+}

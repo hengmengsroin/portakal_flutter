@@ -1,0 +1,4 @@
+SIZE 800 dot,400 dot
+CLS
+TEXT 50,50,"2",0,1,1,"PORTAKAL-HW | Case: H10 Batch 3 Copies"
+PRINT 1,3
