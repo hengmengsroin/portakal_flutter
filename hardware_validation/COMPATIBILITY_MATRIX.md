@@ -15,6 +15,7 @@ This document tracks physical hardware validation runs across supported thermal 
 | Protocol | Manufacturer | Model | Firmware | Connection | Verified Scope | Overall Status | Evidence Path |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
 | **ESC/POS** | **Unknown / Generic** | **Printer001-328F** | **Unknown** | **BLE** | **ESC/POS Verified Subset**<br>(Text, CP437, Scaling, Code128, QR, Raster, Partial Cut, Reset) | **PASS** | [`hardware_validation/escpos/Printer001_328F/BLE/manifest.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/escpos/Printer001_328F/BLE/manifest.json) |
+| **TSC** | **TSC / Generic TSPL2** | **Generic_TSC_203** | **V1.0** | **BLE** | **TSC / TSPL2 Verified Subset**<br>(Text, CP437, Scaling, Code128, QR, Primitives, Raster, Copies, CLS) | **PASS** | [`hardware_validation/tsc/Generic_TSC_203/V1.0/BLE/manifest.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/tsc/Generic_TSC_203/V1.0/BLE/manifest.json) |
 
 ---
 

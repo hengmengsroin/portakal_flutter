@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../hardware/escpos_hardware_cases.dart';
 import '../hardware/sha256.dart';
+import '../hardware/tsc_hardware_cases.dart';
 import '../transport/hardware_printer_transport.dart';
 
 /// Test execution and diagnostic status for each validation case.
@@ -24,9 +25,58 @@ enum CaseResultStatus {
   const CaseResultStatus(this.label, this.color);
 }
 
+/// Generic container for a validation case from any protocol.
+class GenericCaseDefinition {
+  final String id;
+  final String title;
+  final String description;
+  final String? expectedPayload;
+  final bool isDiagnostic;
+  final bool requiresCutter;
+  final String goldenSha256;
+  final Uint8List Function() generator;
+
+  const GenericCaseDefinition({
+    required this.id,
+    required this.title,
+    required this.description,
+    this.expectedPayload,
+    this.isDiagnostic = false,
+    this.requiresCutter = false,
+    required this.goldenSha256,
+    required this.generator,
+  });
+
+  factory GenericCaseDefinition.fromEscPos(EscPosValidationCase c) {
+    return GenericCaseDefinition(
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      expectedPayload: c.expectedPayload,
+      isDiagnostic: c.isDiagnostic,
+      requiresCutter: c.requiresCutter,
+      goldenSha256: c.goldenSha256,
+      generator: c.generator,
+    );
+  }
+
+  factory GenericCaseDefinition.fromTsc(TscValidationCase c) {
+    return GenericCaseDefinition(
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      expectedPayload: c.expectedPayload,
+      isDiagnostic: c.isDiagnostic,
+      requiresCutter: false,
+      goldenSha256: c.goldenSha256,
+      generator: c.generator,
+    );
+  }
+}
+
 /// Recorded validation run details for a single test case.
 class CaseExecutionRecord {
-  final EscPosValidationCase testCase;
+  final GenericCaseDefinition testCase;
   final Uint8List? generatedBytes;
   final String? generatedSha256;
   final bool? isGoldenMatch;
@@ -49,7 +99,15 @@ class CaseExecutionRecord {
   });
 }
 
-/// Interactive Hardware Validation Screen for Bluetooth & Direct ESC/POS Printers.
+enum HardwareProtocol {
+  escpos('ESC/POS'),
+  tsc('TSC / TSPL2');
+
+  final String label;
+  const HardwareProtocol(this.label);
+}
+
+/// Interactive Hardware Validation Screen supporting ESC/POS and TSC Protocols.
 class HardwareValidationPage extends StatefulWidget {
   final HardwarePrinterTransport transport;
   final String targetDeviceName;
@@ -65,24 +123,59 @@ class HardwareValidationPage extends StatefulWidget {
 }
 
 class _HardwareValidationPageState extends State<HardwareValidationPage> {
+  HardwareProtocol _activeProtocol = HardwareProtocol.escpos;
+
   final List<DiscoveredPrinter> _discoveredPrinters = [];
   DiscoveredPrinter? _selectedPrinter;
   bool _isScanning = false;
   bool _isConnecting = false;
   String _connectionStatus = 'Disconnected';
 
-  final Map<String, CaseExecutionRecord> _records = {};
+  final Map<String, CaseExecutionRecord> _escposRecords = {};
+  final Map<String, CaseExecutionRecord> _tscRecords = {};
   CaseExecutionRecord? _lastActiveRecord;
 
   final TextEditingController _scanInputController = TextEditingController();
+
+  Map<String, CaseExecutionRecord> get _currentRecords =>
+      _activeProtocol == HardwareProtocol.escpos ? _escposRecords : _tscRecords;
+
+  List<GenericCaseDefinition> get _currentDiagnosticCases {
+    if (_activeProtocol == HardwareProtocol.escpos) {
+      return EscPosHardwareSuite.diagnosticCases
+          .map(GenericCaseDefinition.fromEscPos)
+          .toList();
+    } else {
+      return TscHardwareSuite.diagnosticCases
+          .map(GenericCaseDefinition.fromTsc)
+          .toList();
+    }
+  }
+
+  List<GenericCaseDefinition> get _currentProtocolCases {
+    if (_activeProtocol == HardwareProtocol.escpos) {
+      return EscPosHardwareSuite.protocolCases
+          .map(GenericCaseDefinition.fromEscPos)
+          .toList();
+    } else {
+      return TscHardwareSuite.protocolCases
+          .map(GenericCaseDefinition.fromTsc)
+          .toList();
+    }
+  }
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize session records for all defined ESC/POS diagnostic and protocol cases
+    // Initialize session records for all defined cases
     for (final c in EscPosHardwareSuite.allCases) {
-      _records[c.id] = CaseExecutionRecord(testCase: c);
+      final gen = GenericCaseDefinition.fromEscPos(c);
+      _escposRecords[c.id] = CaseExecutionRecord(testCase: gen);
+    }
+    for (final c in TscHardwareSuite.allCases) {
+      final gen = GenericCaseDefinition.fromTsc(c);
+      _tscRecords[c.id] = CaseExecutionRecord(testCase: gen);
     }
 
     widget.transport.printersStream.listen((printers) {
@@ -173,7 +266,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     }
   }
 
-  Future<void> _executeCase(EscPosValidationCase c) async {
+  Future<void> _executeCase(GenericCaseDefinition c) async {
     if (_selectedPrinter == null || !_selectedPrinter!.isConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please connect to a printer first.')),
@@ -213,7 +306,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     final isMatch = sha.toLowerCase() == c.goldenSha256.toLowerCase();
 
     setState(() {
-      _records[c.id]?.status = CaseResultStatus.sending;
+      _currentRecords[c.id]?.status = CaseResultStatus.sending;
     });
 
     // 2. Transmit raw bytes directly over transport and record diagnostics
@@ -233,7 +326,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
 
     if (!mounted) return;
     setState(() {
-      _records[c.id] = record;
+      _currentRecords[c.id] = record;
       _lastActiveRecord = record;
       _scanInputController.clear();
     });
@@ -254,20 +347,21 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     if (_lastActiveRecord == null) return;
     setState(() {
       _lastActiveRecord!.status = status;
-      _records[_lastActiveRecord!.testCase.id] = _lastActiveRecord!;
+      _currentRecords[_lastActiveRecord!.testCase.id] = _lastActiveRecord!;
     });
   }
 
   void _showSessionExportDialog() {
     final sessionMap = {
       'timestamp': DateTime.now().toIso8601String(),
+      'protocol': _activeProtocol.name.toUpperCase(),
       'device': {
         'display_name': _selectedPrinter?.name ?? 'Unknown',
         'connection_type':
             _selectedPrinter?.connectionType.name.toUpperCase() ?? 'UNKNOWN',
         'status': _connectionStatus,
       },
-      'results': _records.values.map((r) {
+      'results': _currentRecords.values.map((r) {
         return {
           'case_id': r.testCase.id,
           'title': r.testCase.title,
@@ -296,7 +390,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Export Session JSON'),
+        title: Text('Export ${_activeProtocol.label} Session JSON'),
         content: SizedBox(
           width: 550,
           child: SingleChildScrollView(
@@ -332,9 +426,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Hardware Validation & Transport Diagnostics — ESC/POS',
-        ),
+        title: Text('Hardware Validation — ${_activeProtocol.label}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
@@ -346,7 +438,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left Pane: Discovery and Device Status
+          // Left Pane: Discovery, Protocol Selector & Device Status
           SizedBox(
             width: 330,
             child: Card(
@@ -356,6 +448,35 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      'Protocol Selection',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SegmentedButton<HardwareProtocol>(
+                      segments: const [
+                        ButtonSegment(
+                          value: HardwareProtocol.escpos,
+                          label: Text('ESC/POS'),
+                        ),
+                        ButtonSegment(
+                          value: HardwareProtocol.tsc,
+                          label: Text('TSC / TSPL2'),
+                        ),
+                      ],
+                      selected: {_activeProtocol},
+                      onSelectionChanged: (val) {
+                        setState(() {
+                          _activeProtocol = val.first;
+                          _lastActiveRecord = null;
+                        });
+                      },
+                    ),
+                    const Divider(height: 24),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -503,9 +624,9 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                     _buildActiveVerificationPanel(),
 
                   const SizedBox(height: 12),
-                  const Text(
-                    'Step 1: Transport Diagnostic Probes',
-                    style: TextStyle(
+                  Text(
+                    'Step 1: ${_activeProtocol.label} Diagnostic Probes',
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
                       color: Colors.indigo,
@@ -513,37 +634,34 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                   ),
                   const SizedBox(height: 2),
                   const Text(
-                    'Use these minimal cases first to establish that raw bytes physically reach and print on the device.',
+                    'Establish that raw bytes physically reach and print on the device.',
                     style: TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                   const SizedBox(height: 10),
 
                   // Diagnostic Cases Grid
-                  _buildCaseGrid(
-                    EscPosHardwareSuite.diagnosticCases,
-                    isConnected,
-                  ),
+                  _buildCaseGrid(_currentDiagnosticCases, isConnected),
 
                   const SizedBox(height: 20),
                   const Divider(),
                   const SizedBox(height: 8),
 
-                  const Text(
-                    'Step 2: Protocol Validation Test Suite',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  Text(
+                    'Step 2: ${_activeProtocol.label} Validation Suite',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   const Text(
-                    'Execute full protocol feature cases only after D00 / D01 / H01-NOCUT pass.',
+                    'Execute full protocol feature cases against the connected hardware.',
                     style: TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                   const SizedBox(height: 10),
 
                   // Protocol Cases Grid
-                  _buildCaseGrid(
-                    EscPosHardwareSuite.protocolCases,
-                    isConnected,
-                  ),
+                  _buildCaseGrid(_currentProtocolCases, isConnected),
                 ],
               ),
             ),
@@ -553,12 +671,12 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     );
   }
 
-  Widget _buildCaseGrid(List<EscPosValidationCase> cases, bool isConnected) {
+  Widget _buildCaseGrid(List<GenericCaseDefinition> cases, bool isConnected) {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: cases.map((c) {
-        final record = _records[c.id];
+        final record = _currentRecords[c.id];
         final status = record?.status ?? CaseResultStatus.notTested;
 
         return SizedBox(
@@ -695,6 +813,13 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
+                  Text(
+                    '• Protocol: ${_activeProtocol.label}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   Text(
                     '• Target Device: ${_selectedPrinter?.name ?? "None"} (${_selectedPrinter?.connectionType.name.toUpperCase() ?? "UNKNOWN"})',
                     style: const TextStyle(fontSize: 11),
