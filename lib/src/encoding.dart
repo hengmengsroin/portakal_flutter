@@ -197,6 +197,109 @@ class ZplEncoding {
   static const ZplEncoding defaultEncoding = ZplEncoding.utf8();
 }
 
+/// Character set and encoding configuration for EPL2 serialization.
+class EplEncoding {
+  /// The character mapping to use for user text.
+  final PrinterCodePage codePage;
+
+  /// The EPL2 character set parameter for `I8,<countryCode>,001` (e.g. 0 for CP437, 1 for CP850, 13 for CP1252, 9 for CP866, 6 for CP857).
+  /// Set to null to omit the `I` command.
+  final int? countryCode;
+
+  /// Whether to emit `I8,<countryCode>,001\n` in the label preamble.
+  final bool sendSetCharSetCommand;
+
+  /// Whether to replace unencodable characters with `?` (0x3F) instead of throwing.
+  final bool replaceUnsupported;
+
+  const EplEncoding({
+    required this.codePage,
+    this.countryCode,
+    this.sendSetCharSetCommand = false,
+    this.replaceUnsupported = false,
+  });
+
+  /// Default legacy EPL mode: CP437 mapping without emitting `I` command (historical baseline).
+  const EplEncoding.legacy({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        countryCode: null,
+        sendSetCharSetCommand: false,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard CP437 (DOS US, country code 0).
+  const EplEncoding.cp437({
+    bool sendSetCharSetCommand = false,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp437,
+         countryCode: 0,
+         sendSetCharSetCommand: sendSetCharSetCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP850 (Multilingual Latin-1, country code 1).
+  const EplEncoding.cp850({
+    bool sendSetCharSetCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp850,
+         countryCode: 1,
+         sendSetCharSetCommand: sendSetCharSetCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard Windows CP1252 (Latin-1, country code 13).
+  const EplEncoding.cp1252({
+    bool sendSetCharSetCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp1252,
+         countryCode: 13,
+         sendSetCharSetCommand: sendSetCharSetCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP866 (Cyrillic, country code 9).
+  const EplEncoding.cp866({
+    bool sendSetCharSetCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp866,
+         countryCode: 9,
+         sendSetCharSetCommand: sendSetCharSetCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP857 (Turkish, country code 6).
+  const EplEncoding.cp857({
+    bool sendSetCharSetCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp857,
+         countryCode: 6,
+         sendSetCharSetCommand: sendSetCharSetCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Custom EPL encoding configuration.
+  const EplEncoding.custom({
+    required PrinterCodePage codePage,
+    int? countryCode,
+    bool sendSetCharSetCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: codePage,
+         countryCode: countryCode,
+         sendSetCharSetCommand: sendSetCharSetCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// The canonical default EPL encoding (legacy CP437 without `I` command).
+  static const EplEncoding defaultEncoding = EplEncoding.legacy();
+}
+
 /// Character encoder for a single [PrinterCodePage].
 class CodePageEncoder {
   final PrinterCodePage codePage;
