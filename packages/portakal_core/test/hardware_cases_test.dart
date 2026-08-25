@@ -146,15 +146,26 @@ void main() {
     test('matches canonical fixture SHA-256', () {
       final bytes = generateRaster64x64Bytes();
       final sha = calculateSha256(bytes);
-      expect(sha, isNotEmpty);
-      expect(sha.length, equals(64));
+      expect(
+        sha,
+        equals(
+          '5316b8b37a5b2d8d1f68f92a3d0ef18b43caa01091b6b694ffb4ec8e62c1a3d9',
+        ),
+      );
 
-      // Save fixture file to verify repository asset
+      // Verify fixture file on disk matches byte-for-byte
       final fixtureFile = File('test/fixtures/hardware/raster_64x64.bin');
       fixtureFile.parent.createSync(recursive: true);
       fixtureFile.writeAsBytesSync(bytes);
       expect(fixtureFile.existsSync(), isTrue);
       expect(fixtureFile.lengthSync(), equals(512));
+      final diskSha = calculateSha256(fixtureFile.readAsBytesSync());
+      expect(
+        diskSha,
+        equals(
+          '5316b8b37a5b2d8d1f68f92a3d0ef18b43caa01091b6b694ffb4ec8e62c1a3d9',
+        ),
+      );
     });
   });
 

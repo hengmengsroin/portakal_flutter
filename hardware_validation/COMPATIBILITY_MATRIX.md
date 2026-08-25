@@ -30,7 +30,7 @@ This document tracks physical hardware validation runs across supported thermal 
 | **H05** | Font Magnification | 75 | `68f079da...` | **PASS** | **PASS** | 1x, 2x, 4x width/height sizing verified |
 | **H06** | 1D Barcode Code 128 | 58 | `b2149b14...` | **PASS** | **PASS** | Scanned payload matches exact `PORTAKAL123456` |
 | **H07** | 2D QR Code | 82 | `4041b61c...` | **PASS** | **PASS** | Scanned payload matches exact URL `https://example.com/portakal-hw-test` |
-| **H09** | 1-Bit Raster Bitmap (64×64) | 577 | `6fb45d9b...` | **PASS** | **PASS** | 64×64 raster matrix verified (border, checkerboard, diagonal, stripes) |
+| **H09** | 1-Bit Raster Bitmap (64×64) | 577 | `6fb45d9b...` (stream)<br>`5316b8b3...` (raw matrix) | **PASS** | **PASS** | 64×64 raster matrix verified (border, checkerboard, diagonal, stripes) |
 | **H11** | Partial Paper Cut | 43 | `7bfcb9cb...` | **PASS** | **PASS** | `GS V` partial cut executed; paper feed intact, footer not clipped |
 | **H12** | Reset / Initialize | 2 | `f5ca68c4...` | **PASS** | **N/A** | `ESC @` executed without fault; printer remained online |
 

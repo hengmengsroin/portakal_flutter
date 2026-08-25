@@ -88,8 +88,10 @@
       "title": "1-Bit Raster Bitmap (64x64)",
       "level2": "PASS",
       "level3": "PASS",
+      "raw_fixture_sha256": "5316b8b37a5b2d8d1f68f92a3d0ef18b43caa01091b6b694ffb4ec8e62c1a3d9",
+      "stream_sha256": "6fb45d9b4522056327a13620982062c0a369d061751f886dfee5c9a577bbd644",
       "scanned_payload": null,
-      "notes": "64x64 dot raster fixture printed cleanly without row skew, clipping, or inversion"
+      "notes": "64x64 dot raster fixture (canonical raw SHA: 5316b8b3...) printed cleanly without row skew, clipping, or inversion"
     },
     {
       "case_id": "H11",
