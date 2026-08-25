@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  core-verification:
+    name: Core Package (Dart Stable)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Verify code formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static analysis (portakal_core)
+        run: dart analyze --fatal-infos packages/portakal_core
+
+      - name: Run unit & documentation tests (portakal_core)
+        run: dart test packages/portakal_core
+
+      - name: Verify Dartdoc generation (portakal_core)
+        run: dart doc --dry-run packages/portakal_core
+
+      - name: API Surface Freeze Guard
+        run: |
+          dart run tool/generate_api_snapshot.dart || true
+          git diff --exit-code tool/api_surface.txt
+
+      - name: Publish dry-run (portakal_core)
+        run: |
+          cd packages/portakal_core
+          dart pub publish --dry-run
+
+  flutter-verification:
+    name: Flutter Package (Flutter Stable)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Static analysis (portakal_flutter)
+        run: flutter analyze --fatal-infos packages/portakal_flutter
+
+      - name: Run widget & documentation tests (portakal_flutter)
+        run: flutter test packages/portakal_flutter
+
+      - name: Verify Dartdoc generation (portakal_flutter)
+        run: dart doc --dry-run packages/portakal_flutter
+
+      - name: Publish dry-run (portakal_flutter)
+        run: |
+          cd packages/portakal_flutter
+          flutter pub publish --dry-run
+
+  example-bench-verification:
+    name: Example Validation Bench (Flutter Stable)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Static analysis (example)
+        run: flutter analyze --fatal-infos example
+
+      - name: Run test bench suite (example)
+        run: flutter test example

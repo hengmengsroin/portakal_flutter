@@ -1,48 +1,51 @@
 # Portakal 1.0 Release Checklist
 
-This checklist defines the required release engineering steps for publishing Portakal 1.0.0 (`portakal_core` and `portakal_flutter`) to pub.dev.
+This checklist defines the required release engineering steps for staging and publishing Release Candidates (`1.0.0-rc.1`) and promoting to the final `1.0.0` release of `portakal_core` and `portakal_flutter` on `pub.dev`.
 
 ---
 
-## Pre-Release Verification Gate
+## 1. Pre-Release Verification Gate
 
-- [ ] **1. API Surface Stability**
-  - Verify `tool/api_surface.txt` matches the frozen 1.0 contract (`git diff tool/api_surface.txt` must be empty).
-- [ ] **2. Code Formatting**
-  - Run `dart format --output=none --set-exit-if-changed .` across workspace (0 formatted files).
-- [ ] **3. Static Analysis**
+- [ ] **API Surface Stability**
+  - Verify `tool/api_surface.txt` matches the frozen 1.0 contract (`dart run tool/generate_api_snapshot.dart && git diff --exit-code tool/api_surface.txt`).
+- [ ] **Code Formatting**
+  - Run `dart format --output=none --set-exit-if-changed .` across workspace (0 unformatted files).
+- [ ] **Static Analysis**
   - Run `dart analyze --fatal-infos packages/portakal_core` (0 issues).
   - Run `flutter analyze --fatal-infos packages/portakal_flutter` (0 issues).
   - Run `flutter analyze --fatal-infos example` (0 issues).
-- [ ] **4. Test Suite Execution**
+- [ ] **Test Suite Execution**
   - Run `dart test packages/portakal_core` (all 817 tests pass).
   - Run `flutter test packages/portakal_flutter` (all 6 tests pass).
   - Run `flutter test example` (all 16 tests pass).
   - Total: 839 passing tests.
-- [ ] **5. Documentation Validation**
+- [ ] **Documentation Validation**
   - Run `dart doc --dry-run packages/portakal_core` (0 errors, 0 warnings).
   - Run `dart doc --dry-run packages/portakal_flutter` (0 errors, 0 warnings).
-- [ ] **6. Markdown Link Integrity**
-  - Run Markdown link audit script (0 broken links across all markdown guides).
+- [ ] **Markdown Link Integrity**
+  - Run Markdown link audit (`dart run tool/audit_markdown_links.dart` or equivalent, 0 broken links).
 
 ---
 
-## Release Staging & Publishing Sequence
+## 2. Release Candidate Staging & Publishing (1.0.0-rc.1)
 
-### Step 1: Version Bumps & Metadata Configuration
+### Step 1: Version & Metadata Configuration
 - [ ] In `packages/portakal_core/pubspec.yaml`:
-  - Set `version: 1.0.0`
-  - Ensure `topics: [printers, thermal-printer, esc-pos, zpl, tspl]`
+  - Set `version: 1.0.0-rc.1`
+  - Ensure `topics: [printer, thermal-printer, esc-pos, zpl, tspl]`
+  - Ensure `environment.sdk: "^3.6.0"`
 - [ ] In `packages/portakal_core/CHANGELOG.md`:
-  - Confirm `## 1.0.0` release notes are finalized.
+  - Confirm `## 1.0.0-rc.1` release notes are finalized.
 - [ ] In `packages/portakal_flutter/pubspec.yaml`:
-  - Set `version: 1.0.0`
-  - Update `portakal_core` dependency from path to `portakal_core: ^1.0.0`
-  - Ensure `topics: [printers, thermal-printer, flutter-widgets, label-preview, escpos]`
+  - Set `version: 1.0.0-rc.1`
+  - Ensure `dependencies.portakal_core: ^1.0.0-rc.1` (no path dependency)
+  - Ensure `topics: [printer, thermal-printer, flutter, label, esc-pos]`
+  - Ensure `environment.sdk: "^3.6.0"`, `environment.flutter: ">=3.24.0"`
 - [ ] In `packages/portakal_flutter/CHANGELOG.md`:
-  - Confirm `## 1.0.0` release notes are finalized.
+  - Confirm `## 1.0.0-rc.1` release notes are finalized.
+- [ ] Verify clean git state: `git status`
 
-### Step 2: Publish `portakal_core`
+### Step 2: Publish `portakal_core` RC
 - [ ] Run dry-run:
   ```bash
   cd packages/portakal_core
@@ -54,7 +57,7 @@ This checklist defines the required release engineering steps for publishing Por
   ```
 - [ ] Verify package presence on [pub.dev/packages/portakal_core](https://pub.dev/packages/portakal_core).
 
-### Step 3: Publish `portakal_flutter`
+### Step 3: Publish `portakal_flutter` RC
 - [ ] Run dry-run:
   ```bash
   cd packages/portakal_flutter
@@ -66,28 +69,49 @@ This checklist defines the required release engineering steps for publishing Por
   ```
 - [ ] Verify package presence on [pub.dev/packages/portakal_flutter](https://pub.dev/packages/portakal_flutter).
 
+### Step 4: Tag Release Candidate
+- [ ] Create and push unified tag:
+  ```bash
+  git tag -a v1.0.0-rc.1 -m "Release Portakal 1.0.0-rc.1"
+  git push origin v1.0.0-rc.1
+  ```
+
 ---
 
-## Post-Release Smoke Test
+## 3. External Consumer Smoke Test (Post-RC)
 
-- [ ] **Pure Dart Standalone Smoke Test**:
-  ```bash
-  mkdir -p /tmp/smoke_dart && cd /tmp/smoke_dart
-  dart create -t console-simple .
-  dart pub add portakal_core
-  # Create sample compiling EscPosPrinter and TscPrinter
-  dart run bin/smoke_dart.dart
-  ```
-- [ ] **Flutter Standalone Smoke Test**:
-  ```bash
-  mkdir -p /tmp/smoke_flutter && cd /tmp/smoke_flutter
-  flutter create -t app .
-  flutter pub add portakal_flutter
-  # Add LabelPreview widget into main.dart
-  flutter build bundle
-  ```
-- [ ] **Git Tagging & Monorepo Synchronization**:
-  ```bash
-  git tag -a v1.0.0 -m "Release Portakal 1.0.0"
-  git push origin v1.0.0
-  ```
+Execute in isolated directories outside the monorepo:
+
+### A. Pure Dart External Smoke Test
+```bash
+mkdir -p /tmp/smoke_core && cd /tmp/smoke_core
+dart create -t console-simple .
+dart pub add portakal_core:1.0.0-rc.1
+# Verify compilation and byte emission:
+dart run bin/smoke_core.dart
+```
+
+### B. Flutter External Smoke Test
+```bash
+mkdir -p /tmp/smoke_flutter && cd /tmp/smoke_flutter
+flutter create -t app .
+flutter pub add portakal_flutter:1.0.0-rc.1
+# Add LabelPreview and ReceiptColumn to main.dart
+flutter build bundle
+```
+
+### C. Optional Hardware Smoke Test
+- Send a basic ESC/POS receipt or TSC label byte stream generated by the published RC package to physical `Printer001-328F`.
+
+---
+
+## 4. Final 1.0.0 Promotion Gate
+
+Promote from `1.0.0-rc.1` to `1.0.0` once:
+- [ ] External Dart consumer installs and executes without dependency conflict.
+- [ ] External Flutter consumer builds and renders `LabelPreview` with zero symbol collisions.
+- [ ] No high-severity issues reported during RC testing.
+- [ ] Update version to `1.0.0` in both packages.
+- [ ] Update changelogs to `## 1.0.0`.
+- [ ] Publish `portakal_core` 1.0.0 followed by `portakal_flutter` 1.0.0.
+- [ ] Tag `v1.0.0` and push to repository.

@@ -1,46 +1,41 @@
-## 1.0.0
+# Portakal Changelog
+
+## 1.0.0-rc.1
 
 ### Added
-- Standardized canonical byte-native `.compile()` API returning `Uint8List` across all 9 language facades (`tsc`, `zpl`, `epl`, `cpcl`, `dpl`, `ipl`, `sbpl`, `escpos`, `starprnt`).
-- Added `LabelBuilder.print([int copies = 1])` with eager positive-integer validation and authoritative resolution precedence.
-- Added `LabelBuilder.rawBytes(Uint8List)` and `LabelBuilder.rawAscii(String)` with full binary gamut safety and ASCII validation.
-- Added `UnsupportedFeaturePolicy` (`throwError`, `ignore`) defaulting to safe error throwing.
-- Added `EncodingError` base class with clean inheritance (`UnsupportedCharacterException` extends `EncodingError` extends `PortakalError`).
-- Added canonical `ReceiptColumn` in `portakal_core` and configured `portakal_flutter` export with `hide Column` to eliminate Flutter widget collisions.
-- Added universal hardware validation bench in `example/` with deterministic test harness and automated golden SHA-256 assertions.
-- Added comprehensive documentation hierarchy under `docs/` covering all 9 protocols, concepts, encodings, and migration.
+- Standardized canonical byte-native `.compile()` API returning `Uint8List` across all 9 protocol facades (`tsc`, `zpl`, `epl`, `escpos`, `cpcl`, `dpl`, `ipl`, `sbpl`, `star`).
+- Added `LabelBuilder.print([int copies = 1])` with eager positive integer validation.
+- Added typed `LabelBuilder.rawBytes(Uint8List)` and `LabelBuilder.rawAscii(String)` with ASCII validation and defensive copying.
+- Added `UnsupportedFeaturePolicy` (`throwError`, `ignore`).
+- Added structured error hierarchy rooted at `PortakalError`.
+- Added canonical `ReceiptColumn` table column definition.
+- Added `LabelPreview` Flutter widget in `portakal_flutter` with zero symbol collision against Flutter `Column`.
+- Added 9 protocol-native fluent builders with non-destructive `.toBytes()` snapshots and `.reset()`.
+- Added pure Dart SVG preview engine (`renderPreview`).
 
 ### Changed
-- Replaced `Column` with `ReceiptColumn` in receipt layout functions (`formatRow`, `formatTable`).
-- Standardized all native protocol builders (`TscPrinter`, `EscPosPrinter`, `ZplPrinter`, etc.) on `.toBytes() -> Uint8List`.
-- Decoupled `portakal_core` (pure Dart, zero UI dependencies) from `portakal_flutter` (Flutter integration).
+- Decoupled `portakal_core` into an independent pure-Dart package with zero Flutter/UI dependencies.
+- Standardized all protocol serializers on direct byte stream generation.
+- Updated Dart SDK minimum environment constraint to `^3.6.0` and Flutter to `>=3.24.0`.
 
 ### Deprecated
-- Deprecated legacy `typedef Column = ReceiptColumn;` (removal in 2.0).
-- Deprecated `.compileBytes()` aliases in favor of `.compile()` (removal in 2.0).
-- Deprecated String serializers (`compileToTSC`, `compileToZPL`, etc.) in favor of byte-native APIs (removal in 2.0).
-- Deprecated untyped `LabelBuilder.raw(Object)` and `RawElement({required Object content})` in favor of `rawBytes` and `rawAscii` (removal in 2.0).
-- Deprecated legacy encoding helpers (`EncodedSegment`, `CodePage`, `isASCII`, `encodeText`, `encodeTextForPrinter`) in favor of `PrinterCodePage` and `CodePageEncoder` (removal in 2.0).
+- Deprecated `typedef Column = ReceiptColumn` in favor of `ReceiptColumn` (removal in 2.0).
+- Deprecated `compileBytes` method on language facades in favor of canonical `.compile()` (removal in 2.0).
+- Deprecated legacy String serializers `compileToTSC`, `compileToZPL`, `compileToEPL`, `compileToCPCL`, `compileToDPL`, `compileToIPL`, and `compileToSBPL` (removal in 2.0).
+- Deprecated untyped `RawElement({required Object content})` and `label.raw(Object)` in favor of `rawBytes` / `rawAscii` (removal in 2.0).
+- Deprecated legacy `encodeTextForPrinter` helper in favor of `getEncoder(PrinterCodePage)` (removal in 2.0).
 
-### Physical Hardware Validation
-- Physically validated ESC/POS verified subset on `Printer001-328F` (PASS).
-- Physically validated TSC/TSPL2 verified subset on `Printer001-328F` (PASS).
-- Cataloged ZPL II emulation absence on `Printer001-328F` as `N/S-DEVICE`.
+### Hardware Validation
+- Physical hardware validation on `Printer001-328F`: ESC/POS verified subset (PASS), TSC/TSPL2 verified subset (PASS), ZPL II emulation (N/S-DEVICE).
+- Byte-level golden SHA-256 validation suite for all 9 protocol compilers.
 
-## 0.1.7
+## 0.3.0
 
-- Added `BarcodeElement` and `QRCodeElement` to the `LabelBuilder` API (`.barcode()` and `.qrcode()`).
-- Implemented Barcode and QRCode native compilation support across all 9 printer languages.
-- Added visual placeholder rendering for Barcodes and QRCodes in Flutter `LabelPreview`.
-
-## 0.1.6
-
-- Fixed analyzer warnings and minor formatting across packages.
-
-## 0.1.5
-
-- Package version bump and preparation for release.
-
-## 0.1.0
-
-- Initial public release of Portakal SDK.
+- Split repository into `portakal_core` (pure Dart protocol engine) and `portakal_flutter` (Flutter widgets and integration).
+- Zero Flutter/UI dependencies in `portakal_core`.
+- 9 protocol-native builders (TSC, ESC/POS, ZPL, EPL, CPCL, DPL, IPL, SBPL, Star PRNT).
+- Universal AST builder, 9 protocol compilers, 9 parsers.
+- Character encoding subsystem for CP437, CP858, CP850, CP1252, CP866, CP857.
+- Bitmap and dithering engine.
+- Printer profiles database and query functions.
+- Pure Dart SVG preview generator (`renderPreview`).
