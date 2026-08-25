@@ -451,6 +451,54 @@ class DplEncoding {
   static const DplEncoding defaultEncoding = DplEncoding.legacy();
 }
 
+/// Explicit IPL character encoding configuration.
+class IplEncoding {
+  /// The character mapping to use for user text.
+  final PrinterCodePage codePage;
+
+  /// Whether to replace unencodable or dangerous control characters with `?` (0x3F) instead of throwing.
+  final bool replaceUnsupported;
+
+  const IplEncoding({required this.codePage, this.replaceUnsupported = false});
+
+  /// Default legacy IPL mode (CP437 character mapping).
+  const IplEncoding.legacy({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard CP437 mode.
+  const IplEncoding.cp437({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard CP850 mode.
+  const IplEncoding.cp850({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp850,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard Windows CP1252 mode.
+  const IplEncoding.cp1252({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp1252,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Custom IPL encoding configuration.
+  const IplEncoding.custom({
+    required PrinterCodePage codePage,
+    bool replaceUnsupported = false,
+  }) : this(codePage: codePage, replaceUnsupported: replaceUnsupported);
+
+  /// The canonical default IPL encoding (legacy CP437).
+  static const IplEncoding defaultEncoding = IplEncoding.legacy();
+}
+
 /// Character encoder for a single [PrinterCodePage].
 class CodePageEncoder {
   final PrinterCodePage codePage;

@@ -1,23 +1,57 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import '../byte_writer.dart';
+import '../encoding.dart';
 import '../types.dart';
 
-/// Compile a resolved label to IPL commands.
-String compileToIPL(ResolvedLabel label) {
-  final buf = StringBuffer();
+const int _stx = 0x02;
+const int _etx = 0x03;
+const int _esc = 0x1B;
 
-  // STX ESC C1 ETX — Create format
-  buf.write('\x02\x1bC1\x03');
-  // STX ESC P ETX — Program mode
-  buf.write('\x02\x1bP\x03');
+/// Compile a resolved label to IPL commands as a byte sequence ([Uint8List]).
+///
+/// Uses actual control bytes (`STX` = 0x02, `ETX` = 0x03, `ESC` = 0x1B).
+/// If [encoding] is supplied, text fields are encoded using the configured [CodePageEncoder].
+/// Control characters (`STX`, `ETX`, `ESC`) inside text fields are explicitly rejected with
+/// [UnsupportedCharacterException] (or replaced with `?` if `replaceUnsupported: true`) to prevent
+/// framing corruption.
+/// If omitted, defaults to [IplEncoding.defaultEncoding] ([IplEncoding.legacy]).
+Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
+  final enc = encoding ?? IplEncoding.defaultEncoding;
+  final encoder = getEncoder(enc.codePage);
+  final writer = PrinterByteWriter();
 
-  // Label size config
-  buf.write('\x02<SI>L${label.heightDots}\x03');
-  buf.write('\x02<SI>W${label.widthDots}\x03');
+  // STX ESC C1 ETX — Create format 1 / Advanced mode
+  writer.writeByte(_stx);
+  writer.writeByte(_esc);
+  writer.writeAscii('C1');
+  writer.writeByte(_etx);
+
+  // STX ESC P ETX — Enter Program mode
+  writer.writeByte(_stx);
+  writer.writeByte(_esc);
+  writer.writeAscii('P');
+  writer.writeByte(_etx);
+
+  // Label size and printer configuration: <SI>L<height>, <SI>W<width>
+  writer.writeByte(_stx);
+  writer.writeAscii('<SI>L${label.heightDots}');
+  writer.writeByte(_etx);
+
+  writer.writeByte(_stx);
+  writer.writeAscii('<SI>W${label.widthDots}');
+  writer.writeByte(_etx);
 
   if (label.speed > 0) {
-    buf.write('\x02<SI>S${label.speed}0\x03');
+    writer.writeByte(_stx);
+    writer.writeAscii('<SI>S${label.speed}0');
+    writer.writeByte(_etx);
   }
   if (label.density > 0) {
-    buf.write('\x02<SI>d${label.density}\x03');
+    writer.writeByte(_stx);
+    writer.writeAscii('<SI>d${label.density}');
+    writer.writeByte(_etx);
   }
 
   int fieldNum = 0;
@@ -30,30 +64,45 @@ String compileToIPL(ResolvedLabel label) {
         final x = o.x ?? 0;
         final y = o.y ?? 0;
         final rotation = _iplRotation(o.rotation ?? 0);
-        buf.write('\x02H$fieldNum;o$x,$y;f$rotation;');
-        // Font and size
         final size = o.size ?? 1;
-        buf.write('h${size * 12};w${size * 12};c26;');
-        buf.write('d3,${el.content}\x03');
+
+        writer.writeByte(_stx);
+        writer.writeAscii('H$fieldNum;o$x,$y;f$rotation;');
+        writer.writeAscii('h${size * 12};w${size * 12};c26;');
+        writer.writeAscii('d3,');
+
+        final textBytes = _encodeIplText(
+          el.content,
+          encoder,
+          replaceUnsupported: enc.replaceUnsupported,
+        );
+        writer.writeBytes(textBytes);
+        writer.writeByte(_etx);
 
       case BoxElement():
         fieldNum++;
         final o = el.options;
-        buf.write('\x02W$fieldNum;o${o.x},${o.y};f0;');
-        buf.write('l${o.width};h${o.height};w${o.thickness ?? 1}\x03');
+        writer.writeByte(_stx);
+        writer.writeAscii('W$fieldNum;o${o.x},${o.y};f0;');
+        writer.writeAscii('l${o.width};h${o.height};w${o.thickness ?? 1}');
+        writer.writeByte(_etx);
 
       case LineElement():
         fieldNum++;
         final o = el.options;
         final t = o.thickness ?? 1;
         if (o.y1 == o.y2) {
-          // Horizontal
+          // Horizontal line
           final len = (o.x2 - o.x1).abs();
-          buf.write('\x02L$fieldNum;o${o.x1},${o.y1};f0;l$len;w$t\x03');
+          writer.writeByte(_stx);
+          writer.writeAscii('L$fieldNum;o${o.x1},${o.y1};f0;l$len;w$t');
+          writer.writeByte(_etx);
         } else if (o.x1 == o.x2) {
-          // Vertical
+          // Vertical line
           final len = (o.y2 - o.y1).abs();
-          buf.write('\x02L$fieldNum;o${o.x1},${o.y1};f1;l$len;w$t\x03');
+          writer.writeByte(_stx);
+          writer.writeAscii('L$fieldNum;o${o.x1},${o.y1};f1;l$len;w$t');
+          writer.writeByte(_etx);
         }
 
       case CircleElement():
@@ -61,39 +110,104 @@ String compileToIPL(ResolvedLabel label) {
       case ImageElement():
       case ReverseElement():
       case EraseElement():
+        // Universal AST does not implement graphic download commands for IPL currently
         break;
 
       case BarcodeElement():
         final o = el.options;
-        buf.write(
-          '<STX>B1;o0;f0;c0;h${o.height};w${o.wide ?? 2};d0,${o.y};<ETX>\n',
+        writer.writeByte(_stx);
+        writer.writeAscii(
+          'B1;o0;f0;c0;h${o.height};w${o.wide ?? 2};d0,${o.y};',
         );
-        buf.write('<STX>${el.content}<ETX>\n');
+        writer.writeByte(_etx);
+        writer.writeAscii('\n');
+        writer.writeByte(_stx);
+        writer.writeAscii(el.content);
+        writer.writeByte(_etx);
+        writer.writeAscii('\n');
 
       case QRCodeElement():
         final o = el.options;
-        buf.write(
-          '<STX>B2;o0;f0;c21;w${o.cellWidth ?? 4};h${o.cellWidth ?? 4};d0,${o.y};<ETX>\n',
+        writer.writeByte(_stx);
+        writer.writeAscii(
+          'B2;o0;f0;c21;w${o.cellWidth ?? 4};h${o.cellWidth ?? 4};d0,${o.y};',
         );
-        buf.write('<STX>${el.content}<ETX>\n');
+        writer.writeByte(_etx);
+        writer.writeAscii('\n');
+        writer.writeByte(_stx);
+        writer.writeAscii(el.content);
+        writer.writeByte(_etx);
+        writer.writeAscii('\n');
 
       case RawElement():
-        if (el.content is String) {
-          buf.write(el.content as String);
+        if (el.content is Uint8List) {
+          writer.writeBytes(el.content as Uint8List);
+        } else if (el.content is List<int>) {
+          writer.writeBytes(el.content as List<int>);
+        } else if (el.content is String) {
+          writer.writeString(el.content as String, encoding: latin1);
         }
     }
   }
 
   if (label.copies > 1) {
-    buf.write('\x02\x1bM${label.copies}\x03');
+    writer.writeByte(_stx);
+    writer.writeByte(_esc);
+    writer.writeAscii('M${label.copies}');
+    writer.writeByte(_etx);
   }
 
   // STX ESC E1 ETX — End format
-  buf.write('\x02\x1bE1\x03');
-  // STX R ETX — Print
-  buf.write('\x02R\x03');
+  writer.writeByte(_stx);
+  writer.writeByte(_esc);
+  writer.writeAscii('E1');
+  writer.writeByte(_etx);
 
-  return buf.toString();
+  // STX R ETX — Print / Execute
+  writer.writeByte(_stx);
+  writer.writeAscii('R');
+  writer.writeByte(_etx);
+
+  return writer.toBytes();
+}
+
+/// Helper to encode text and guard against dangerous control bytes that break IPL framing.
+Uint8List _encodeIplText(
+  String text,
+  CodePageEncoder encoder, {
+  bool replaceUnsupported = false,
+}) {
+  final bytes = encoder.encode(text, replaceUnsupported: replaceUnsupported);
+  final result = Uint8List(bytes.length);
+  for (int i = 0; i < bytes.length; i++) {
+    final b = bytes[i];
+    if (b == _stx || b == _etx || b == _esc) {
+      if (replaceUnsupported) {
+        result[i] = 0x3F; // '?'
+      } else {
+        throw UnsupportedCharacterException(
+          character: String.fromCharCode(b),
+          codePoint: b,
+          codePage: encoder.codePage,
+          message:
+              'Control character (0x${b.toRadixString(16).padLeft(2, '0').toUpperCase()}) '
+              'is not supported inside unescaped IPL text records.',
+        );
+      }
+    } else {
+      result[i] = b;
+    }
+  }
+  return result;
+}
+
+/// Compile a resolved label to IPL commands as a [String].
+///
+/// Decodes the underlying byte stream via [latin1.decode], providing a 1:1 lossless
+/// mapping of 8-bit byte values.
+String compileToIPL(ResolvedLabel label, {IplEncoding? encoding}) {
+  final bytes = compileToIPLBytes(label, encoding: encoding);
+  return latin1.decode(bytes);
 }
 
 int _iplRotation(int degrees) {
