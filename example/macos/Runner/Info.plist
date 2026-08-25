@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Used to discover and print to Bluetooth thermal receipt printers.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Used to discover and print to Bluetooth thermal receipt printers.</string>
 </dict>
 </plist>

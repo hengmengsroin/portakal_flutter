@@ -35,6 +35,11 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  flutter_thermal_printer:
+    git:
+      url: https://github.com/hengmengsroin/flutter_thermal_printer.git
+      ref: main
+
   portakal_flutter:
     path: ../packages/portakal_flutter
 
