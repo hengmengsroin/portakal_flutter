@@ -39,6 +39,57 @@ void main() {
       expect(find.text('320x240 dots (203 DPI)'), findsOneWidget);
     });
 
+    testWidgets('renders from ResolvedLabel via LabelPreview.resolved', (
+      WidgetTester tester,
+    ) async {
+      final job = label(const LabelConfig(width: 40, height: 30))
+          .text('Resolved Job', const TextOptions(x: 10, y: 10))
+          .resolve();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 320,
+                height: 240,
+                child: LabelPreview.resolved(job: job),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(LabelPreview), findsOneWidget);
+      expect(find.text('320x240 dots (203 DPI)'), findsOneWidget);
+    });
+
+    testWidgets('renders from PreviewScene via LabelPreview.scene', (
+      WidgetTester tester,
+    ) async {
+      final scene = PreviewScene.fromBuilder(
+        label(const LabelConfig(width: 40, height: 30))
+            .text('Direct Scene', const TextOptions(x: 10, y: 10)),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 320,
+                height: 240,
+                child: LabelPreview.scene(scene: scene),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(LabelPreview), findsOneWidget);
+      expect(find.text('320x240 dots (203 DPI)'), findsOneWidget);
+    });
+
     testWidgets('respects showMeta=false to hide metadata label', (
       WidgetTester tester,
     ) async {
@@ -62,6 +113,121 @@ void main() {
 
       expect(find.byType(LabelPreview), findsOneWidget);
       expect(find.text('320x240 dots (203 DPI)'), findsNothing);
+    });
+
+    testWidgets(
+      'handles tight height constraints without RenderFlex overflow',
+      (WidgetTester tester) async {
+        final sampleLabel = label(
+          const LabelConfig(width: 100, height: 50),
+        ).text('Wide Label', const TextOptions(x: 10, y: 10));
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: SizedBox(
+                  width: 300,
+                  height: 100,
+                  child: LabelPreview(label: sampleLabel),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.byType(LabelPreview), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets('handles embedding inside AlertDialog', (
+      WidgetTester tester,
+    ) async {
+      final sampleLabel = label(
+        const LabelConfig(width: 50, height: 30),
+      ).text('Dialog Preview', const TextOptions(x: 10, y: 10));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AlertDialog(
+              title: const Text('Print Preview'),
+              content: SizedBox(
+                width: 280,
+                height: 180,
+                child: LabelPreview(label: sampleLabel),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(LabelPreview), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders very wide and very tall aspect ratios', (
+      WidgetTester tester,
+    ) async {
+      final wideLabel = label(
+        const LabelConfig(width: 150, height: 20),
+      ).text('Very Wide', const TextOptions(x: 10, y: 5));
+
+      final tallLabel = label(
+        const LabelConfig(width: 20, height: 150),
+      ).text('Very Tall', const TextOptions(x: 5, y: 10));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                SizedBox(
+                  width: 300,
+                  height: 100,
+                  child: LabelPreview(label: wideLabel),
+                ),
+                SizedBox(
+                  width: 150,
+                  height: 300,
+                  child: LabelPreview(label: tallLabel),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(LabelPreview), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders multiline text and xScale scaling in Flutter', (
+      WidgetTester tester,
+    ) async {
+      final sampleLabel = label(const LabelConfig(width: 60, height: 40)).text(
+        'Line One\nLine Two\nLine Three',
+        const TextOptions(x: 10, y: 10, xScale: 2, yScale: 2),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 320,
+                height: 240,
+                child: LabelPreview(label: sampleLabel),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(LabelPreview), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets(

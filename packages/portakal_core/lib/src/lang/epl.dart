@@ -10,13 +10,21 @@ import '../validate.dart' as v;
 
 /// EPL2 language module.
 class EplLang {
+  /// Compile a [ResolvedLabel] to EPL2 binary commands as a canonical byte sequence ([Uint8List]).
+  Uint8List compileResolved(
+    ResolvedLabel job, {
+    EplEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) =>
+      compileToEPLBytes(job, encoding: encoding, policy: policy);
+
   /// Compile a [LabelBuilder] to EPL2 binary commands as a canonical byte sequence ([Uint8List]).
   Uint8List compile(
     LabelBuilder builder, {
     EplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
   }) =>
-      compileToEPLBytes(builder.resolve(), encoding: encoding, policy: policy);
+      compileResolved(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to EPL2 binary commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
@@ -29,6 +37,7 @@ class EplLang {
 
   EPLParseResult parse(String code) => parseEPL(code);
 
+  /// Generate an SVG preview string for a [LabelBuilder].
   String preview(LabelBuilder builder) =>
       renderPreview(builder.resolve(), languageName: 'EPL');
 

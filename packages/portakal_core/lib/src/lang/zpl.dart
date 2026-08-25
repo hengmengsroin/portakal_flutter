@@ -10,13 +10,21 @@ import '../validate.dart' as v;
 
 /// ZPL language module.
 class ZplLang {
+  /// Compile a [ResolvedLabel] to ZPL II binary commands as a canonical byte sequence ([Uint8List]).
+  Uint8List compileResolved(
+    ResolvedLabel job, {
+    ZplEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) =>
+      compileToZPLBytes(job, encoding: encoding, policy: policy);
+
   /// Compile a [LabelBuilder] to ZPL II binary commands as a canonical byte sequence ([Uint8List]).
   Uint8List compile(
     LabelBuilder builder, {
     ZplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
   }) =>
-      compileToZPLBytes(builder.resolve(), encoding: encoding, policy: policy);
+      compileResolved(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to ZPL II binary commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
@@ -29,6 +37,7 @@ class ZplLang {
 
   ZPLParseResult parse(String code) => parseZPL(code);
 
+  /// Generate an SVG preview string for a [LabelBuilder].
   String preview(LabelBuilder builder) =>
       renderPreview(builder.resolve(), languageName: 'ZPL');
 

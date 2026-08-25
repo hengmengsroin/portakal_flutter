@@ -3,66 +3,137 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:portakal_core/portakal_core.dart' hide Column;
 
-/// Flutter widget that previews a [LabelBuilder] before printing.
+/// Flutter widget that previews a label before printing.
+///
+/// Supports three construction paths:
+/// 1. [LabelPreview.new] — Simple developer experience accepting a mutable [LabelBuilder].
+/// 2. [LabelPreview.resolved] — Canonical preview-before-print workflow accepting an immutable [ResolvedLabel].
+/// 3. [LabelPreview.scene] — Direct rendering of a canonical [PreviewScene].
 class LabelPreview extends StatelessWidget {
-  final LabelBuilder label;
+  final PreviewScene scene;
   final Color backgroundColor;
   final Color canvasColor;
   final Color borderColor;
   final bool showMeta;
+  final BoxFit fit;
 
-  const LabelPreview({
+  /// Creates a label preview widget from a mutable [LabelBuilder].
+  ///
+  /// For interactive flows or preview-before-print approval dialogues, prefer
+  /// [LabelPreview.resolved] with a pre-resolved [ResolvedLabel] job.
+  LabelPreview({
     super.key,
-    required this.label,
+    required LabelBuilder label,
     this.backgroundColor = const Color(0xFFF5F5F4),
     this.canvasColor = Colors.white,
     this.borderColor = const Color(0xFFE5E5E5),
     this.showMeta = true,
+    this.fit = BoxFit.contain,
+  }) : scene = PreviewScene.fromBuilder(label);
+
+  /// Creates a label preview widget from an immutable [ResolvedLabel] job.
+  ///
+  /// This guarantees that the exact logical print job displayed in the preview
+  /// is identical to the job compiled to printer bytes via `compileResolved(job)`.
+  LabelPreview.resolved({
+    super.key,
+    required ResolvedLabel job,
+    this.backgroundColor = const Color(0xFFF5F5F4),
+    this.canvasColor = Colors.white,
+    this.borderColor = const Color(0xFFE5E5E5),
+    this.showMeta = true,
+    this.fit = BoxFit.contain,
+  }) : scene = PreviewScene.fromResolved(job);
+
+  /// Creates a label preview widget directly from a canonical [PreviewScene].
+  const LabelPreview.scene({
+    super.key,
+    required this.scene,
+    this.backgroundColor = const Color(0xFFF5F5F4),
+    this.canvasColor = Colors.white,
+    this.borderColor = const Color(0xFFE5E5E5),
+    this.showMeta = true,
+    this.fit = BoxFit.contain,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scene = PreviewScene.fromBuilder(label);
     final widthDots = scene.widthDots.toDouble();
     final heightDots = scene.heightDots.toDouble();
+    final canvasRatio = widthDots / heightDots;
+    final metaHeight = showMeta ? 18.0 : 0.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final maxWidth =
-            constraints.maxWidth.isFinite ? constraints.maxWidth : 320.0;
-        final ratio = widthDots / heightDots;
-        final height = maxWidth / ratio;
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final hasFiniteHeight = constraints.maxHeight.isFinite;
 
-        return SizedBox(
-          width: maxWidth,
-          height: height + (showMeta ? 18 : 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: CustomPaint(
-                  painter: _LabelPreviewPainter(
-                    scene: scene,
-                    backgroundColor: backgroundColor,
-                    canvasColor: canvasColor,
-                    borderColor: borderColor,
-                  ),
-                ),
-              ),
-              if (showMeta)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    '${scene.widthDots}x${scene.heightDots} dots (${scene.dpi} DPI)',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFFA1A1AA),
-                      fontSize: 10,
-                      fontFamily: 'monospace',
+        double targetWidth;
+        double targetHeight;
+
+        if (hasFiniteWidth && hasFiniteHeight) {
+          final maxCanvasHeight = math.max(
+            0.0,
+            constraints.maxHeight - metaHeight,
+          );
+          final widthFromHeight = maxCanvasHeight * canvasRatio;
+
+          if (widthFromHeight <= constraints.maxWidth) {
+            targetWidth = widthFromHeight;
+            targetHeight = maxCanvasHeight + metaHeight;
+          } else {
+            targetWidth = constraints.maxWidth;
+            targetHeight = (targetWidth / canvasRatio) + metaHeight;
+          }
+        } else if (hasFiniteWidth) {
+          targetWidth = constraints.maxWidth;
+          targetHeight = (targetWidth / canvasRatio) + metaHeight;
+        } else if (hasFiniteHeight) {
+          final maxCanvasHeight = math.max(
+            0.0,
+            constraints.maxHeight - metaHeight,
+          );
+          targetHeight = constraints.maxHeight;
+          targetWidth = maxCanvasHeight * canvasRatio;
+        } else {
+          targetWidth = 320.0;
+          targetHeight = (320.0 / canvasRatio) + metaHeight;
+        }
+
+        return Center(
+          child: SizedBox(
+            width: targetWidth,
+            height: targetHeight,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: _LabelPreviewPainter(
+                        scene: scene,
+                        backgroundColor: backgroundColor,
+                        canvasColor: canvasColor,
+                        borderColor: borderColor,
+                      ),
                     ),
                   ),
                 ),
-            ],
+                if (showMeta)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      '${scene.widthDots}x${scene.heightDots} dots (${scene.dpi} DPI)',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFA1A1AA),
+                        fontSize: 10,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -158,10 +229,15 @@ class _LabelPreviewPainter extends CustomPainter {
 
     final drawY = item.y;
 
-    if (item.rotation != 0) {
+    if (item.rotation != 0 || item.xScale != 1) {
       canvas.save();
       canvas.translate(item.x, item.y);
-      canvas.rotate((item.rotation * math.pi) / 180.0);
+      if (item.rotation != 0) {
+        canvas.rotate((item.rotation * math.pi) / 180.0);
+      }
+      if (item.xScale != 1) {
+        canvas.scale(item.xScale.toDouble(), 1.0);
+      }
       painter.paint(canvas, Offset(drawX - item.x, drawY - item.y));
       canvas.restore();
     } else {

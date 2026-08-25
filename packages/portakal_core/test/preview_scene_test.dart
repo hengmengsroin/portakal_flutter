@@ -18,22 +18,26 @@ void main() {
       expect(sceneCont.items, isEmpty);
     });
 
-    test('P01 — Basic text element conversion', () {
+    test('P01 — Basic text element conversion & multiline tspans', () {
       final b = label(const LabelConfig(width: 40, height: 30)).text(
-        'Hello Portakal',
+        'Line 1\nLine 2',
         const TextOptions(x: 10, y: 20, size: 2, bold: true, underline: true),
       );
       final scene = PreviewScene.fromResolved(b.resolve());
 
       expect(scene.items.length, equals(1));
       final item = scene.items.first as PreviewTextItem;
-      expect(item.text, equals('Hello Portakal'));
+      expect(item.text, equals('Line 1\nLine 2'));
       expect(item.x, equals(10.0));
       expect(item.y, equals(20.0));
       expect(item.fontSize, equals(24));
       expect(item.bold, isTrue);
       expect(item.underline, isTrue);
       expect(item.isReverse, isFalse);
+
+      final svg = renderPreviewScene(scene);
+      expect(svg, contains('<tspan x="10" dy="0">Line 1</tspan>'));
+      expect(svg, contains('<tspan x="10" dy="28.8">Line 2</tspan>'));
     });
 
     test('P02 — Rotated & aligned text with xScale', () {
@@ -60,6 +64,9 @@ void main() {
       expect(item.svgAnchor, equals('middle'));
       expect(item.xScale, equals(2));
       expect(item.yScale, equals(3));
+
+      final svg = renderPreviewScene(scene);
+      expect(svg, contains('rotate(90) scale(2 1)'));
     });
 
     test('P03 — Shapes: box and line with thickness deflation', () {
@@ -251,6 +258,65 @@ void main() {
       expect(era.color, equals(PreviewColor.white));
     });
 
+    test('P10 — Composite shipping label layout', () {
+      final b = label(const LabelConfig(width: 100, height: 150))
+          .text(
+            'PRIORITY MAIL 2-DAY',
+            const TextOptions(x: 20, y: 20, size: 2, bold: true),
+          )
+          .line(
+            const LineOptions(x1: 20, y1: 60, x2: 780, y2: 60, thickness: 3),
+          )
+          .box(
+            const BoxOptions(
+              x: 20,
+              y: 80,
+              width: 760,
+              height: 200,
+              thickness: 2,
+            ),
+          )
+          .text(
+            'SHIP TO:\nJane Doe\n123 Main Street\nNew York, NY 10001',
+            const TextOptions(x: 40, y: 100),
+          )
+          .barcode(
+            '42010001920000000000',
+            const BarcodeOptions(x: 50, y: 320, type: '128', height: 80),
+          )
+          .qrcode(
+            'https://track.usps.com/42010001',
+            const QRCodeOptions(x: 600, y: 320, cellWidth: 4),
+          );
+      final scene = PreviewScene.fromResolved(b.resolve());
+
+      expect(scene.items.length, equals(6));
+      final svg = renderPreviewScene(scene);
+      expect(svg, contains('PRIORITY MAIL 2-DAY'));
+      expect(svg, contains('clip-path="url(#portakal-label-clip)"'));
+    });
+
+    test('P11 — Receipt continuous layout', () {
+      final b = label(const LabelConfig(width: 80))
+          .text('COFFEE SHOP', const TextOptions(x: 100, y: 20, bold: true))
+          .line(
+            const LineOptions(x1: 10, y1: 50, x2: 630, y2: 50, thickness: 1),
+          )
+          .text(
+            '1x Espresso        \$3.50\n1x Croissant       \$4.00',
+            const TextOptions(x: 20, y: 70),
+          )
+          .text(
+            'TOTAL:             \$7.50',
+            const TextOptions(x: 20, y: 140, bold: true),
+          );
+      final scene = PreviewScene.fromResolved(b.resolve());
+
+      expect(scene.widthDots, equals(639));
+      expect(scene.heightDots, equals(400));
+      expect(scene.items.length, equals(4));
+    });
+
     test('P12 — Unicode & special character escaping in SVG', () {
       final b = label(
         const LabelConfig(width: 40, height: 30),
@@ -259,6 +325,26 @@ void main() {
       final svg = renderPreviewScene(scene);
 
       expect(svg, contains('Price: €15.00 &amp; 100% &lt;Safe&gt;'));
+    });
+
+    test('P13 — Clipping of out-of-bounds coordinates in SVG', () {
+      final b = label(const LabelConfig(width: 40, height: 30))
+          .text('Overflow Text', const TextOptions(x: -50, y: -20))
+          .box(
+            const BoxOptions(
+              x: 250,
+              y: 200,
+              width: 200,
+              height: 150,
+              thickness: 2,
+            ),
+          );
+      final scene = PreviewScene.fromResolved(b.resolve());
+      final svg = renderPreviewScene(scene);
+
+      expect(svg, contains('<clipPath id="portakal-label-clip">'));
+      expect(svg, contains('<rect x="0" y="0" width="320" height="240"/>'));
+      expect(svg, contains('clip-path="url(#portakal-label-clip)"'));
     });
 
     test('P14 — Unit & DPI conversion to canonical dots', () {
@@ -275,6 +361,21 @@ void main() {
       final sceneInch300 = PreviewScene.fromResolved(inch300);
       expect(sceneInch300.widthDots, equals(600));
       expect(sceneInch300.heightDots, equals(300));
+    });
+
+    test('P15 — Dense layout rendering performance and stability', () {
+      final b = label(const LabelConfig(width: 100, height: 100));
+      for (var i = 0; i < 50; i++) {
+        b.line(
+          LineOptions(x1: 0, y1: i * 10, x2: 800, y2: i * 10, thickness: 1),
+        );
+        b.text('Row $i', TextOptions(x: 10, y: i * 10 + 2));
+      }
+      final scene = PreviewScene.fromResolved(b.resolve());
+      expect(scene.items.length, equals(100));
+
+      final svg = renderPreviewScene(scene);
+      expect(svg.length, greaterThan(1000));
     });
 
     test('Structural value equality on PreviewScene', () {

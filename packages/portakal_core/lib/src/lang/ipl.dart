@@ -10,13 +10,21 @@ import '../validate.dart' as v;
 
 /// IPL language module.
 class IplLang {
+  /// Compile a [ResolvedLabel] to IPL binary commands as a canonical byte sequence ([Uint8List]).
+  Uint8List compileResolved(
+    ResolvedLabel job, {
+    IplEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) =>
+      compileToIPLBytes(job, encoding: encoding, policy: policy);
+
   /// Compile a [LabelBuilder] to IPL binary commands as a canonical byte sequence ([Uint8List]).
   Uint8List compile(
     LabelBuilder builder, {
     IplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
   }) =>
-      compileToIPLBytes(builder.resolve(), encoding: encoding, policy: policy);
+      compileResolved(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to IPL binary commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
@@ -29,6 +37,7 @@ class IplLang {
 
   IPLParseResult parse(String code) => parseIPL(code);
 
+  /// Generate an SVG preview string for a [LabelBuilder].
   String preview(LabelBuilder builder) =>
       renderPreview(builder.resolve(), languageName: 'IPL');
 

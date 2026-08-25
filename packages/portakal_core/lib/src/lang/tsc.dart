@@ -9,12 +9,19 @@ import '../validate.dart' as v;
 
 /// TSC/TSPL2 language module.
 class TscLang {
+  /// Compile a [ResolvedLabel] to TSC/TSPL2 commands as a canonical byte sequence ([Uint8List]).
+  Uint8List compileResolved(
+    ResolvedLabel job, {
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) =>
+      compileToTSCBytes(job, policy: policy);
+
   /// Compile a [LabelBuilder] to TSC/TSPL2 commands as a canonical byte sequence ([Uint8List]).
   Uint8List compile(
     LabelBuilder builder, {
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
   }) =>
-      compileToTSCBytes(builder.resolve(), policy: policy);
+      compileResolved(builder.resolve(), policy: policy);
 
   /// Compile a [LabelBuilder] to TSC/TSPL2 commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
@@ -26,6 +33,7 @@ class TscLang {
 
   TSPLParseResult parse(String code) => parseTSPL(code);
 
+  /// Generate an SVG preview string for a [LabelBuilder].
   String preview(LabelBuilder builder) =>
       renderPreview(builder.resolve(), languageName: 'TSC');
 

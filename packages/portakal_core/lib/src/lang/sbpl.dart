@@ -10,13 +10,21 @@ import '../validate.dart' as v;
 
 /// SBPL language module.
 class SbplLang {
+  /// Compile a [ResolvedLabel] to SBPL binary commands as a canonical byte sequence ([Uint8List]).
+  Uint8List compileResolved(
+    ResolvedLabel job, {
+    SbplEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) =>
+      compileToSBPLBytes(job, encoding: encoding, policy: policy);
+
   /// Compile a [LabelBuilder] to SBPL binary commands as a canonical byte sequence ([Uint8List]).
   Uint8List compile(
     LabelBuilder builder, {
     SbplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
   }) =>
-      compileToSBPLBytes(builder.resolve(), encoding: encoding, policy: policy);
+      compileResolved(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to SBPL binary commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
@@ -29,6 +37,7 @@ class SbplLang {
 
   SBPLParseResult parse(String code) => parseSBPL(code);
 
+  /// Generate an SVG preview string for a [LabelBuilder].
   String preview(LabelBuilder builder) =>
       renderPreview(builder.resolve(), languageName: 'SBPL');
 

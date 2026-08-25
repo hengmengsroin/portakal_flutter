@@ -10,13 +10,21 @@ import '../validate.dart' as v;
 
 /// Star PRNT language module.
 class StarprntLang {
+  /// Compile a [ResolvedLabel] to Star PRNT binary commands as [Uint8List].
+  Uint8List compileResolved(
+    ResolvedLabel job, {
+    StarPrntEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) =>
+      compileToStarPRNT(job, encoding: encoding, policy: policy);
+
   /// Compile a [LabelBuilder] to Star PRNT binary commands as [Uint8List].
   Uint8List compile(
     LabelBuilder builder, {
     StarPrntEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
   }) =>
-      compileToStarPRNT(builder.resolve(), encoding: encoding, policy: policy);
+      compileResolved(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to Star PRNT binary commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
@@ -33,6 +41,7 @@ class StarprntLang {
 
   StarPRNTParseResult parse(Uint8List data) => parseStarPRNT(data);
 
+  /// Generate an SVG preview string for a [LabelBuilder].
   String preview(LabelBuilder builder) =>
       renderPreview(builder.resolve(), languageName: 'StarPRNT');
 

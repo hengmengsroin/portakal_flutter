@@ -10,13 +10,21 @@ import '../validate.dart' as v;
 
 /// ESC/POS language module.
 class EscposLang {
+  /// Compile a [ResolvedLabel] to ESC/POS binary commands as [Uint8List].
+  Uint8List compileResolved(
+    ResolvedLabel job, {
+    EscPosEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) =>
+      compileToESCPOS(job, encoding: encoding, policy: policy);
+
   /// Compile a [LabelBuilder] to ESC/POS binary commands as [Uint8List].
   Uint8List compile(
     LabelBuilder builder, {
     EscPosEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
   }) =>
-      compileToESCPOS(builder.resolve(), encoding: encoding, policy: policy);
+      compileResolved(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to ESC/POS binary commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
@@ -29,6 +37,7 @@ class EscposLang {
 
   ESCPOSParseResult parse(Uint8List data) => parseESCPOS(data);
 
+  /// Generate an SVG preview string for a [LabelBuilder].
   String preview(LabelBuilder builder) =>
       renderPreview(builder.resolve(), languageName: 'ESC/POS');
 

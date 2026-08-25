@@ -22,13 +22,38 @@ String _renderItem(PreviewItem item) {
       final ff = PreviewScene.fontFamily(item.font);
       final weight = item.bold ? 'bold' : 'normal';
       final decoration = item.underline ? ' text-decoration="underline"' : '';
-      final transform = item.rotation != 0
-          ? ' transform="rotate(${item.rotation} ${_fmt(item.x)} ${_fmt(item.y)})"'
-          : '';
+
+      var transform = '';
+      if (item.rotation != 0 && item.xScale != 1) {
+        transform =
+            ' transform="translate(${_fmt(item.x)} ${_fmt(item.y)}) rotate(${item.rotation}) scale(${item.xScale} 1) translate(${_fmt(-item.x)} ${_fmt(-item.y)})"';
+      } else if (item.rotation != 0) {
+        transform =
+            ' transform="rotate(${item.rotation} ${_fmt(item.x)} ${_fmt(item.y)})"';
+      } else if (item.xScale != 1) {
+        transform =
+            ' transform="translate(${_fmt(item.x)} ${_fmt(item.y)}) scale(${item.xScale} 1) translate(${_fmt(-item.x)} ${_fmt(-item.y)})"';
+      }
+
       final anchor =
           item.svgAnchor != 'start' ? ' text-anchor="${item.svgAnchor}"' : '';
       final fill = item.isReverse ? '#fff' : '#000';
-      return '<text x="${_fmt(item.textAnchorX)}" y="${_fmt(item.svgY)}" fill="$fill" font-size="${item.fontSize}" font-weight="$weight" font-family="$ff"$anchor$decoration$transform>${_escapeXml(item.text)}</text>';
+
+      final lines = item.text.split('\n');
+      if (lines.length <= 1) {
+        return '<text x="${_fmt(item.textAnchorX)}" y="${_fmt(item.svgY)}" fill="$fill" font-size="${item.fontSize}" font-weight="$weight" font-family="$ff"$anchor$decoration$transform>${_escapeXml(item.text)}</text>';
+      }
+
+      final tspans = StringBuffer();
+      final lineHeight = item.fontSize * 1.2;
+      for (var i = 0; i < lines.length; i++) {
+        final dy = i == 0 ? '0' : _fmt(lineHeight);
+        tspans.write(
+          '<tspan x="${_fmt(item.textAnchorX)}" dy="$dy">${_escapeXml(lines[i])}</tspan>',
+        );
+      }
+
+      return '<text x="${_fmt(item.textAnchorX)}" y="${_fmt(item.svgY)}" fill="$fill" font-size="${item.fontSize}" font-weight="$weight" font-family="$ff"$anchor$decoration$transform>$tspans</text>';
 
     case PreviewRectItem():
       final colorHex = item.color == PreviewColor.white ? '#fff' : '#000';
@@ -105,9 +130,14 @@ String renderPreviewScene(PreviewScene scene) {
 
   return [
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 $svgW $svgH" width="$svgW" height="$svgH">',
+    '<defs>',
+    '<clipPath id="portakal-label-clip">',
+    '<rect x="0" y="0" width="$w" height="$h"/>',
+    '</clipPath>',
+    '</defs>',
     '<rect x="0" y="0" width="$svgW" height="$svgH" fill="#f5f5f4" rx="4"/>',
     '<rect x="$padding" y="$padding" width="$w" height="$h" fill="#fff" stroke="#e5e5e5" stroke-width="1" rx="2"/>',
-    '<g transform="translate($padding,$padding)">',
+    '<g transform="translate($padding,$padding)" clip-path="url(#portakal-label-clip)">',
     elements.toString(),
     '</g>',
     '<text x="${_fmt(svgW / 2)}" y="${svgH - 1}" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="monospace">$w×$h dots (${scene.dpi} DPI)$langSuffix</text>',
