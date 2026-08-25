@@ -1,4 +1,6 @@
-## 1.0.0-rc.1
+## 1.0.0
+
+Stable production release of the Portakal Flutter companion package.
 
 ### Added
 - Re-exported complete `portakal_core` pure-Dart engine with `ReceiptColumn` collision shielding (`hide Column`).
@@ -11,6 +13,10 @@
 
 ### Hardware Validation
 - Integrated interactive hardware test bench app supporting capability probe execution, manual override verification, and session evidence JSON export.
+
+## 1.0.0-rc.1
+
+- Release candidate for 1.0.0 contract freeze and external pub.dev validation.
 
 ## 0.3.0
 

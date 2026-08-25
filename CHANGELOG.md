@@ -1,6 +1,8 @@
 # Portakal Changelog
 
-## 1.0.0-rc.1
+## 1.0.0
+
+Stable production release of the Portakal Universal Thermal & Label Printer SDK.
 
 ### Added
 - Standardized canonical byte-native `.compile()` API returning `Uint8List` across all 9 protocol facades (`tsc`, `zpl`, `epl`, `escpos`, `cpcl`, `dpl`, `ipl`, `sbpl`, `star`).
@@ -28,6 +30,10 @@
 ### Hardware Validation
 - Physical hardware validation on `Printer001-328F`: ESC/POS verified subset (PASS), TSC/TSPL2 verified subset (PASS), ZPL II emulation (N/S-DEVICE).
 - Byte-level golden SHA-256 validation suite for all 9 protocol compilers.
+
+## 1.0.0-rc.1
+
+- Release candidate for 1.0.0 contract freeze and external pub.dev validation.
 
 ## 0.3.0
 
