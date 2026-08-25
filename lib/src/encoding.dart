@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 /// Standard 8-bit printer code page character sets.
@@ -637,6 +638,138 @@ class StarPrntEncoding {
 
   /// The canonical default Star PRNT encoding (legacy CP437).
   static const StarPrntEncoding defaultEncoding = StarPrntEncoding.legacy();
+}
+
+/// Explicit TSC / TSPL2 character encoding and code page configuration.
+///
+/// Decouples the host-side character encoding ([codePage] / UTF-8) from the printer's
+/// internal `CODEPAGE` hardware command.
+///
+/// Note: Setting [tsplCodePage] to `'UTF-8'` instructs modern TSPL2 firmware to parse
+/// subsequent text bytes as UTF-8. However, resident bitmap fonts (fonts 1-8) generally
+/// only provide glyphs for standard ASCII/Latin characters. Full multilingual Unicode
+/// rendering requires Monotype Scalable font `"0"` or downloaded TrueType fonts (`ROMAN.TTF`, `arial.ttf`).
+class TscEncoding {
+  /// The 8-bit character mapping to use for user text when not in UTF-8 mode.
+  final PrinterCodePage codePage;
+
+  /// The TSPL2 `CODEPAGE <code>` parameter (e.g. '437', '850', '857', '866', '1252', 'UTF-8').
+  ///
+  /// Set to `null` if no `CODEPAGE` command should be emitted.
+  final String? tsplCodePage;
+
+  /// Whether to emit `CODEPAGE <tsplCodePage>\r\n` during printer configuration.
+  final bool sendCodePageCommand;
+
+  /// Whether to replace unencodable characters with `?` (0x3F) instead of
+  /// throwing [UnsupportedCharacterException].
+  final bool replaceUnsupported;
+
+  const TscEncoding({
+    required this.codePage,
+    this.tsplCodePage,
+    this.sendCodePageCommand = false,
+    this.replaceUnsupported = false,
+  });
+
+  /// Standard CP437 (USA, default on most TSC printers).
+  const TscEncoding.cp437({
+    bool sendCodePageCommand = false,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp437,
+         tsplCodePage: '437',
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP850 (Multilingual Latin-1).
+  const TscEncoding.cp850({
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp850,
+         tsplCodePage: '850',
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP857 (Turkish).
+  const TscEncoding.cp857({
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp857,
+         tsplCodePage: '857',
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP866 (Cyrillic #2).
+  const TscEncoding.cp866({
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp866,
+         tsplCodePage: '866',
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard Windows-1252 (Western European).
+  const TscEncoding.cp1252({
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp1252,
+         tsplCodePage: '1252',
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// UTF-8 encoding mode.
+  ///
+  /// Emits `CODEPAGE UTF-8\r\n` when [sendCodePageCommand] is true.
+  /// Text is encoded directly to UTF-8 bytes.
+  ///
+  /// Note: Glyph availability for extended Unicode characters depends on the printer's
+  /// installed fonts (e.g. resident scalable font "0" or downloaded TTF fonts).
+  const TscEncoding.utf8({bool sendCodePageCommand = true})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        tsplCodePage: 'UTF-8',
+        sendCodePageCommand: sendCodePageCommand,
+        replaceUnsupported: false,
+      );
+
+  /// Custom TSC encoding configuration.
+  const TscEncoding.custom({
+    required PrinterCodePage codePage,
+    String? tsplCodePage,
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: codePage,
+         tsplCodePage: tsplCodePage,
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// The canonical default TSC encoding (CP437 baseline without emitting CODEPAGE command).
+  static const TscEncoding defaultEncoding = TscEncoding.cp437();
+
+  /// Whether this encoding operates in UTF-8 mode.
+  bool get isUtf8 => tsplCodePage?.toUpperCase() == 'UTF-8';
+
+  /// Encodes [text] to bytes according to this configuration.
+  Uint8List encode(String text) {
+    if (isUtf8) {
+      return Uint8List.fromList(utf8.encode(text));
+    }
+    return getEncoder(
+      codePage,
+    ).encode(text, replaceUnsupported: replaceUnsupported);
+  }
 }
 
 /// Character encoder for a single [PrinterCodePage].

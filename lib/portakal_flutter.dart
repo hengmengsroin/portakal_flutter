@@ -58,3 +58,6 @@ export 'src/parsers/dpl.dart';
 export 'src/parsers/ipl.dart';
 export 'src/parsers/sbpl.dart';
 export 'src/parsers/starprnt.dart';
+
+// Native Protocol Builders (Phase 2)
+export 'src/native/tsc.dart';

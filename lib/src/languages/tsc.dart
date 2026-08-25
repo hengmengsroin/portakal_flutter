@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../types.dart';
+import 'tsc_writer.dart';
 
 /// Compile a resolved label to TSC/TSPL2 binary commands as [Uint8List].
 ///
@@ -14,26 +15,24 @@ Uint8List compileToTSCBytes(ResolvedLabel label) {
 
   // Label setup
   if (label.unit == Unit.dot) {
-    writer.writeAscii(
-      'SIZE ${label.widthDots} dot,${label.heightDots} dot\r\n',
-    );
+    TscCommandWriter.writeSizeDots(writer, label.widthDots, label.heightDots);
   } else if (label.unit == Unit.inch) {
     // Convert back from dots to inches for the command
     final wInch = label.widthDots / label.dpi;
     final hInch = label.heightDots / label.dpi;
-    writer.writeAscii('SIZE $wInch,$hInch\r\n');
+    TscCommandWriter.writeSizeInches(writer, wInch, hInch);
   } else {
     // mm: convert dots back to mm
-    final wMM = (label.widthDots / label.dpi * 25.4).round();
-    final hMM = (label.heightDots / label.dpi * 25.4).round();
-    writer.writeAscii('SIZE $wMM mm,$hMM mm\r\n');
+    final wMM = (label.widthDots / label.dpi * 25.4).roundToDouble();
+    final hMM = (label.heightDots / label.dpi * 25.4).roundToDouble();
+    TscCommandWriter.writeSizeMm(writer, wMM, hMM);
   }
 
-  writer.writeAscii('GAP 3 mm,0 mm\r\n');
-  writer.writeAscii('SPEED ${label.speed}\r\n');
-  writer.writeAscii('DENSITY ${label.density}\r\n');
-  writer.writeAscii('DIRECTION ${label.direction}\r\n');
-  writer.writeAscii('CLS\r\n');
+  TscCommandWriter.writeGapMm(writer, 3, 0);
+  TscCommandWriter.writeSpeed(writer, label.speed.toDouble());
+  TscCommandWriter.writeDensity(writer, label.density);
+  TscCommandWriter.writeDirection(writer, label.direction);
+  TscCommandWriter.writeCls(writer);
 
   // Elements
   for (final el in label.elements) {
@@ -46,30 +45,47 @@ Uint8List compileToTSCBytes(ResolvedLabel label) {
         final rotation = o.rotation ?? 0;
         final xMul = o.xScale ?? o.size ?? 1;
         final yMul = o.yScale ?? o.size ?? 1;
-        writer.writeAscii('TEXT $x,$y,"$font",$rotation,$xMul,$yMul,"');
-        writer.writeString(el.content, encoding: latin1);
-        writer.writeAscii('"\r\n');
+        final encoded = Uint8List.fromList(latin1.encode(el.content));
+        TscCommandWriter.writeText(
+          writer,
+          x: x,
+          y: y,
+          font: font,
+          rotation: rotation,
+          xMul: xMul,
+          yMul: yMul,
+          encodedContent: encoded,
+        );
 
       case ImageElement():
         final o = el.options;
         final x = o.x ?? 0;
         final y = o.y ?? 0;
         final bmp = el.bitmap;
-        writer.writeAscii('BITMAP $x,$y,${bmp.bytesPerRow},${bmp.height},0,');
-        // Append raw 8-bit binary bitmap data directly
-        writer.writeBytes(bmp.data);
-        writer.writeAscii('\r\n');
+        TscCommandWriter.writeBitmap(
+          writer,
+          x: x,
+          y: y,
+          bytesPerRow: bmp.bytesPerRow,
+          height: bmp.height,
+          mode: 0,
+          data: bmp.data,
+        );
 
       case BoxElement():
         final o = el.options;
         final x2 = o.x + o.width;
         final y2 = o.y + o.height;
         final t = o.thickness ?? 1;
-        if (o.radius != null && o.radius! > 0) {
-          writer.writeAscii('BOX ${o.x},${o.y},$x2,$y2,$t,${o.radius}\r\n');
-        } else {
-          writer.writeAscii('BOX ${o.x},${o.y},$x2,$y2,$t\r\n');
-        }
+        TscCommandWriter.writeBox(
+          writer,
+          x: o.x,
+          y: o.y,
+          xEnd: x2,
+          yEnd: y2,
+          thickness: t,
+          radius: o.radius,
+        );
 
       case LineElement():
         final o = el.options;
@@ -78,69 +94,112 @@ Uint8List compileToTSCBytes(ResolvedLabel label) {
           // Horizontal line → BAR
           final x = o.x1 < o.x2 ? o.x1 : o.x2;
           final w = (o.x2 - o.x1).abs();
-          writer.writeAscii('BAR $x,${o.y1},$w,$t\r\n');
+          TscCommandWriter.writeBar(writer, x: x, y: o.y1, width: w, height: t);
         } else if (o.x1 == o.x2) {
           // Vertical line → BAR
           final y = o.y1 < o.y2 ? o.y1 : o.y2;
           final h = (o.y2 - o.y1).abs();
-          writer.writeAscii('BAR ${o.x1},$y,$t,$h\r\n');
+          TscCommandWriter.writeBar(writer, x: o.x1, y: y, width: t, height: h);
         } else {
           // Diagonal
-          writer.writeAscii('DIAGONAL ${o.x1},${o.y1},${o.x2},${o.y2},$t\r\n');
+          TscCommandWriter.writeDiagonal(
+            writer,
+            x1: o.x1,
+            y1: o.y1,
+            x2: o.x2,
+            y2: o.y2,
+            thickness: t,
+          );
         }
 
       case CircleElement():
         final o = el.options;
-        writer.writeAscii(
-          'CIRCLE ${o.x},${o.y},${o.diameter},${o.thickness ?? 1}\r\n',
+        TscCommandWriter.writeCircle(
+          writer,
+          x: o.x,
+          y: o.y,
+          diameter: o.diameter,
+          thickness: o.thickness ?? 1,
         );
 
       case EllipseElement():
         final o = el.options;
-        writer.writeAscii(
-          'ELLIPSE ${o.x},${o.y},${o.width},${o.height},${o.thickness ?? 1}\r\n',
+        TscCommandWriter.writeEllipse(
+          writer,
+          x: o.x,
+          y: o.y,
+          width: o.width,
+          height: o.height,
+          thickness: o.thickness ?? 1,
         );
 
       case BarcodeElement():
         final o = el.options;
-        writer.writeAscii(
-          'BARCODE ${o.x},${o.y},"${o.type}",${o.height},${o.readable ?? 0},${o.rotation ?? 0},${o.narrow ?? 2},${o.wide ?? 4}',
+        TscCommandWriter.writeBarcode(
+          writer,
+          x: o.x,
+          y: o.y,
+          type: o.type,
+          height: o.height,
+          readable: o.readable ?? 0,
+          rotation: o.rotation ?? 0,
+          narrow: o.narrow ?? 2,
+          wide: o.wide ?? 4,
+          alignment: o.alignment,
+          content: el.content,
         );
-        if (o.alignment != null) writer.writeAscii(',${o.alignment}');
-        writer.writeAscii(',"${el.content}"\r\n');
 
       case QRCodeElement():
         final o = el.options;
-        final ecc = o.eccLevel ?? 'H';
-        final cw = o.cellWidth ?? 4;
-        final mode = o.mode ?? 'A';
-        final rot = o.rotation ?? 0;
-        writer.writeAscii('QRCODE ${o.x},${o.y},"$ecc",$cw,"$mode",$rot,');
-        if (o.model != null) writer.writeAscii('"${o.model}",');
-        if (o.mask != null) writer.writeAscii('"${o.mask}",');
-        writer.writeAscii('"${el.content}"\r\n');
+        TscCommandWriter.writeQrCode(
+          writer,
+          x: o.x,
+          y: o.y,
+          ecc: o.eccLevel ?? 'H',
+          cellWidth: o.cellWidth ?? 4,
+          mode: o.mode ?? 'A',
+          rotation: o.rotation ?? 0,
+          model: o.model,
+          mask: o.mask,
+          content: el.content,
+        );
 
       case ReverseElement():
         final o = el.options;
-        writer.writeAscii('REVERSE ${o.x},${o.y},${o.width},${o.height}\r\n');
+        TscCommandWriter.writeReverse(
+          writer,
+          x: o.x,
+          y: o.y,
+          width: o.width,
+          height: o.height,
+        );
 
       case EraseElement():
         final o = el.options;
-        writer.writeAscii('ERASE ${o.x},${o.y},${o.width},${o.height}\r\n');
+        TscCommandWriter.writeErase(
+          writer,
+          x: o.x,
+          y: o.y,
+          width: o.width,
+          height: o.height,
+        );
 
       case RawElement():
         if (el.content is Uint8List) {
-          writer.writeBytes(el.content as Uint8List);
+          TscCommandWriter.writeRawBytes(writer, el.content as Uint8List);
         } else if (el.content is List<int>) {
-          writer.writeBytes(el.content as List<int>);
+          TscCommandWriter.writeRawBytes(writer, el.content as List<int>);
         } else if (el.content is String) {
-          writer.writeString(el.content as String, encoding: latin1);
-          writer.writeAscii('\r\n');
+          TscCommandWriter.writeRawAscii(
+            writer,
+            el.content as String,
+            appendNewline: true,
+          );
         }
     }
   }
 
-  writer.writeAscii('PRINT ${label.copies}\r\n');
+  TscCommandWriter.writePrint(writer, sets: label.copies);
   return writer.toBytes();
 }
 
