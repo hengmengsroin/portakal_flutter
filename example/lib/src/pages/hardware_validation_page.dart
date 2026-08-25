@@ -2,95 +2,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../hardware/escpos_hardware_cases.dart';
+import '../hardware/case_model.dart';
+import '../hardware/protocol_registry.dart';
 import '../hardware/sha256.dart';
-import '../hardware/tsc_hardware_cases.dart';
-import '../hardware/zpl_hardware_cases.dart';
 import '../transport/hardware_printer_transport.dart';
 
-/// Test execution and diagnostic status for each validation case.
-enum CaseResultStatus {
-  notTested('N/T', Colors.grey),
-  connecting('CONNECTING', Colors.purple),
-  sending('SENDING', Colors.amber),
-  sent('SENT', Colors.blue),
-  transportError('TRANSPORT ERROR', Colors.red),
-  printed('PRINTED', Colors.teal),
-  pass('PASS', Colors.green),
-  partial('PARTIAL', Colors.orange),
-  fail('FAIL', Colors.redAccent),
-  notSupportedDevice('N/S-DEVICE', Colors.indigo);
-
-  final String label;
-  final Color color;
-  const CaseResultStatus(this.label, this.color);
-}
-
-/// Generic container for a validation case from any protocol.
-class GenericCaseDefinition {
-  final String id;
-  final String title;
-  final String description;
-  final String? expectedPayload;
-  final bool isDiagnostic;
-  final bool requiresCutter;
-  final String goldenSha256;
-  final Uint8List Function() generator;
-
-  const GenericCaseDefinition({
-    required this.id,
-    required this.title,
-    required this.description,
-    this.expectedPayload,
-    this.isDiagnostic = false,
-    this.requiresCutter = false,
-    required this.goldenSha256,
-    required this.generator,
-  });
-
-  factory GenericCaseDefinition.fromEscPos(EscPosValidationCase c) {
-    return GenericCaseDefinition(
-      id: c.id,
-      title: c.title,
-      description: c.description,
-      expectedPayload: c.expectedPayload,
-      isDiagnostic: c.isDiagnostic,
-      requiresCutter: c.requiresCutter,
-      goldenSha256: c.goldenSha256,
-      generator: c.generator,
-    );
-  }
-
-  factory GenericCaseDefinition.fromTsc(TscValidationCase c) {
-    return GenericCaseDefinition(
-      id: c.id,
-      title: c.title,
-      description: c.description,
-      expectedPayload: c.expectedPayload,
-      isDiagnostic: c.isDiagnostic,
-      requiresCutter: false,
-      goldenSha256: c.goldenSha256,
-      generator: c.generator,
-    );
-  }
-
-  factory GenericCaseDefinition.fromZpl(ZplValidationCase c) {
-    return GenericCaseDefinition(
-      id: c.id,
-      title: c.title,
-      description: c.description,
-      expectedPayload: c.expectedPayload,
-      isDiagnostic: c.isDiagnostic,
-      requiresCutter: false,
-      goldenSha256: c.goldenSha256,
-      generator: c.generator,
-    );
-  }
-}
-
-/// Recorded validation run details for a single test case.
+/// Recorded validation execution state for a single case.
 class CaseExecutionRecord {
-  final GenericCaseDefinition testCase;
+  final HardwareValidationCase testCase;
   final Uint8List? generatedBytes;
   final String? generatedSha256;
   final bool? isGoldenMatch;
@@ -113,16 +32,7 @@ class CaseExecutionRecord {
   });
 }
 
-enum HardwareProtocol {
-  escpos('ESC/POS'),
-  tsc('TSC / TSPL2'),
-  zpl('ZPL II');
-
-  final String label;
-  const HardwareProtocol(this.label);
-}
-
-/// Interactive Hardware Validation Screen supporting ESC/POS, TSC, and ZPL Protocols.
+/// Universal Hardware Validation Test Bench supporting all 9 Portakal Protocols.
 class HardwareValidationPage extends StatefulWidget {
   final HardwarePrinterTransport transport;
   final String targetDeviceName;
@@ -138,7 +48,7 @@ class HardwareValidationPage extends StatefulWidget {
 }
 
 class _HardwareValidationPageState extends State<HardwareValidationPage> {
-  HardwareProtocol _activeProtocol = HardwareProtocol.escpos;
+  ValidationProtocol _activeProtocol = ValidationProtocol.escpos;
 
   final List<DiscoveredPrinter> _discoveredPrinters = [];
   DiscoveredPrinter? _selectedPrinter;
@@ -146,74 +56,42 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
   bool _isConnecting = false;
   String _connectionStatus = 'Disconnected';
 
-  final Map<String, CaseExecutionRecord> _escposRecords = {};
-  final Map<String, CaseExecutionRecord> _tscRecords = {};
-  final Map<String, CaseExecutionRecord> _zplRecords = {};
+  // Map of (Protocol -> (CaseID -> Record))
+  final Map<ValidationProtocol, Map<String, CaseExecutionRecord>> _records = {};
   CaseExecutionRecord? _lastActiveRecord;
+  bool _overrideUnsupportedProbe = false;
 
   final TextEditingController _scanInputController = TextEditingController();
 
-  Map<String, CaseExecutionRecord> get _currentRecords {
-    switch (_activeProtocol) {
-      case HardwareProtocol.escpos:
-        return _escposRecords;
-      case HardwareProtocol.tsc:
-        return _tscRecords;
-      case HardwareProtocol.zpl:
-        return _zplRecords;
-    }
-  }
+  ProtocolValidationSuite get _currentSuite =>
+      ProtocolRegistry.getSuite(_activeProtocol);
 
-  List<GenericCaseDefinition> get _currentDiagnosticCases {
-    switch (_activeProtocol) {
-      case HardwareProtocol.escpos:
-        return EscPosHardwareSuite.diagnosticCases
-            .map(GenericCaseDefinition.fromEscPos)
-            .toList();
-      case HardwareProtocol.tsc:
-        return TscHardwareSuite.diagnosticCases
-            .map(GenericCaseDefinition.fromTsc)
-            .toList();
-      case HardwareProtocol.zpl:
-        return ZplHardwareSuite.diagnosticCases
-            .map(GenericCaseDefinition.fromZpl)
-            .toList();
-    }
-  }
+  Map<String, CaseExecutionRecord> get _currentRecords =>
+      _records[_activeProtocol]!;
 
-  List<GenericCaseDefinition> get _currentProtocolCases {
-    switch (_activeProtocol) {
-      case HardwareProtocol.escpos:
-        return EscPosHardwareSuite.protocolCases
-            .map(GenericCaseDefinition.fromEscPos)
-            .toList();
-      case HardwareProtocol.tsc:
-        return TscHardwareSuite.protocolCases
-            .map(GenericCaseDefinition.fromTsc)
-            .toList();
-      case HardwareProtocol.zpl:
-        return ZplHardwareSuite.protocolCases
-            .map(GenericCaseDefinition.fromZpl)
-            .toList();
-    }
+  bool get _isProbeFailed {
+    final probeId = _currentSuite.capabilityProbeCaseId;
+    final probeRecord = _currentRecords[probeId];
+    return probeRecord?.status == CaseResultStatus.notSupportedDevice ||
+        probeRecord?.status == CaseResultStatus.fail;
   }
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize session records for all defined cases
-    for (final c in EscPosHardwareSuite.allCases) {
-      final gen = GenericCaseDefinition.fromEscPos(c);
-      _escposRecords[c.id] = CaseExecutionRecord(testCase: gen);
-    }
-    for (final c in TscHardwareSuite.allCases) {
-      final gen = GenericCaseDefinition.fromTsc(c);
-      _tscRecords[c.id] = CaseExecutionRecord(testCase: gen);
-    }
-    for (final c in ZplHardwareSuite.allCases) {
-      final gen = GenericCaseDefinition.fromZpl(c);
-      _zplRecords[c.id] = CaseExecutionRecord(testCase: gen);
+    // Initialize session records for all 9 protocols
+    for (final suite in ProtocolRegistry.allSuites) {
+      final map = <String, CaseExecutionRecord>{};
+      for (final c in suite.cases) {
+        map[c.id] = CaseExecutionRecord(
+          testCase: c,
+          status: c.isSupportedInSdk
+              ? CaseResultStatus.notTested
+              : CaseResultStatus.notSupportedSdk,
+        );
+      }
+      _records[suite.protocol] = map;
     }
 
     widget.transport.printersStream.listen((printers) {
@@ -304,7 +182,18 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     }
   }
 
-  Future<void> _executeCase(GenericCaseDefinition c) async {
+  Future<void> _executeCase(HardwareValidationCase c) async {
+    if (!c.isSupportedInSdk) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            c.unsupportedSdkReason ?? 'Feature not supported in current SDK.',
+          ),
+        ),
+      );
+      return;
+    }
+
     if (_selectedPrinter == null || !_selectedPrinter!.isConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please connect to a printer first.')),
@@ -404,6 +293,8 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
           'case_id': r.testCase.id,
           'title': r.testCase.title,
           'is_diagnostic': r.testCase.isDiagnostic,
+          'is_supported_in_sdk': r.testCase.isSupportedInSdk,
+          'unsupported_sdk_reason': r.testCase.unsupportedSdkReason,
           'byte_count': r.generatedBytes?.length ?? 0,
           'sha256': r.generatedSha256,
           'golden_match': r.isGoldenMatch,
@@ -428,7 +319,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Export ${_activeProtocol.label} Session JSON'),
+        title: Text('Export ${_currentSuite.displayName} Session JSON'),
         content: SizedBox(
           width: 550,
           child: SingleChildScrollView(
@@ -461,10 +352,18 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
   @override
   Widget build(BuildContext context) {
     final isConnected = _selectedPrinter?.isConnected ?? false;
+    final diagnosticCases = _currentSuite.cases
+        .where((c) => c.isDiagnostic)
+        .toList();
+    final protocolCases = _currentSuite.cases
+        .where((c) => !c.isDiagnostic)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Hardware Validation — ${_activeProtocol.label}'),
+        title: Text(
+          'Portakal Hardware Test Bench — ${_currentSuite.displayName}',
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
@@ -476,9 +375,9 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left Pane: Discovery, Protocol Selector & Device Status
+          // Left Pane: Protocol Switcher, Discovery & Session Status
           SizedBox(
-            width: 330,
+            width: 340,
             child: Card(
               margin: const EdgeInsets.all(12),
               child: Padding(
@@ -487,35 +386,54 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Protocol Selection',
+                      'Select Protocol',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    SegmentedButton<HardwareProtocol>(
-                      segments: const [
-                        ButtonSegment(
-                          value: HardwareProtocol.escpos,
-                          label: Text('ESC/POS'),
+
+                    // Dropdown for all 9 protocols
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.grey.withValues(alpha: 0.5),
                         ),
-                        ButtonSegment(
-                          value: HardwareProtocol.tsc,
-                          label: Text('TSC'),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<ValidationProtocol>(
+                          isExpanded: true,
+                          value: _activeProtocol,
+                          items: ValidationProtocol.values.map((proto) {
+                            return DropdownMenuItem(
+                              value: proto,
+                              child: Text(
+                                proto.displayName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _activeProtocol = val;
+                                _lastActiveRecord = null;
+                                _overrideUnsupportedProbe = false;
+                              });
+                            }
+                          },
                         ),
-                        ButtonSegment(
-                          value: HardwareProtocol.zpl,
-                          label: Text('ZPL'),
-                        ),
-                      ],
-                      selected: {_activeProtocol},
-                      onSelectionChanged: (val) {
-                        setState(() {
-                          _activeProtocol = val.first;
-                          _lastActiveRecord = null;
-                        });
-                      },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _currentSuite.description,
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                     const Divider(height: 24),
 
@@ -524,10 +442,10 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                       children: [
                         const Flexible(
                           child: Text(
-                            'Printer Discovery',
+                            'Printer Transport',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 15,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -654,20 +572,45 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
             ),
           ),
 
-          // Right Pane: Diagnostics & Cases
+          // Right Pane: Active Diagnostics & Case Execution Grids
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Protocol Warning / Notes Banner
+                  if (_currentSuite.warning != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.1),
+                        border: Border.all(color: Colors.amber),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.amber),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _currentSuite.warning!,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   // Active Transmission Banner with Full Diagnostics
                   if (_lastActiveRecord != null)
                     _buildActiveVerificationPanel(),
 
                   const SizedBox(height: 12),
                   Text(
-                    'Step 1: ${_activeProtocol.label} Diagnostic Probes',
+                    'Step 1: ${_currentSuite.displayName} Capability Probes',
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
@@ -676,20 +619,76 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                   ),
                   const SizedBox(height: 2),
                   const Text(
-                    'Establish that raw bytes physically reach and print on the device.',
+                    'Establish whether raw bytes physically reach and print in this protocol.',
                     style: TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                   const SizedBox(height: 10),
 
                   // Diagnostic Cases Grid
-                  _buildCaseGrid(_currentDiagnosticCases, isConnected),
+                  _buildCaseGrid(
+                    diagnosticCases,
+                    isConnected,
+                    allowExecution: true,
+                  ),
+
+                  // Stop-on-Unsupported Warning & Override
+                  if (_isProbeFailed && !_overrideUnsupportedProbe) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        border: Border.all(color: Colors.red),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.warning, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text(
+                                'Protocol Capability Notice',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'This connected printer does not appear to support this protocol command language. '
+                            'Advanced cases are gated to prevent undefined device states.',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          const SizedBox(height: 8),
+                          FilledButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _overrideUnsupportedProbe = true;
+                              });
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.red[800],
+                            ),
+                            icon: const Icon(Icons.lock_open, size: 16),
+                            label: const Text(
+                              'Continue Anyway (Advanced Override)',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 20),
                   const Divider(),
                   const SizedBox(height: 8),
 
                   Text(
-                    'Step 2: ${_activeProtocol.label} Validation Suite',
+                    'Step 2: ${_currentSuite.displayName} Validation Suite',
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
@@ -703,7 +702,12 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                   const SizedBox(height: 10),
 
                   // Protocol Cases Grid
-                  _buildCaseGrid(_currentProtocolCases, isConnected),
+                  _buildCaseGrid(
+                    protocolCases,
+                    isConnected,
+                    allowExecution:
+                        !_isProbeFailed || _overrideUnsupportedProbe,
+                  ),
                 ],
               ),
             ),
@@ -713,13 +717,21 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     );
   }
 
-  Widget _buildCaseGrid(List<GenericCaseDefinition> cases, bool isConnected) {
+  Widget _buildCaseGrid(
+    List<HardwareValidationCase> cases,
+    bool isConnected, {
+    required bool allowExecution,
+  }) {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: cases.map((c) {
         final record = _currentRecords[c.id];
-        final status = record?.status ?? CaseResultStatus.notTested;
+        final status =
+            record?.status ??
+            (c.isSupportedInSdk
+                ? CaseResultStatus.notTested
+                : CaseResultStatus.notSupportedSdk);
 
         return SizedBox(
           width: 270,
@@ -765,8 +777,15 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    c.description,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    c.isSupportedInSdk
+                        ? c.description
+                        : (c.unsupportedSdkReason ?? 'Not supported in SDK'),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: c.isSupportedInSdk
+                          ? Colors.grey
+                          : Colors.deepOrange,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -774,9 +793,14 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: isConnected ? () => _executeCase(c) : null,
+                      onPressed:
+                          (isConnected && allowExecution && c.isSupportedInSdk)
+                          ? () => _executeCase(c)
+                          : null,
                       icon: const Icon(Icons.print, size: 16),
-                      label: Text('Print ${c.id}'),
+                      label: Text(
+                        c.isSupportedInSdk ? 'Print ${c.id}' : 'N/S-SDK',
+                      ),
                     ),
                   ),
                 ],
@@ -856,7 +880,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '• Protocol: ${_activeProtocol.label}',
+                    '• Protocol: ${_currentSuite.displayName}',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -1009,7 +1033,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                   onPressed: () =>
                       _updateActiveResult(CaseResultStatus.notSupportedDevice),
                   icon: const Icon(Icons.block, size: 16),
-                  label: const Text('N/S-DEVICE (No ZPL Mode)'),
+                  label: const Text('N/S-DEVICE (No Command Support)'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.indigo,
                   ),
@@ -1026,7 +1050,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                 OutlinedButton.icon(
                   onPressed: () => _updateActiveResult(CaseResultStatus.fail),
                   icon: const Icon(Icons.close, size: 16),
-                  label: const Text('FAIL (Literal text / error)'),
+                  label: const Text('FAIL (Error / Corrupted)'),
                   style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                 ),
               ],

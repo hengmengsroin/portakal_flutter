@@ -8,7 +8,7 @@ void main() {
   ) async {
     final mockTransport = MockHardwarePrinterTransport();
     await tester.pumpWidget(PortakalHardwareApp(transport: mockTransport));
-    expect(find.text('Hardware Validation — ESC/POS'), findsOneWidget);
-    expect(find.text('Printer Discovery'), findsOneWidget);
+    expect(find.text('Portakal Hardware Test Bench — ESC/POS'), findsOneWidget);
+    expect(find.text('Printer Transport'), findsOneWidget);
   });
 }
