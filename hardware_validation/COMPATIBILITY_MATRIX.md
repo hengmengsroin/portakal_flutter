@@ -15,11 +15,11 @@ This document tracks physical hardware validation runs across supported thermal 
 
 | Device ID / Model | Manufacturer | Connection | Tested Protocol | Verified Dialect Scope | Status | Evidence Path |
 | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **`Printer001-328F`** | Unknown / Generic | BLE | **ESC/POS** | **ESC/POS Verified Subset**<br>(Text, CP437, Scaling, Code128, QR, Raster, Partial Cut, Reset) | **PASS** | [`hardware_validation/escpos/Printer001_328F/BLE/manifest.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/escpos/Printer001_328F/BLE/manifest.json) |
-| **`Printer001-328F`** | Unknown / Generic | BLE | **TSC** | **TSC / TSPL2 Verified Subset**<br>(Text, CP437/CP850/CP1252, Scaling, Code128, QR, Primitives, Raster, Copies, CLS) | **PASS** | [`hardware_validation/tsc/Printer001_328F/BLE/manifest.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/tsc/Printer001_328F/BLE/manifest.json) |
-| **`Printer001-328F`** | Unknown / Generic | BLE | **ZPL II** | **ZPL II Emulation**<br>(D00-ZPL Capability Probe: Literal `^XA` printed) | **N/S-DEVICE** | [`hardware_validation/zpl/Printer001_328F/BLE/manifest.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/zpl/Printer001_328F/BLE/manifest.json) |
+| **`Printer001-328F`** | Unknown / Generic | BLE | **ESC/POS** | **ESC/POS Verified Subset**<br>(Text, CP437, Scaling, Code128, QR, Raster, Partial Cut, Reset) | **PASS** | [`hardware_validation/escpos/Printer001_328F/BLE/manifest.json`](escpos/Printer001_328F/BLE/manifest.json) |
+| **`Printer001-328F`** | Unknown / Generic | BLE | **TSC** | **TSC / TSPL2 Verified Subset**<br>(Text, CP437/CP850/CP1252, Scaling, Code128, QR, Primitives, Raster, Copies, CLS) | **PASS** | [`hardware_validation/tsc/Printer001_328F/BLE/manifest.json`](tsc/Printer001_328F/BLE/manifest.json) |
+| **`Printer001-328F`** | Unknown / Generic | BLE | **ZPL II** | **ZPL II Emulation**<br>(D00-ZPL Capability Probe: Literal `^XA` printed) | **N/S-DEVICE** | [`hardware_validation/zpl/Printer001_328F/BLE/manifest.json`](zpl/Printer001_328F/BLE/manifest.json) |
 
-*Unified Device Profile: [`hardware_validation/devices/Printer001_328F/device.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/devices/Printer001_328F/device.json)*
+*Unified Device Profile: [`hardware_validation/devices/Printer001_328F/device.json`](devices/Printer001_328F/device.json)*
 
 ---
 
