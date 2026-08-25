@@ -375,6 +375,7 @@ class PreviewQrItem extends PreviewItem {
   final String payload;
   final int moduleSize;
   final int matrixSize;
+  final int quietZone;
   final List<PreviewBitmapSpan> modules;
 
   const PreviewQrItem({
@@ -386,6 +387,7 @@ class PreviewQrItem extends PreviewItem {
     required this.payload,
     required this.moduleSize,
     required this.matrixSize,
+    this.quietZone = 4,
     required this.modules,
   });
 
@@ -403,6 +405,7 @@ class PreviewQrItem extends PreviewItem {
         payload != other.payload ||
         moduleSize != other.moduleSize ||
         matrixSize != other.matrixSize ||
+        quietZone != other.quietZone ||
         modules.length != other.modules.length) {
       return false;
     }
@@ -422,6 +425,7 @@ class PreviewQrItem extends PreviewItem {
         payload,
         moduleSize,
         matrixSize,
+        quietZone,
         Object.hashAll(modules),
       );
 }
@@ -815,7 +819,7 @@ class PreviewScene {
             QrCodeEncoder.encode(el.content, ecc: o.eccLevel ?? 'M');
         if (qrMatrix != null) {
           final size = qrMatrix.size;
-          final qz = 2; // 2 modules quiet zone
+          const qz = 4; // ISO/IEC 18004 standard 4-module quiet zone on all sides
           final totalDim = (size + qz * 2) * cellW.toDouble();
           final modules = <PreviewBitmapSpan>[];
 
@@ -854,6 +858,7 @@ class PreviewScene {
             payload: el.content,
             moduleSize: cellW,
             matrixSize: size,
+            quietZone: qz,
             modules: List.unmodifiable(modules),
           );
         }

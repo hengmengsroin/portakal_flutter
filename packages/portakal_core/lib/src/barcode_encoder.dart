@@ -15,7 +15,8 @@ class BarcodeEncoder {
   /// Attempt to encode [content] as a 1D barcode pattern.
   /// Returns null if symbology is unsupported or payload contains invalid characters.
   static BarcodeVisualPattern? encode(String type, String content) {
-    final normalizedType = type.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    final normalizedType =
+        type.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
 
     if (normalizedType == '128' || normalizedType == 'CODE128') {
       return _encodeCode128(content);
@@ -25,6 +26,8 @@ class BarcodeEncoder {
       return _encodeEan13(content);
     } else if (normalizedType == 'EAN8') {
       return _encodeEan8(content);
+    } else if (normalizedType == 'UPCA') {
+      return _encodeUpcA(content);
     }
 
     return null;
@@ -98,24 +101,32 @@ class BarcodeEncoder {
   }
 
   // ==========================================
-  // CODE 39
+  // CODE 39 (ISO/IEC 16388)
   // ==========================================
   static const Map<String, String> _code39Patterns = {
-    '0': '101001101', '1': '110100101', '2': '101100101', '3': '110110010',
-    '4': '101001101', '5': '110100110', '6': '101100110', '7': '101001011',
-    '8': '110100101', '9': '101100101', 'A': '110101001', 'B': '101101001',
-    'C': '110110100', 'D': '101011001', 'E': '110101100', 'F': '101101100',
-    'G': '101010011', 'H': '110101010', 'I': '101101010', 'J': '101011010',
-    'K': '110101010', 'L': '101101010', 'M': '110110101', 'N': '101011010',
-    'O': '110101101', 'P': '101101101', 'Q': '101010111', 'R': '110101011',
-    'S': '101101011', 'T': '101011011', 'U': '110010101', 'V': '100110101',
-    'W': '110011010', 'X': '100101101', 'Y': '110010110', 'Z': '100110110',
-    '-': '100101011', '.': '110010101', ' ': '100110101', '\$': '100100100',
-    '/': '100100100', '+': '100100100', '%': '101001001', '*': '100101101'
+    '1': '100100001', '2': '001100001', '3': '101100000', '4': '000110001',
+    '5': '100110000', '6': '001110000', '7': '000100101', '8': '100100100',
+    '9': '001100100', '0': '000110100', 'A': '100001001', 'B': '001001001',
+    'C': '101001000', 'D': '000011001', 'E': '100011000', 'F': '001011000',
+    'G': '000001101', 'H': '100001100', 'I': '001001100', 'J': '000011100',
+    'K': '100000011', 'L': '001000011', 'M': '101000010', 'N': '000010011',
+    'O': '100010010', 'P': '001010010', 'Q': '000000111', 'R': '100000110',
+    'S': '001000110', 'T': '000010110', 'U': '110000001', 'V': '011000001',
+    'W': '111000000', 'X': '010010001', 'Y': '110010000', 'Z': '011010000',
+    '-': '010000101', '.': '110000100', ' ': '011000100', '*': '010010100',
+    '\$': '010101000', '/': '010100010', '+': '010001010', '%': '000101010'
   };
 
   static BarcodeVisualPattern? _encodeCode39(String content) {
+    if (content.isEmpty) return null;
     final upper = content.toUpperCase();
+
+    // Verify all characters are in Code 39 alphabet (excluding start/stop asterisk)
+    for (var i = 0; i < upper.length; i++) {
+      final ch = upper[i];
+      if (!_code39Patterns.containsKey(ch) || ch == '*') return null;
+    }
+
     final full = '*$upper*';
     final widths = <int>[];
     var total = 0;
@@ -125,11 +136,10 @@ class BarcodeEncoder {
       final pattern = _code39Patterns[ch];
       if (pattern == null) return null;
 
-      // 9 elements: alternates bar (1=narrow, 2=wide), space (0=narrow, 2=wide)
+      // 9 elements: 1=wide (2 modules), 0=narrow (1 module)
       for (var j = 0; j < 9; j++) {
-        final isBar = (j % 2 == 0);
         final bit = pattern[j];
-        final w = isBar ? (bit == '1' ? 2 : 1) : (bit == '1' ? 2 : 1);
+        final w = (bit == '1') ? 2 : 1;
         widths.add(w);
         total += w;
       }
@@ -144,7 +154,7 @@ class BarcodeEncoder {
   }
 
   // ==========================================
-  // EAN-13 & EAN-8
+  // EAN-13, EAN-8, UPC-A (ISO/IEC 15420)
   // ==========================================
   static const List<String> _eanL = [
     '0001101', '0011001', '0010011', '0111101', '0100011',
@@ -235,6 +245,22 @@ class BarcodeEncoder {
     bitBuffer.write('101'); // End guard
 
     return _bitStringToPattern(bitBuffer.toString());
+  }
+
+  static BarcodeVisualPattern? _encodeUpcA(String content) {
+    if (!RegExp(r'^\d{11,12}$').hasMatch(content)) return null;
+    var payload = content;
+    if (payload.length == 11) {
+      var sum = 0;
+      for (var i = 0; i < 11; i++) {
+        final d = int.parse(payload[i]);
+        sum += d * (i % 2 == 0 ? 3 : 1);
+      }
+      final check = (10 - (sum % 10)) % 10;
+      payload = '$payload$check';
+    }
+    // UPC-A 12-digit number maps to EAN-13 with leading '0'
+    return _encodeEan13('0$payload');
   }
 
   static BarcodeVisualPattern _bitStringToPattern(String bitString) {

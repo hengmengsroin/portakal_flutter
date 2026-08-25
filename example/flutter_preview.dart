@@ -99,7 +99,7 @@ class _PreviewBeforePrintScreenState extends State<PreviewBeforePrintScreen> {
         )
         .qrcode(
           'https://example.com/invoice/INV-001',
-          const QRCodeOptions(x: 460, y: 575, cellWidth: 4),
+          const QRCodeOptions(x: 470, y: 575, cellWidth: 3),
         );
 
     _resolvedJob = builder.resolve();

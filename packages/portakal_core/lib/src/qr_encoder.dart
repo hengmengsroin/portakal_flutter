@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 /// Pure Dart standard QR Code matrix generator for preview rendering.
 ///
-/// Supports QR Code Models 1-10 with Byte (8-bit) mode and ECC levels L, M, Q, H.
+/// Supports QR Code Models 1-10 with Byte (8-bit UTF-8) mode and ECC levels L, M, Q, H.
 class QrCodeMatrix {
   final int size;
   final List<List<bool>> modules;
@@ -21,7 +22,7 @@ class QrCodeEncoder {
   static QrCodeMatrix? encode(String content, {String ecc = 'M'}) {
     if (content.isEmpty) return null;
 
-    final dataBytes = Uint8List.fromList(content.codeUnits);
+    final dataBytes = Uint8List.fromList(utf8.encode(content));
     final eccLevel = ecc.toUpperCase();
 
     // Determine minimum version required for Byte mode
@@ -308,7 +309,7 @@ class QrCodeEncoder {
       setModule(i, 6, val);
     }
 
-    // 4. Dark module
+    // 4. Dark module at (4*V + 9, 8)
     setModule(4 * version + 9, 8, true);
 
     // 5. Reserve format information areas
@@ -321,6 +322,20 @@ class QrCodeEncoder {
       if (!isFunction[size - 1 - i][8]) setModule(size - 1 - i, 8, false);
     }
 
+    // 6. Version information for Version >= 7
+    if (version >= 7) {
+      final vInfo = _versionInfo[version - 7];
+      for (var i = 0; i < 18; i++) {
+        final bit = ((vInfo >> i) & 1) == 1;
+        final r = i ~/ 3;
+        final c = i % 3;
+        // Top-right
+        setModule(r, size - 11 + c, bit);
+        // Bottom-left
+        setModule(size - 11 + c, r, bit);
+      }
+    }
+
     // Convert final codewords to bits
     final allBits = <int>[];
     for (final cw in finalCodewords) {
@@ -329,7 +344,7 @@ class QrCodeEncoder {
       }
     }
 
-    // 6. Place data bits using zig-zag upward/downward pattern with Mask 0 ((r+c)%2 == 0)
+    // 7. Place data bits using zig-zag upward/downward pattern with Mask 0 ((r+c)%2 == 0)
     var bitIdx = 0;
     var upward = true;
 
@@ -357,8 +372,7 @@ class QrCodeEncoder {
       upward = !upward;
     }
 
-    // 7. Write Format Information (for ECC + Mask 0)
-    // ECC: L=01, M=00, Q=11, H=10. Mask 0 = 000
+    // 8. Write Format Information (for ECC + Mask 0)
     final formatBits = _formatInfo[eccIdx];
     for (var i = 0; i < 15; i++) {
       final bit = ((formatBits >> (14 - i)) & 1) == 1;
@@ -373,8 +387,8 @@ class QrCodeEncoder {
         matrix[14 - i][8] = bit;
       }
 
-      // Bottom / right area
-      if (i < 8) {
+      // Bottom / right area (7 bits at bottom-left, 8 bits at top-right)
+      if (i < 7) {
         matrix[size - 1 - i][8] = bit;
       } else {
         matrix[8][size - 15 + i] = bit;
@@ -385,12 +399,19 @@ class QrCodeEncoder {
   }
 
   // Precomputed Format Information with BCH(15,5) and mask XOR 0x5412 for Mask 0
-  // L: 0x77C4, M: 0x5412, Q: 0x355F, H: 0x1689
   static const List<int> _formatInfo = [
     0x77C4, // L, mask 0
     0x5412, // M, mask 0
     0x355F, // Q, mask 0
     0x1689, // H, mask 0
+  ];
+
+  // Version information for Versions 7 to 10 with BCH(18,6)
+  static const List<int> _versionInfo = [
+    0x07C94, // V7
+    0x085BC, // V8
+    0x09A99, // V9
+    0x0A4D3, // V10
   ];
 
   static const List<List<int>> _alignmentPositions = [

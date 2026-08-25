@@ -6,7 +6,7 @@
 ## PACKAGE: portakal_core
 Entrypoint: packages/portakal_core/lib/portakal_core.dart
 
-Total Public Declarations: 714
+Total Public Declarations: 715
 
     member BarcodeElement.content (in /packages/portakal_core/lib/src/types.dart)
     member BarcodeElement.options (in /packages/portakal_core/lib/src/types.dart)
@@ -242,6 +242,7 @@ Total Public Declarations: 714
     member PreviewQrItem.moduleSize (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.modules (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.payload (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.quietZone (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.rotation (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.width (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.x (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -728,7 +729,7 @@ Total Public Declarations: 714
 ## PACKAGE: portakal_flutter
 Entrypoint: packages/portakal_flutter/lib/portakal_flutter.dart
 
-Total Public Declarations: 721
+Total Public Declarations: 722
 
     member BarcodeElement.content (in /packages/portakal_core/lib/src/types.dart)
     member BarcodeElement.options (in /packages/portakal_core/lib/src/types.dart)
@@ -970,6 +971,7 @@ Total Public Declarations: 721
     member PreviewQrItem.moduleSize (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.modules (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.payload (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.quietZone (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.rotation (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.width (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewQrItem.x (in /packages/portakal_core/lib/src/preview_scene.dart)

@@ -1,3 +1,17 @@
+## 1.1.0
+
+### Added
+- **Preview-Before-Print Architecture**: Added `compileResolved(ResolvedLabel job)` across all 9 protocol facades (`tsc`, `zpl`, `epl`, `escpos`, `cpcl`, `dpl`, `ipl`, `sbpl`, `starprnt`) enabling applications to resolve once, review the preview, and compile the exact same resolved job for printing.
+- **Canonical Preview Intermediate Model (`PreviewScene`)**: Platform-agnostic geometric scene representation shared between pure Dart SVG rendering (`renderPreviewScene`) and Flutter UI widgets.
+- **Standards-Conforming 1D Barcode Preview**: Deterministic visual pattern rendering for Code 128 (Set B), Code 39, EAN-13, EAN-8, and UPC-A barcodes with quiet zones and human-readable text.
+- **Standards-Conforming 2D QR Code Preview**: Deterministic QR Code matrix generation supporting Versions 1–10 in Byte (UTF-8) mode with configurable ECC levels (L, M, Q, H), ISO/IEC 18004 4-module quiet zones, and automatic version selection.
+- **Run-Length Bitmap Span Optimization (`PreviewBitmapSpan`)**: Lossless horizontal black-pixel run compression for 1-bit monochrome graphics rendering.
+- **Canvas Clipping & Transform Support**: Logical bounding box clipping, multiline `<tspan>` text layout, and unconstrained `xScale`/`yScale` origin scaling.
+
+### Changed
+- Refactored `renderPreview` to construct and evaluate canonical `PreviewScene` intermediate models.
+- Enhanced `PreviewScene` with structural value equality (`operator ==` and `hashCode`) for repaint skipping.
+
 ## 1.0.0
 
 Stable production release of the Portakal Core SDK.

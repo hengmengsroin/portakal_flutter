@@ -1,3 +1,16 @@
+## 1.1.0
+
+### Added
+- **Preview-Before-Print Workflow**: Added `LabelPreview.resolved(job: resolvedLabel)` constructor allowing applications to render the exact resolved job that is subsequently compiled via `compileResolved(job)`.
+- **Direct Scene Rendering**: Added `LabelPreview.scene(scene: previewScene)` for direct presentation of canonical `PreviewScene` models.
+- **Standards-Conforming Code Rendering**: Direct visual rendering of Code 128 (Set B), Code 39, EAN-13, EAN-8, UPC-A, and 2D QR Code matrices with quiet zones in Flutter Canvas.
+- **Dual-Axis Aspect Ratio Containment**: Added `fit: BoxFit.contain` parameter and robust `LayoutBuilder` constraint fitting to prevent `RenderFlex` overflow across dialogs, cards, sheets, and bounded height containers.
+- **Accessibility Semantics**: Wrapped preview canvas with `Semantics` announcing physical millimeters and dot dimensions to screen readers.
+- **Performance Optimization**: Wrapped painter with `RepaintBoundary` and implemented structural value equality on `_LabelPreviewPainter.shouldRepaint` to skip redundant repaints.
+
+### Changed
+- Refactored `LabelPreview` to consume canonical `PreviewScene` representation from `portakal_core`.
+
 ## 1.0.0
 
 Stable production release of the Portakal Flutter companion package.
