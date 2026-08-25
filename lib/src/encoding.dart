@@ -403,6 +403,54 @@ class CpclEncoding {
   static const CpclEncoding defaultEncoding = CpclEncoding.legacy();
 }
 
+/// Explicit DPL character encoding configuration.
+class DplEncoding {
+  /// The character mapping to use for user text.
+  final PrinterCodePage codePage;
+
+  /// Whether to replace unencodable characters with `?` (0x3F) instead of throwing.
+  final bool replaceUnsupported;
+
+  const DplEncoding({required this.codePage, this.replaceUnsupported = false});
+
+  /// Default legacy DPL mode (CP437 character mapping).
+  const DplEncoding.legacy({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard CP437 mode.
+  const DplEncoding.cp437({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard CP850 mode.
+  const DplEncoding.cp850({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp850,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard Windows CP1252 mode.
+  const DplEncoding.cp1252({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp1252,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Custom DPL encoding configuration.
+  const DplEncoding.custom({
+    required PrinterCodePage codePage,
+    bool replaceUnsupported = false,
+  }) : this(codePage: codePage, replaceUnsupported: replaceUnsupported);
+
+  /// The canonical default DPL encoding (legacy CP437).
+  static const DplEncoding defaultEncoding = DplEncoding.legacy();
+}
+
 /// Character encoder for a single [PrinterCodePage].
 class CodePageEncoder {
   final PrinterCodePage codePage;
