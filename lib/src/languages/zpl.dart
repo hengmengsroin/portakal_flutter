@@ -1,23 +1,57 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import '../byte_writer.dart';
+import '../encoding.dart';
 import '../types.dart';
 
 /// Convert a byte to 2-char uppercase hex.
 String _hex(int byte) => byte.toRadixString(16).toUpperCase().padLeft(2, '0');
 
-/// Compile a resolved label to ZPL II commands.
-String compileToZPL(ResolvedLabel label) {
+/// Escapes ZPL command control delimiters (^ and ~) using ZPL ^FH hex escape format.
+String _escapeZplHex(String text) {
   final buf = StringBuffer();
+  for (int i = 0; i < text.length; i++) {
+    final char = text[i];
+    if (char == '^') {
+      buf.write('_5E');
+    } else if (char == '~') {
+      buf.write('_7E');
+    } else if (char == '_') {
+      buf.write('_5F');
+    } else {
+      buf.write(char);
+    }
+  }
+  return buf.toString();
+}
 
-  buf.write('^XA\n');
-  buf.write('^CI28\n');
-  buf.write('^PW${label.widthDots}\n');
+/// Compile a resolved label to ZPL II commands as a byte sequence ([Uint8List]).
+///
+/// If [encoding] is configured with [ZplTextEncoding.utf8], text fields are encoded
+/// as UTF-8 and `^CI28` is emitted in the header (unless [ZplEncoding.emitCiCommand] is false).
+/// If omitted, defaults to [ZplEncoding.legacy] (ASCII / Latin-1 baseline without `^CI28`).
+Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
+  final enc = encoding ?? const ZplEncoding.legacy();
+  final isUtf8 = enc.type == ZplTextEncoding.utf8;
+  final writer = PrinterByteWriter();
+
+  writer.writeAscii('^XA\n');
+
+  // Emit ^CI28 for UTF-8 mode
+  if (isUtf8 && enc.emitCiCommand) {
+    writer.writeAscii('^CI28\n');
+  }
+
+  writer.writeAscii('^PW${label.widthDots}\n');
   if (label.heightDots > 0) {
-    buf.write('^LL${label.heightDots}\n');
+    writer.writeAscii('^LL${label.heightDots}\n');
   }
   if (label.speed > 0) {
-    buf.write('^PR${label.speed}\n');
+    writer.writeAscii('^PR${label.speed}\n');
   }
   if (label.density > 0) {
-    buf.write('~SD${label.density.toString().padLeft(2, '0')}\n');
+    writer.writeAscii('~SD${label.density.toString().padLeft(2, '0')}\n');
   }
 
   // Elements
@@ -31,20 +65,41 @@ String compileToZPL(ResolvedLabel label) {
         final h = size * 30;
         final w = h;
         final r = _zplRotation(o.rotation ?? 0);
-        buf.write('^FO$x,$y');
-        buf.write('^A0$r,$h,$w');
+        writer.writeAscii('^FO$x,$y');
+        writer.writeAscii('^A0$r,$h,$w');
         if (o.maxWidth != null) {
           final align = o.align == 'center'
               ? 'C'
               : o.align == 'right'
               ? 'R'
               : 'L';
-          buf.write('^FB${o.maxWidth},1,0,$align');
+          writer.writeAscii('^FB${o.maxWidth},1,0,$align');
         }
         if (o.reverse == true) {
-          buf.write('^FR');
+          writer.writeAscii('^FR');
         }
-        buf.write('^FD${el.content}^FS\n');
+
+        // Text field escaping and encoding
+        final content = el.content;
+        if (content.contains('^') || content.contains('~')) {
+          // Contains ZPL control characters — activate ^FH (Field Hex) escaping
+          final escaped = _escapeZplHex(content);
+          writer.writeAscii('^FH^FD');
+          if (isUtf8) {
+            writer.writeString(escaped, encoding: utf8);
+          } else {
+            writer.writeString(escaped, encoding: latin1);
+          }
+          writer.writeAscii('^FS\n');
+        } else {
+          writer.writeAscii('^FD');
+          if (isUtf8) {
+            writer.writeString(content, encoding: utf8);
+          } else {
+            writer.writeString(content, encoding: latin1);
+          }
+          writer.writeAscii('^FS\n');
+        }
 
       case ImageElement():
         final o = el.options;
@@ -53,7 +108,7 @@ String compileToZPL(ResolvedLabel label) {
         final bmp = el.bitmap;
         final totalBytes = bmp.data.length;
         final hexData = bmp.data.map(_hex).join();
-        buf.write(
+        writer.writeAscii(
           '^FO$x,$y^GFA,$totalBytes,$totalBytes,${bmp.bytesPerRow},$hexData^FS\n',
         );
 
@@ -61,7 +116,9 @@ String compileToZPL(ResolvedLabel label) {
         final o = el.options;
         final t = o.thickness ?? 1;
         final r = o.radius ?? 0;
-        buf.write('^FO${o.x},${o.y}^GB${o.width},${o.height},$t,B,$r^FS\n');
+        writer.writeAscii(
+          '^FO${o.x},${o.y}^GB${o.width},${o.height},$t,B,$r^FS\n',
+        );
 
       case LineElement():
         final o = el.options;
@@ -70,12 +127,12 @@ String compileToZPL(ResolvedLabel label) {
           // Horizontal line
           final x = o.x1 < o.x2 ? o.x1 : o.x2;
           final w = (o.x2 - o.x1).abs();
-          buf.write('^FO$x,${o.y1}^GB$w,$t,$t^FS\n');
+          writer.writeAscii('^FO$x,${o.y1}^GB$w,$t,$t^FS\n');
         } else if (o.x1 == o.x2) {
           // Vertical line
           final y = o.y1 < o.y2 ? o.y1 : o.y2;
           final h = (o.y2 - o.y1).abs();
-          buf.write('^FO${o.x1},$y^GB$t,$h,$t^FS\n');
+          writer.writeAscii('^FO${o.x1},$y^GB$t,$h,$t^FS\n');
         } else {
           // Diagonal — use GD
           final w = (o.x2 - o.x1).abs();
@@ -83,12 +140,12 @@ String compileToZPL(ResolvedLabel label) {
           final x = o.x1 < o.x2 ? o.x1 : o.x2;
           final y = o.y1 < o.y2 ? o.y1 : o.y2;
           final dir = ((o.x2 > o.x1) == (o.y2 > o.y1)) ? 'R' : 'L';
-          buf.write('^FO$x,$y^GD$w,$h,$t,B,$dir^FS\n');
+          writer.writeAscii('^FO$x,$y^GD$w,$h,$t,B,$dir^FS\n');
         }
 
       case CircleElement():
         final o = el.options;
-        buf.write(
+        writer.writeAscii(
           '^FO${o.x},${o.y}^GC${o.diameter},${o.thickness ?? 1},B^FS\n',
         );
 
@@ -102,7 +159,7 @@ String compileToZPL(ResolvedLabel label) {
 
       case EraseElement():
         final o = el.options;
-        buf.write(
+        writer.writeAscii(
           '^FO${o.x},${o.y}^GB${o.width},${o.height},${o.width},W^FS\n',
         );
 
@@ -117,9 +174,9 @@ String compileToZPL(ResolvedLabel label) {
             : o.rotation == 270
             ? 'B'
             : 'N';
-        buf.write(
-          '^FO${o.x},${o.y}^B$type$rot,${o.height},$hr,N,N^FD${el.content}^FS\n',
-        );
+        writer.writeAscii('^FO${o.x},${o.y}^B$type$rot,${o.height},$hr,N,N^FD');
+        writer.writeAscii(el.content);
+        writer.writeAscii('^FS\n');
 
       case QRCodeElement():
         final o = el.options;
@@ -132,20 +189,37 @@ String compileToZPL(ResolvedLabel label) {
             : o.rotation == 270
             ? 'B'
             : 'N';
-        buf.write(
-          '^FO${o.x},${o.y}^BQ$rot,2,$cw,$ecc,7^FDQA,${el.content}^FS\n',
-        );
+        writer.writeAscii('^FO${o.x},${o.y}^BQ$rot,2,$cw,$ecc,7^FDQA,');
+        if (isUtf8) {
+          writer.writeString(el.content, encoding: utf8);
+        } else {
+          writer.writeString(el.content, encoding: latin1);
+        }
+        writer.writeAscii('^FS\n');
 
       case RawElement():
-        if (el.content is String) {
-          buf.write('${el.content}\n');
+        if (el.content is Uint8List) {
+          writer.writeBytes(el.content as Uint8List);
+        } else if (el.content is List<int>) {
+          writer.writeBytes(el.content as List<int>);
+        } else if (el.content is String) {
+          writer.writeString(el.content as String, encoding: utf8);
+          writer.writeAscii('\n');
         }
     }
   }
 
-  buf.write('^PQ${label.copies}\n');
-  buf.write('^XZ\n');
-  return buf.toString();
+  writer.writeAscii('^PQ${label.copies}\n');
+  writer.writeAscii('^XZ\n');
+  return writer.toBytes();
+}
+
+/// Compile a resolved label to ZPL II commands as a [String].
+///
+/// Note: For binary transport or multi-byte UTF-8, prefer [compileToZPLBytes].
+String compileToZPL(ResolvedLabel label, {ZplEncoding? encoding}) {
+  final bytes = compileToZPLBytes(label, encoding: encoding);
+  return utf8.decode(bytes, allowMalformed: true);
 }
 
 String _zplRotation(int degrees) {
