@@ -5,19 +5,30 @@ import '../encoding.dart';
 import '../languages/starprnt.dart';
 import '../parsers/starprnt.dart';
 import '../preview.dart';
+import '../types.dart';
 import '../validate.dart' as v;
 
 /// Star PRNT language module.
 class StarprntLang {
   /// Compile a [LabelBuilder] to Star PRNT binary commands as [Uint8List].
-  Uint8List compile(LabelBuilder builder, {StarPrntEncoding? encoding}) =>
-      compileToStarPRNT(builder.resolve(), encoding: encoding);
+  Uint8List compile(
+    LabelBuilder builder, {
+    StarPrntEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) =>
+      compileToStarPRNT(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to Star PRNT binary commands as [Uint8List].
-  ///
-  /// Convenience alias for [compile] providing naming consistency across protocols.
-  Uint8List compileBytes(LabelBuilder builder, {StarPrntEncoding? encoding}) =>
-      compileToStarPRNTBytes(builder.resolve(), encoding: encoding);
+  @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
+  Uint8List compileBytes(
+    LabelBuilder builder, {
+    StarPrntEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) => compileToStarPRNTBytes(
+    builder.resolve(),
+    encoding: encoding,
+    policy: policy,
+  );
 
   StarPRNTParseResult parse(Uint8List data) => parseStarPRNT(data);
 

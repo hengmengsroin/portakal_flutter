@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:test/test.dart';
+import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/lang/cpcl.dart';
 import 'package:portakal_core/src/lang/dpl.dart';
 import 'package:portakal_core/src/lang/epl.dart';
@@ -13,9 +15,13 @@ import 'package:portakal_core/src/markup.dart';
 import 'package:portakal_core/src/preview.dart';
 
 void main() {
+  String tscCompile(LabelBuilder b) => utf8.decode(tsc.compile(b));
+  String zplCompile(LabelBuilder b) => utf8.decode(zpl.compile(b));
+  String eplCompile(LabelBuilder b) => utf8.decode(epl.compile(b));
+
   group('markup — HTML-like label DSL', () {
     test('parses basic label with text', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="40mm" height="30mm"><text x="10" y="10" size="2">Hello World</text></label>',
         ),
@@ -26,7 +32,7 @@ void main() {
     });
 
     test('parses text with bold and underline', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="40mm" height="30mm"><text x="10" y="10" bold underline>Styled Text</text></label>',
         ),
@@ -35,7 +41,7 @@ void main() {
     });
 
     test('parses self-closing tags', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="40mm" height="30mm"><line x1="5" y1="50" x2="315" y2="50" thickness="2" /><box x="5" y="5" width="310" height="230" border="2" /><circle x="250" y="150" diameter="60" /></label>',
         ),
@@ -46,7 +52,7 @@ void main() {
     });
 
     test('parses box with radius', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="40mm" height="30mm"><box x="10" y="10" width="200" height="100" border="2" radius="5" /></label>',
         ),
@@ -55,7 +61,7 @@ void main() {
     });
 
     test('parses ellipse', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="40mm" height="30mm"><ellipse x="50" y="50" width="100" height="60" thickness="2" /></label>',
         ),
@@ -64,7 +70,7 @@ void main() {
     });
 
     test('parses reverse and erase', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="40mm" height="30mm"><reverse x="10" y="10" width="200" height="30" /><erase x="50" y="50" width="20" height="20" /></label>',
         ),
@@ -74,7 +80,7 @@ void main() {
     });
 
     test('compiles to ZPL', () {
-      final output = zpl.compile(
+      final output = zplCompile(
         markup(
           '<label width="40mm" height="30mm"><text x="50" y="50" size="2">ZPL Label</text><box x="10" y="10" width="300" height="220" border="2" /></label>',
         ),
@@ -86,7 +92,7 @@ void main() {
     });
 
     test('compiles to EPL', () {
-      final output = epl.compile(
+      final output = eplCompile(
         markup(
           '<label width="40mm" height="30mm"><text x="10" y="10">EPL Label</text></label>',
         ),
@@ -109,13 +115,13 @@ void main() {
       final m = markup(
         '<label width="40mm" height="30mm"><text x="10" y="10">Test</text></label>',
       );
-      expect(tsc.compile(m), contains('TEXT'));
-      expect(zpl.compile(m), contains('^XA'));
-      expect(epl.compile(m), contains('N'));
-      expect(cpcl.compile(m), contains('PRINT'));
-      expect(dpl.compile(m), contains('E'));
-      expect(sbpl.compile(m), contains('\x1bA'));
-      expect(ipl.compile(m), contains('\x02'));
+      expect(utf8.decode(tsc.compile(m)), contains('TEXT'));
+      expect(utf8.decode(zpl.compile(m)), contains('^XA'));
+      expect(utf8.decode(epl.compile(m)), contains('N'));
+      expect(utf8.decode(cpcl.compile(m)), contains('PRINT'));
+      expect(latin1.decode(dpl.compile(m)), contains('E'));
+      expect(latin1.decode(sbpl.compile(m)), contains('\x1bA'));
+      expect(latin1.decode(ipl.compile(m)), contains('\x02'));
       expect(escpos.compile(m), isA<Uint8List>());
       expect(starprnt.compile(m), isA<Uint8List>());
     });
@@ -148,7 +154,7 @@ void main() {
     });
 
     test('handles multiple text elements', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="40mm" height="30mm"><text x="10" y="10" size="2">Title</text><text x="10" y="35">Subtitle</text><text x="10" y="55" size="1">Description</text></label>',
         ),
@@ -159,7 +165,7 @@ void main() {
     });
 
     test('handles complex shipping label', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="100mm" height="150mm" dpi="203"><text x="10" y="10" size="2" bold>FROM: Warehouse A</text><text x="10" y="40" size="3" bold>TO: John Doe</text><text x="10" y="80">123 Main St, New York, NY 10001</text><line x1="5" y1="110" x2="780" y2="110" thickness="2" /><box x="5" y="5" width="780" height="1170" border="3" /></label>',
         ),
@@ -176,7 +182,7 @@ void main() {
     });
 
     test('handles raw content', () {
-      final output = tsc.compile(
+      final output = tscCompile(
         markup(
           '<label width="40mm" height="30mm"><raw>SET CUTTER ON</raw></label>',
         ),

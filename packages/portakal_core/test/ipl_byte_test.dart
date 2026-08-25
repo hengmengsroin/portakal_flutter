@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/encoding.dart';
 import 'package:portakal_core/src/lang/ipl.dart';
+import 'package:portakal_core/src/languages/ipl.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
@@ -43,13 +44,10 @@ void main() {
                 );
 
         final byteOutput = ipl.compileBytes(builder);
-        final stringOutput = ipl.compile(builder);
+        final canonicalOutput = ipl.compile(builder);
 
-        // Verify exact byte equivalence with latin1 string output
-        expect(
-          byteOutput,
-          equals(Uint8List.fromList(latin1.encode(stringOutput))),
-        );
+        // Verify exact byte equivalence between compile and compileBytes
+        expect(byteOutput, equals(canonicalOutput));
       },
     );
 
@@ -312,12 +310,12 @@ void main() {
       expect(text, contains('\x02TEST\x03'));
     });
 
-    test('String wrapper decodes 1:1 via latin1', () {
+    test('String wrapper compileToIPL decodes 1:1 via latin1', () {
       final builder = label(
         const LabelConfig(width: 40, height: 30),
       ).text('Café', const TextOptions(x: 10, y: 20));
 
-      final stringOutput = ipl.compile(builder);
+      final stringOutput = compileToIPL(builder.resolve());
       expect(stringOutput, isA<String>());
       expect(
         stringOutput.codeUnits.contains(0x82),

@@ -1,10 +1,14 @@
 /// Column definition for receipt table formatting.
-class Column {
+class ReceiptColumn {
   final int width;
   final String align;
 
-  const Column({required this.width, this.align = 'left'});
+  const ReceiptColumn({required this.width, this.align = 'left'});
 }
+
+/// Backwards compatibility alias for [ReceiptColumn].
+@Deprecated('Use ReceiptColumn instead. Will be removed in 2.0.')
+typedef Column = ReceiptColumn;
 
 /// Format a left+right pair on a single line.
 ///
@@ -24,7 +28,11 @@ String formatPair(String left, String right, int lineWidth) {
 }
 
 /// Format a multi-column row.
-String formatRow(List<Column> columns, List<String> values, int lineWidth) {
+String formatRow(
+  List<ReceiptColumn> columns,
+  List<String> values,
+  int lineWidth,
+) {
   final buf = StringBuffer();
 
   for (int i = 0; i < columns.length; i++) {
@@ -56,7 +64,7 @@ String formatRow(List<Column> columns, List<String> values, int lineWidth) {
 
 /// Format multiple rows as a table.
 List<String> formatTable(
-  List<Column> columns,
+  List<ReceiptColumn> columns,
   List<List<String>> rows,
   int lineWidth,
 ) {

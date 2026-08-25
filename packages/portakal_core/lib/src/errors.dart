@@ -23,3 +23,11 @@ class UnsupportedFeatureError extends PortakalError {
   @override
   String toString() => 'UnsupportedFeatureError: $message';
 }
+
+/// Thrown when an encoding or character mapping error occurs.
+class EncodingError extends PortakalError {
+  const EncodingError(super.message);
+
+  @override
+  String toString() => 'EncodingError: $message';
+}

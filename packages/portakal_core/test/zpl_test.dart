@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
@@ -6,21 +7,28 @@ import 'package:portakal_core/src/lang/zpl.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
+  String compile(LabelBuilder b) => utf8.decode(zpl.compile(b));
+
   group('ZPL compiler', () {
+    test('zpl.compile returns byte-native Uint8List', () {
+      final bytes = zpl.compile(label(LabelConfig(width: 40, height: 30)));
+      expect(bytes, isA<Uint8List>());
+    });
+
     test('generates ^XA and ^XZ', () {
-      final output = zpl.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('^XA'));
       expect(output, contains('^XZ'));
     });
 
     test('generates ^PW and ^LL', () {
-      final output = zpl.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('^PW320'));
       expect(output, contains('^LL240'));
     });
 
     test('generates ^FO position', () {
-      final output = zpl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).text('Hello', TextOptions(x: 50, y: 100)),
@@ -29,7 +37,7 @@ void main() {
     });
 
     test('generates ^FD...^FS text', () {
-      final output = zpl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).text('Hello ZPL', TextOptions(x: 10, y: 10)),
@@ -38,7 +46,7 @@ void main() {
     });
 
     test('generates ^GB for box', () {
-      final output = zpl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).box(BoxOptions(x: 10, y: 10, width: 300, height: 220, thickness: 3)),
@@ -47,7 +55,7 @@ void main() {
     });
 
     test('generates ^GC for circle', () {
-      final output = zpl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).circle(CircleOptions(x: 100, y: 100, diameter: 60, thickness: 2)),
@@ -62,7 +70,7 @@ void main() {
         height: 2,
         bytesPerRow: 1,
       );
-      final output = zpl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).image(bitmap, ImageOptions(x: 10, y: 10)),
@@ -71,14 +79,14 @@ void main() {
     });
 
     test('handles raw passthrough', () {
-      final output = zpl.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30)).raw('^MMT'),
       );
       expect(output, contains('^MMT'));
     });
 
     test('omits ^LL for receipt mode (height 0)', () {
-      final output = zpl.compile(label(LabelConfig(width: 80)));
+      final output = compile(label(LabelConfig(width: 80)));
       expect(output, contains('^XA'));
       expect(output, isNot(contains('^LL0')));
     });

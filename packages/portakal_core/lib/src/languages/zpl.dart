@@ -11,7 +11,11 @@ import 'zpl_writer.dart';
 /// By default, uses [ZplEncoding.defaultEncoding] ([ZplEncoding.utf8]), which emits
 /// `^CI28` and serializes text as UTF-8 (matching historical Portakal behavior).
 /// For legacy environments without `^CI28`, pass [ZplEncoding.legacy].
-Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
+Uint8List compileToZPLBytes(
+  ResolvedLabel label, {
+  ZplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? ZplEncoding.defaultEncoding;
   final isUtf8 = enc.type == ZplTextEncoding.utf8;
   final writer = PrinterByteWriter();
@@ -228,17 +232,7 @@ Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          ZplCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          ZplCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          ZplCommandWriter.writeRawAscii(
-            writer,
-            el.content as String,
-            appendNewline: true,
-          );
-        }
+        ZplCommandWriter.writeRawBytes(writer, el.bytes);
     }
   }
 
@@ -253,13 +247,20 @@ Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
   return writer.toBytes();
 }
 
-/// Compile a resolved label to ZPL II commands as a [String].
+/// Compile a resolved label to ZPL II commands as a [String] compatibility view.
 ///
 /// Decodes the underlying byte stream strictly: via [utf8.decode] in UTF-8 mode,
 /// and via [latin1.decode] in legacy 8-bit mode.
-String compileToZPL(ResolvedLabel label, {ZplEncoding? encoding}) {
+@Deprecated(
+  'Use compileToZPLBytes instead. compileToZPL is a string compatibility view and will be removed in 2.0.',
+)
+String compileToZPL(
+  ResolvedLabel label, {
+  ZplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? ZplEncoding.defaultEncoding;
-  final bytes = compileToZPLBytes(label, encoding: enc);
+  final bytes = compileToZPLBytes(label, encoding: enc, policy: policy);
   if (enc.type == ZplTextEncoding.utf8) {
     return utf8.decode(bytes);
   } else {

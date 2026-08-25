@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
@@ -6,33 +7,40 @@ import 'package:portakal_core/src/lang/cpcl.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
+  String compile(LabelBuilder b) => utf8.decode(cpcl.compile(b));
+
   group('CPCL compiler', () {
+    test('cpcl.compile returns byte-native Uint8List', () {
+      final bytes = cpcl.compile(label(LabelConfig(width: 40, height: 30)));
+      expect(bytes, isA<Uint8List>());
+    });
+
     test('generates session header', () {
-      final output = cpcl.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('! 0 203 203 240 1'));
     });
 
     test('generates TONE', () {
-      final output = cpcl.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30, density: 10)),
       );
       expect(output, contains('TONE'));
     });
 
     test('generates SPEED', () {
-      final output = cpcl.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30, speed: 4)),
       );
       expect(output, contains('SPEED 4'));
     });
 
     test('generates PAGE-WIDTH', () {
-      final output = cpcl.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('PAGE-WIDTH 320'));
     });
 
     test('generates TEXT with position', () {
-      final output = cpcl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).text('Hello CPCL', TextOptions(x: 10, y: 20)),
@@ -43,7 +51,7 @@ void main() {
     });
 
     test('generates TEXT90 for rotated text', () {
-      final output = cpcl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).text('Rotated', TextOptions(x: 10, y: 20, rotation: 90)),
@@ -52,7 +60,7 @@ void main() {
     });
 
     test('generates BOX', () {
-      final output = cpcl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
@@ -61,7 +69,7 @@ void main() {
     });
 
     test('generates LINE', () {
-      final output = cpcl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).line(LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)),
@@ -76,7 +84,7 @@ void main() {
         height: 2,
         bytesPerRow: 1,
       );
-      final output = cpcl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).image(bitmap, ImageOptions(x: 10, y: 10)),
@@ -85,19 +93,19 @@ void main() {
     });
 
     test('generates raw passthrough', () {
-      final output = cpcl.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30)).raw('COUNTRY USA'),
       );
       expect(output, contains('COUNTRY USA'));
     });
 
     test('generates PRINT', () {
-      final output = cpcl.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('PRINT'));
     });
 
     test('generates copies in session header', () {
-      final output = cpcl.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30, copies: 3)),
       );
       expect(output, contains('! 0 203 203 240 3'));

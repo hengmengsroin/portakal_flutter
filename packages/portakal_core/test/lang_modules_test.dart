@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:test/test.dart';
 import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/lang/tsc.dart';
@@ -11,7 +12,10 @@ void main() {
     ).text('Hello', TextOptions(x: 10, y: 10, size: 2));
 
     test('compiles to TSC', () {
-      expect(tsc.compile(b()), contains('TEXT 10,10,"2",0,2,2,"Hello"'));
+      expect(
+        utf8.decode(tsc.compile(b())),
+        contains('TEXT 10,10,"2",0,2,2,"Hello"'),
+      );
     });
 
     test('renders TSC preview with correct font size', () {
@@ -49,7 +53,7 @@ void main() {
         .box(BoxOptions(x: 10, y: 10, width: 300, height: 220, thickness: 3));
 
     test('compiles to ZPL', () {
-      final code = zpl.compile(b());
+      final code = utf8.decode(zpl.compile(b()));
       expect(code, contains('^XA'));
       expect(code, contains('^FDHello ZPL^FS'));
       expect(code, contains('^GB'));

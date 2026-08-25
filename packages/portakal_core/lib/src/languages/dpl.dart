@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../encoding.dart';
+import '../errors.dart';
 import '../types.dart';
 import 'dpl_writer.dart';
 
@@ -17,7 +18,11 @@ import 'dpl_writer.dart';
 /// If [encoding] is supplied, text fields are encoded using the configured [CodePageEncoder].
 /// If omitted, defaults to [DplEncoding.defaultEncoding] ([DplEncoding.legacy]), preserving
 /// exact historical DPL baseline output.
-Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
+Uint8List compileToDPLBytes(
+  ResolvedLabel label, {
+  DplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? DplEncoding.defaultEncoding;
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
@@ -99,7 +104,11 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
       case EllipseElement():
       case ReverseElement():
       case EraseElement():
-        // DPL universal AST does not implement graphic download commands currently
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'DPL compiler does not support ${el.runtimeType}',
+          );
+        }
         break;
 
       case BarcodeElement():
@@ -138,18 +147,7 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          DplCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          DplCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          DplCommandWriter.writeRawAscii(
-            writer,
-            el.content as String,
-            appendNewline: true,
-            terminator: term,
-          );
-        }
+        DplCommandWriter.writeRawBytes(writer, el.bytes);
     }
   }
 
@@ -158,12 +156,19 @@ Uint8List compileToDPLBytes(ResolvedLabel label, {DplEncoding? encoding}) {
   return writer.toBytes();
 }
 
-/// Compile a resolved label to DPL commands as a [String].
+/// Compile a resolved label to DPL commands as a [String] compatibility view.
 ///
 /// Decodes the underlying byte stream via [latin1.decode], providing a 1:1 lossless
 /// mapping of 8-bit byte values.
-String compileToDPL(ResolvedLabel label, {DplEncoding? encoding}) {
-  final bytes = compileToDPLBytes(label, encoding: encoding);
+@Deprecated(
+  'Use compileToDPLBytes instead. compileToDPL is a Latin-1 compatibility view and will be removed in 2.0.',
+)
+String compileToDPL(
+  ResolvedLabel label, {
+  DplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
+  final bytes = compileToDPLBytes(label, encoding: encoding, policy: policy);
   return latin1.decode(bytes);
 }
 

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../encoding.dart';
+import '../errors.dart';
 import '../types.dart';
 import 'starprnt_writer.dart';
 
@@ -11,7 +12,11 @@ import 'starprnt_writer.dart';
 /// If [encoding] is supplied, text is encoded using the configured [CodePageEncoder]
 /// and code page table selection (`ESC GS t <characterTable>`) is emitted if requested.
 /// If omitted, defaults to [StarPrntEncoding.defaultEncoding] ([StarPrntEncoding.legacy]).
-Uint8List compileToStarPRNT(ResolvedLabel label, {StarPrntEncoding? encoding}) {
+Uint8List compileToStarPRNT(
+  ResolvedLabel label, {
+  StarPrntEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? StarPrntEncoding.defaultEncoding;
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
@@ -89,13 +94,7 @@ Uint8List compileToStarPRNT(ResolvedLabel label, {StarPrntEncoding? encoding}) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          StarPrntCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          StarPrntCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          StarPrntCommandWriter.writeRawAscii(writer, el.content as String);
-        }
+        StarPrntCommandWriter.writeRawBytes(writer, el.bytes);
 
       case BarcodeElement():
         final o = el.options;
@@ -126,7 +125,17 @@ Uint8List compileToStarPRNT(ResolvedLabel label, {StarPrntEncoding? encoding}) {
           model: 2,
         );
 
-      default:
+      case BoxElement():
+      case LineElement():
+      case CircleElement():
+      case EllipseElement():
+      case ReverseElement():
+      case EraseElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'Star PRNT receipt compiler does not support geometric ${el.runtimeType}',
+          );
+        }
         break;
     }
   }
@@ -141,4 +150,5 @@ Uint8List compileToStarPRNT(ResolvedLabel label, {StarPrntEncoding? encoding}) {
 Uint8List compileToStarPRNTBytes(
   ResolvedLabel label, {
   StarPrntEncoding? encoding,
-}) => compileToStarPRNT(label, encoding: encoding);
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) => compileToStarPRNT(label, encoding: encoding, policy: policy);

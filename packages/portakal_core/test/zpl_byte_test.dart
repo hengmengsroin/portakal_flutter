@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/encoding.dart';
 import 'package:portakal_core/src/lang/zpl.dart';
+import 'package:portakal_core/src/languages/zpl.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
@@ -29,13 +30,10 @@ void main() {
             );
 
         final byteOutput = zpl.compileBytes(builder);
-        final stringOutput = zpl.compile(builder);
+        final canonicalOutput = zpl.compile(builder);
 
-        // Verify that string and byte outputs match exactly
-        expect(
-          byteOutput,
-          equals(Uint8List.fromList(utf8.encode(stringOutput))),
-        );
+        // Verify that compile and compileBytes outputs match exactly
+        expect(byteOutput, equals(canonicalOutput));
 
         // Assert historical ^CI28 presence in default output
         final text = utf8.decode(byteOutput);
@@ -84,16 +82,16 @@ void main() {
         const LabelConfig(width: 40, height: 30),
       ).text('Café €');
 
-      // Default UTF-8 string output
-      final utf8Str = zpl.compile(builder);
+      // Default UTF-8 string output via deprecated compileToZPL
+      final utf8Str = compileToZPL(builder.resolve());
       expect(utf8Str, contains('^FDCafé €^FS'));
 
       // Legacy string output
       final legacyBuilder = label(
         const LabelConfig(width: 40, height: 30),
       ).text('ASCII ONLY');
-      final legacyStr = zpl.compile(
-        legacyBuilder,
+      final legacyStr = compileToZPL(
+        legacyBuilder.resolve(),
         encoding: const ZplEncoding.legacy(),
       );
       expect(legacyStr, contains('^FDASCII ONLY^FS'));
@@ -196,6 +194,8 @@ void main() {
     });
 
     group('^FH Field Hex Escaping Edge Cases', () {
+      String compileStr(LabelBuilder b) => utf8.decode(zpl.compile(b));
+
       test(
         'Literal underscore without control chars preserves plain ^FD and literal _',
         () {
@@ -203,19 +203,19 @@ void main() {
           final b1 = label(
             const LabelConfig(width: 40, height: 30),
           ).text('ABC_41');
-          expect(zpl.compile(b1), contains('^FDABC_41^FS'));
+          expect(compileStr(b1), contains('^FDABC_41^FS'));
 
           // "ABC_" without ^ or ~
           final b2 = label(
             const LabelConfig(width: 40, height: 30),
           ).text('ABC_');
-          expect(zpl.compile(b2), contains('^FDABC_^FS'));
+          expect(compileStr(b2), contains('^FDABC_^FS'));
 
           // "___" without ^ or ~
           final b3 = label(
             const LabelConfig(width: 40, height: 30),
           ).text('___');
-          expect(zpl.compile(b3), contains('^FD___^FS'));
+          expect(compileStr(b3), contains('^FD___^FS'));
         },
       );
 
@@ -226,31 +226,31 @@ void main() {
           final b1 = label(
             const LabelConfig(width: 40, height: 30),
           ).text('ABC_41^');
-          expect(zpl.compile(b1), contains('^FH^FDABC_5F41_5E^FS'));
+          expect(compileStr(b1), contains('^FH^FDABC_5F41_5E^FS'));
 
           // "ABC_^"
           final b2 = label(
             const LabelConfig(width: 40, height: 30),
           ).text('ABC_^');
-          expect(zpl.compile(b2), contains('^FH^FDABC_5F_5E^FS'));
+          expect(compileStr(b2), contains('^FH^FDABC_5F_5E^FS'));
 
           // "___^"
           final b3 = label(
             const LabelConfig(width: 40, height: 30),
           ).text('___^');
-          expect(zpl.compile(b3), contains('^FH^FD_5F_5F_5F_5E^FS'));
+          expect(compileStr(b3), contains('^FH^FD_5F_5F_5F_5E^FS'));
 
           // Single control chars
           final b4 = label(const LabelConfig(width: 40, height: 30)).text('^');
-          expect(zpl.compile(b4), contains('^FH^FD_5E^FS'));
+          expect(compileStr(b4), contains('^FH^FD_5E^FS'));
 
           final b5 = label(const LabelConfig(width: 40, height: 30)).text('~');
-          expect(zpl.compile(b5), contains('^FH^FD_7E^FS'));
+          expect(compileStr(b5), contains('^FH^FD_7E^FS'));
 
           final b6 = label(
             const LabelConfig(width: 40, height: 30),
           ).text('_^~');
-          expect(zpl.compile(b6), contains('^FH^FD_5F_5E_7E^FS'));
+          expect(compileStr(b6), contains('^FH^FD_5F_5E_7E^FS'));
         },
       );
     });
@@ -311,8 +311,10 @@ void main() {
 
     test('Raw element passes through unescaped command strings and bytes', () {
       final builder = label(const LabelConfig(width: 40, height: 30))
-          .raw('^FX Raw ZPL Comment ~SD25')
-          .raw(Uint8List.fromList([0x5E, 0x4A, 0x55, 0x53, 0x0A])); // ^JUS\n
+          .rawAscii('^FX Raw ZPL Comment ~SD25\n')
+          .rawBytes(
+            Uint8List.fromList([0x5E, 0x4A, 0x55, 0x53, 0x0A]),
+          ); // ^JUS\n
 
       final output = zpl.compileBytes(builder);
       final text = utf8.decode(output);

@@ -10,7 +10,10 @@ import 'tsc_writer.dart';
 /// This is the canonical, byte-safe serializer that preserves raw binary payloads
 /// (e.g. [MonochromeBitmap] data in BITMAP commands) without intermediate String
 /// transformations.
-Uint8List compileToTSCBytes(ResolvedLabel label) {
+Uint8List compileToTSCBytes(
+  ResolvedLabel label, {
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final writer = PrinterByteWriter();
 
   // Label setup
@@ -185,17 +188,7 @@ Uint8List compileToTSCBytes(ResolvedLabel label) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          TscCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          TscCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          TscCommandWriter.writeRawAscii(
-            writer,
-            el.content as String,
-            appendNewline: true,
-          );
-        }
+        TscCommandWriter.writeRawBytes(writer, el.bytes);
     }
   }
 
@@ -203,11 +196,17 @@ Uint8List compileToTSCBytes(ResolvedLabel label) {
   return writer.toBytes();
 }
 
-/// Compile a resolved label to TSC/TSPL2 commands as a [String].
+/// Compile a resolved label to TSC/TSPL2 commands as a Latin-1 [String] compatibility view.
 ///
 /// Note: For binary content (e.g. BITMAP commands), prefer [compileToTSCBytes]
 /// to avoid string character encoding ambiguities during transmission.
-String compileToTSC(ResolvedLabel label) {
-  final bytes = compileToTSCBytes(label);
+@Deprecated(
+  'Use compileToTSCBytes instead. compileToTSC is a Latin-1 compatibility view and will be removed in 2.0.',
+)
+String compileToTSC(
+  ResolvedLabel label, {
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
+  final bytes = compileToTSCBytes(label, policy: policy);
   return latin1.decode(bytes);
 }

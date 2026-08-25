@@ -1,27 +1,37 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:test/test.dart';
 import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/lang/epl.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
+  String compile(LabelBuilder b) => utf8.decode(epl.compile(b));
+
   group('EPL compiler', () {
+    test('epl.compile returns byte-native Uint8List', () {
+      final bytes = epl.compile(label(LabelConfig(width: 40, height: 30)));
+      expect(bytes, isA<Uint8List>());
+    });
+
     test('generates N (clear buffer)', () {
-      final output = epl.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('N'));
     });
 
     test('generates q (width in dots)', () {
-      final output = epl.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('q320'));
     });
 
     test('generates Q (height and gap)', () {
-      final output = epl.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('Q240,24'));
     });
 
     test('generates A (text) field', () {
-      final output = epl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).text('Hello EPL', TextOptions(x: 10, y: 20, font: '3', size: 2)),
@@ -31,7 +41,7 @@ void main() {
     });
 
     test('generates X (box) field', () {
-      final output = epl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
@@ -40,7 +50,7 @@ void main() {
     });
 
     test('generates LO (line) field', () {
-      final output = epl.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).line(LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)),
@@ -49,7 +59,7 @@ void main() {
     });
 
     test('generates P (copies)', () {
-      final output = epl.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30, copies: 3)),
       );
       expect(output, contains('P3'));

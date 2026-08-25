@@ -5,6 +5,7 @@ import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/encoding.dart';
 import 'package:portakal_core/src/errors.dart';
 import 'package:portakal_core/src/lang/sbpl.dart';
+import 'package:portakal_core/src/languages/sbpl.dart';
 import 'package:portakal_core/src/types.dart';
 import 'package:test/test.dart';
 
@@ -42,13 +43,10 @@ void main() {
               );
 
       final byteOutput = sbpl.compileBytes(builder);
-      final stringOutput = sbpl.compile(builder);
+      final canonicalOutput = sbpl.compile(builder);
 
-      // Verify exact byte equivalence with latin1 string output
-      expect(
-        byteOutput,
-        equals(Uint8List.fromList(latin1.encode(stringOutput))),
-      );
+      // Verify exact byte equivalence between compile and compileBytes
+      expect(byteOutput, equals(canonicalOutput));
     });
 
     test(
@@ -272,12 +270,12 @@ void main() {
       expect(text, contains('\x1bKC2'));
     });
 
-    test('String wrapper decodes 1:1 via latin1', () {
+    test('String wrapper compileToSBPL decodes 1:1 via latin1', () {
       final builder = label(
         const LabelConfig(width: 40, height: 30),
       ).text('Café', const TextOptions(x: 10, y: 20));
 
-      final stringOutput = sbpl.compile(builder);
+      final stringOutput = compileToSBPL(builder.resolve());
       expect(stringOutput, isA<String>());
       expect(
         stringOutput.codeUnits.contains(0x82),

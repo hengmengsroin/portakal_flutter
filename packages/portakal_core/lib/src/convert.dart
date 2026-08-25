@@ -104,26 +104,30 @@ _parseSource(String code, String from) {
 }
 
 /// Compile elements to target language.
-Object _compileTarget(ResolvedLabel resolved, String to) {
+Object _compileTarget(
+  ResolvedLabel resolved,
+  String to, {
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.ignore,
+}) {
   switch (to) {
     case 'tsc':
-      return compileToTSC(resolved);
+      return compileToTSC(resolved, policy: policy);
     case 'zpl':
-      return compileToZPL(resolved);
+      return compileToZPL(resolved, policy: policy);
     case 'epl':
-      return compileToEPL(resolved);
+      return compileToEPL(resolved, policy: policy);
     case 'escpos':
-      return compileToESCPOS(resolved);
+      return compileToESCPOS(resolved, policy: policy);
     case 'cpcl':
-      return compileToCPCL(resolved);
+      return compileToCPCL(resolved, policy: policy);
     case 'dpl':
-      return compileToDPL(resolved);
+      return compileToDPL(resolved, policy: policy);
     case 'sbpl':
-      return compileToSBPL(resolved);
+      return compileToSBPL(resolved, policy: policy);
     case 'starprnt':
-      return compileToStarPRNT(resolved);
+      return compileToStarPRNT(resolved, policy: policy);
     case 'ipl':
-      return compileToIPL(resolved);
+      return compileToIPL(resolved, policy: policy);
     default:
       throw ArgumentError('Unsupported target language: $to');
   }
@@ -138,6 +142,7 @@ ConvertResult convert(
   int? speed,
   int? density,
   int? copies,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.ignore,
 }) {
   final parsed = _parseSource(code, from);
 
@@ -155,7 +160,7 @@ ConvertResult convert(
     elements: parsed.elements,
   );
 
-  final output = _compileTarget(resolved, to);
+  final output = _compileTarget(resolved, to, policy: policy);
 
   return ConvertResult(
     output: output,

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'errors.dart';
+
 /// Standard 8-bit printer code page character sets.
 enum PrinterCodePage {
   /// IBM PC / US (Default on many Epson & thermal POS printers).
@@ -23,21 +25,21 @@ enum PrinterCodePage {
 }
 
 /// Exception thrown when a character cannot be represented in the chosen code page.
-class UnsupportedCharacterException implements Exception {
+class UnsupportedCharacterException extends EncodingError {
   final String character;
   final int codePoint;
   final PrinterCodePage codePage;
-  final String message;
 
   UnsupportedCharacterException({
     required this.character,
     required this.codePoint,
     required this.codePage,
     String? message,
-  }) : message =
-           message ??
-           'Character "$character" (U+${codePoint.toRadixString(16).padLeft(4, '0').toUpperCase()}) '
-               'cannot be encoded in code page ${codePage.name}.';
+  }) : super(
+         message ??
+             'Character "$character" (U+${codePoint.toRadixString(16).padLeft(4, '0').toUpperCase()}) '
+                 'cannot be encoded in code page ${codePage.name}.',
+       );
 
   @override
   String toString() => 'UnsupportedCharacterException: $message';
@@ -1006,6 +1008,9 @@ CodePageEncoder getEncoder(PrinterCodePage codePage) {
 // -----------------------------------------------------------------------------
 
 /// A segment of encoded text with its code page.
+@Deprecated(
+  'Use explicit *Encoding classes or CodePageEncoder instead. Will be removed in 2.0.',
+)
 class EncodedSegment {
   final int codePage; // -1 = ASCII (no switch needed)
   final Uint8List data;
@@ -1014,6 +1019,9 @@ class EncodedSegment {
 }
 
 /// Code page definition.
+@Deprecated(
+  'Use PrinterCodePage and CodePageEncoder instead. Will be removed in 2.0.',
+)
 class CodePage {
   final int escPosId;
   final Map<int, int> charMap;
@@ -1030,6 +1038,9 @@ final List<CodePage> _legacyCodePages = [
 ];
 
 /// Check if a string contains only ASCII printable characters + newlines.
+@Deprecated(
+  'Use CodePageEncoder.canEncode or standard string inspection instead. Will be removed in 2.0.',
+)
 bool isASCII(String text) {
   for (final rune in text.runes) {
     if (rune == 0x0A || rune == 0x0D || rune == 0x09) continue;
@@ -1047,6 +1058,9 @@ bool isASCII(String text) {
 }
 
 /// Encode text into segments with code page information.
+@Deprecated(
+  'Use explicit *Encoding classes or CodePageEncoder instead. Will be removed in 2.0.',
+)
 List<EncodedSegment> encodeText(String text) {
   if (text.isEmpty) return [];
 
@@ -1097,6 +1111,9 @@ List<EncodedSegment> encodeText(String text) {
 }
 
 /// Encode text for printer with ESC t code page switch commands.
+@Deprecated(
+  'Use EscPosPrinter.text or compileToESCPOS instead. Will be removed in 2.0.',
+)
 Uint8List encodeTextForPrinter(String text) {
   final segments = encodeText(text);
   final bytes = <int>[];

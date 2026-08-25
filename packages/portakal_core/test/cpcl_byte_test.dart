@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/encoding.dart';
 import 'package:portakal_core/src/lang/cpcl.dart';
+import 'package:portakal_core/src/languages/cpcl.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
@@ -47,13 +48,10 @@ void main() {
                 );
 
         final byteOutput = cpcl.compileBytes(builder);
-        final stringOutput = cpcl.compile(builder);
+        final canonicalOutput = cpcl.compile(builder);
 
-        // Verify exact byte equivalence with legacy string output
-        expect(
-          byteOutput,
-          equals(Uint8List.fromList(ascii.encode(stringOutput))),
-        );
+        // Verify exact byte equivalence between compile and compileBytes
+        expect(byteOutput, equals(canonicalOutput));
       },
     );
 
@@ -254,8 +252,8 @@ void main() {
 
     test('Raw element passes through unescaped command strings and bytes', () {
       final builder = label(const LabelConfig(width: 40, height: 30))
-          .raw('JOURNAL')
-          .raw(
+          .rawAscii('JOURNAL\r\n')
+          .rawBytes(
             Uint8List.fromList([
               0x53,
               0x54,
@@ -275,12 +273,12 @@ void main() {
       expect(text, contains('STATUS\r\n'));
     });
 
-    test('String wrapper decodes 1:1 via latin1', () {
+    test('String wrapper compileToCPCL decodes 1:1 via latin1', () {
       final builder = label(
         const LabelConfig(width: 40, height: 30),
       ).text('Café', const TextOptions(x: 10, y: 20));
 
-      final stringOutput = cpcl.compile(builder);
+      final stringOutput = compileToCPCL(builder.resolve());
       expect(stringOutput, isA<String>());
       expect(
         stringOutput.codeUnits.contains(0x82),

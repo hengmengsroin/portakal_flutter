@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'package:portakal_flutter/portakal_flutter.dart';
 
 void main() {
@@ -19,12 +20,15 @@ void main() {
           .line(LineOptions(x1: 16, y1: 60, x2: 280, y2: 60, thickness: 2))
           .box(BoxOptions(x: 12, y: 12, width: 296, height: 200, thickness: 2));
 
-  final tscCode = tsc.compile(labelBuilder);
-  final zplCode = zpl.compile(labelBuilder);
+  final tscBytes = tsc.compile(labelBuilder);
+  final zplBytes = zpl.compile(labelBuilder);
 
-  final converted = convert(tscCode, 'tsc', 'zpl');
-  final parsed = zpl.parse(zplCode);
-  final validation = zpl.validate(zplCode);
+  final tscText = utf8.decode(tscBytes);
+  final zplText = utf8.decode(zplBytes);
+
+  final converted = convert(tscText, 'tsc', 'zpl');
+  final parsed = zpl.parse(zplText);
+  final validation = zpl.validate(zplText);
   final svg = zpl.preview(labelBuilder);
   final convertedLength = switch (converted.output) {
     String value => value.length,
@@ -33,8 +37,8 @@ void main() {
   };
 
   print('=== Portakal Flutter Example ===');
-  print('TSC output length: ${tscCode.length}');
-  print('ZPL output length: ${zplCode.length}');
+  print('TSC byte output length: ${tscBytes.length}');
+  print('ZPL byte output length: ${zplBytes.length}');
   print('Converted TSC -> ZPL length: $convertedLength');
   print('Parsed ZPL commands: ${parsed.commands.length}');
   print('Validation valid: ${validation.valid}');

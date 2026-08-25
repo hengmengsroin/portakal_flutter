@@ -12,7 +12,11 @@ import 'cpcl_writer.dart';
 /// and `COUNTRY <name>\r\n` is emitted if requested.
 /// If omitted, defaults to [CpclEncoding.defaultEncoding] ([CpclEncoding.legacy]), preserving
 /// exact historical CPCL baseline output.
-Uint8List compileToCPCLBytes(ResolvedLabel label, {CpclEncoding? encoding}) {
+Uint8List compileToCPCLBytes(
+  ResolvedLabel label, {
+  CpclEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? CpclEncoding.defaultEncoding;
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
@@ -145,17 +149,7 @@ Uint8List compileToCPCLBytes(ResolvedLabel label, {CpclEncoding? encoding}) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          CpclCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          CpclCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          CpclCommandWriter.writeRawAscii(
-            writer,
-            el.content as String,
-            appendNewline: true,
-          );
-        }
+        CpclCommandWriter.writeRawBytes(writer, el.bytes);
     }
   }
 
@@ -163,11 +157,18 @@ Uint8List compileToCPCLBytes(ResolvedLabel label, {CpclEncoding? encoding}) {
   return writer.toBytes();
 }
 
-/// Compile a resolved label to CPCL commands as a [String].
+/// Compile a resolved label to CPCL commands as a [String] compatibility view.
 ///
 /// Decodes the underlying byte stream via [latin1.decode], providing a 1:1 lossless
 /// mapping of 8-bit byte values.
-String compileToCPCL(ResolvedLabel label, {CpclEncoding? encoding}) {
-  final bytes = compileToCPCLBytes(label, encoding: encoding);
+@Deprecated(
+  'Use compileToCPCLBytes instead. compileToCPCL is a Latin-1 compatibility view and will be removed in 2.0.',
+)
+String compileToCPCL(
+  ResolvedLabel label, {
+  CpclEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
+  final bytes = compileToCPCLBytes(label, encoding: encoding, policy: policy);
   return latin1.decode(bytes);
 }

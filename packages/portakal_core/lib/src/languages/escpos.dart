@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../encoding.dart';
+import '../errors.dart';
 import '../types.dart';
 import 'escpos_writer.dart';
 
@@ -11,7 +12,11 @@ import 'escpos_writer.dart';
 /// If [encoding] is provided, text is encoded using the configured [CodePageEncoder]
 /// and table selection commands (`ESC t <tableId>`) are emitted accordingly.
 /// If omitted, defaults to standard CP437 without emitting redundant table switches.
-Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
+Uint8List compileToESCPOS(
+  ResolvedLabel label, {
+  EscPosEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? const EscPosEncoding.cp437(sendTableSelect: false);
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
@@ -85,18 +90,7 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          EscPosCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          EscPosCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          writer.writeBytes(
-            encoder.encode(
-              el.content as String,
-              replaceUnsupported: enc.replaceUnsupported,
-            ),
-          );
-        }
+        EscPosCommandWriter.writeRawBytes(writer, el.bytes);
 
       case BarcodeElement():
         final o = el.options;
@@ -134,8 +128,17 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
           content: contentBytes,
         );
 
-      default:
-        // ESC/POS doesn't support box, line, circle natively in text mode
+      case BoxElement():
+      case LineElement():
+      case CircleElement():
+      case EllipseElement():
+      case ReverseElement():
+      case EraseElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'ESC/POS receipt compiler does not support geometric ${el.runtimeType}',
+          );
+        }
         break;
     }
   }
@@ -150,4 +153,5 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
 Uint8List compileToESCPOSBytes(
   ResolvedLabel label, {
   EscPosEncoding? encoding,
-}) => compileToESCPOS(label, encoding: encoding);
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) => compileToESCPOS(label, encoding: encoding, policy: policy);

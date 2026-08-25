@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:portakal_core/src/builder.dart';
@@ -7,24 +8,31 @@ import 'package:portakal_core/src/types.dart';
 import 'package:test/test.dart';
 
 void main() {
+  String compile(LabelBuilder b) => latin1.decode(sbpl.compile(b));
+
   group('SBPL compiler', () {
-    test('generates ESC A start and ESC Z end', () {
-      final output = sbpl.compile(
+    test('sbpl.compile returns byte-native Uint8List', () {
+      final bytes = sbpl.compile(
         label(const LabelConfig(width: 40, height: 30)),
       );
+      expect(bytes, isA<Uint8List>());
+    });
+
+    test('generates ESC A start and ESC Z end', () {
+      final output = compile(label(const LabelConfig(width: 40, height: 30)));
       expect(output, contains('\x1bA'));
       expect(output, contains('\x1bZ'));
     });
 
     test('generates ESC CS (print speed) when speed > 0', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(const LabelConfig(width: 40, height: 30, speed: 4)),
       );
       expect(output, contains('\x1bCS4'));
     });
 
     test('generates text with position and font', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(
           const LabelConfig(width: 40, height: 30),
         ).text('Hello SATO', const TextOptions(x: 100, y: 50, size: 2)),
@@ -36,7 +44,7 @@ void main() {
     });
 
     test('generates rotated text', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(
           const LabelConfig(width: 40, height: 30),
         ).text('Rotated', const TextOptions(x: 10, y: 20, rotation: 90)),
@@ -45,7 +53,7 @@ void main() {
     });
 
     test('generates box with FW command', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(const LabelConfig(width: 40, height: 30)).box(
           const BoxOptions(x: 10, y: 20, width: 200, height: 100, thickness: 2),
         ),
@@ -56,7 +64,7 @@ void main() {
     });
 
     test('generates horizontal line', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(const LabelConfig(width: 40, height: 30)).line(
           const LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2),
         ),
@@ -65,7 +73,7 @@ void main() {
     });
 
     test('generates vertical line', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(const LabelConfig(width: 40, height: 30)).line(
           const LineOptions(x1: 50, y1: 10, x2: 50, y2: 200, thickness: 1),
         ),
@@ -91,21 +99,21 @@ void main() {
     });
 
     test('generates copies with ESC Q', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(const LabelConfig(width: 40, height: 30, copies: 3)),
       );
       expect(output, contains('\x1bQ3'));
     });
 
     test('omits ESC Q for single copy', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(const LabelConfig(width: 40, height: 30, copies: 1)),
       );
       expect(output, isNot(contains('\x1bQ')));
     });
 
     test('handles raw passthrough', () {
-      final output = sbpl.compile(
+      final output = compile(
         label(const LabelConfig(width: 40, height: 30)).raw('\x1bKC1'),
       );
       expect(output, contains('\x1bKC1'));

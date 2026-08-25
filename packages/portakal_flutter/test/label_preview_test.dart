@@ -95,7 +95,7 @@ void main() {
               'https://example.com',
               const QRCodeOptions(x: 250, y: 250, cellWidth: 4),
             )
-            .raw('RAW_PASSTHROUGH');
+            .rawAscii('RAW_PASSTHROUGH');
 
         await tester.pumpWidget(
           MaterialApp(

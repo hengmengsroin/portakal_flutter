@@ -5,36 +5,43 @@ import 'package:test/test.dart';
 import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/encoding.dart';
 import 'package:portakal_core/src/lang/epl.dart';
+import 'package:portakal_core/src/languages/epl.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
   group('EPL Byte-Native Compiler', () {
-    test('ASCII output is byte-for-byte identical to legacy string baseline', () {
-      final builder = label(const LabelConfig(width: 40, height: 30))
-          .text(
-            'Hello EPL',
-            const TextOptions(x: 10, y: 20, font: '3', size: 2),
-          )
-          .box(
-            const BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2),
-          )
-          .line(
-            const LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2),
-          )
-          .barcode(
-            '123456',
-            const BarcodeOptions(x: 10, y: 100, type: '128', height: 40),
-          );
+    test(
+      'ASCII output is byte-for-byte identical to legacy string baseline',
+      () {
+        final builder = label(const LabelConfig(width: 40, height: 30))
+            .text(
+              'Hello EPL',
+              const TextOptions(x: 10, y: 20, font: '3', size: 2),
+            )
+            .box(
+              const BoxOptions(
+                x: 5,
+                y: 5,
+                width: 310,
+                height: 230,
+                thickness: 2,
+              ),
+            )
+            .line(
+              const LineOptions(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2),
+            )
+            .barcode(
+              '123456',
+              const BarcodeOptions(x: 10, y: 100, type: '128', height: 40),
+            );
 
-      final byteOutput = epl.compileBytes(builder);
-      final stringOutput = epl.compile(builder);
+        final byteOutput = epl.compileBytes(builder);
+        final canonicalOutput = epl.compile(builder);
 
-      // Verify that byte output is identical to ascii.encode of the string output
-      expect(
-        byteOutput,
-        equals(Uint8List.fromList(ascii.encode(stringOutput))),
-      );
-    });
+        // Verify that compile and compileBytes outputs match exactly
+        expect(byteOutput, equals(canonicalOutput));
+      },
+    );
 
     test('Session framing generates exact N, q, Q, S, D, P commands', () {
       final builder = label(
@@ -234,9 +241,9 @@ void main() {
     });
 
     test('Raw element passes through unescaped command strings and bytes', () {
-      final builder = label(
-        const LabelConfig(width: 40, height: 30),
-      ).raw('OD').raw(Uint8List.fromList([0x55, 0x54, 0x0A])); // UT\n
+      final builder = label(const LabelConfig(width: 40, height: 30))
+          .rawAscii('OD\n')
+          .rawBytes(Uint8List.fromList([0x55, 0x54, 0x0A])); // UT\n
 
       final output = epl.compileBytes(builder);
       final text = ascii.decode(output);
@@ -245,12 +252,12 @@ void main() {
       expect(text, contains('UT\n'));
     });
 
-    test('String wrapper decodes 1:1 via latin1', () {
+    test('String wrapper compileToEPL decodes 1:1 via latin1', () {
       final builder = label(
         const LabelConfig(width: 40, height: 30),
       ).text('Café', const TextOptions(x: 10, y: 10));
 
-      final stringOutput = epl.compile(builder);
+      final stringOutput = compileToEPL(builder.resolve());
       expect(stringOutput, isA<String>());
       expect(
         stringOutput.codeUnits.contains(0x82),

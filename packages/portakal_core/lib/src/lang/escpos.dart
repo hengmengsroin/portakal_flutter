@@ -5,19 +5,25 @@ import '../encoding.dart';
 import '../languages/escpos.dart';
 import '../parsers/escpos.dart';
 import '../preview.dart';
+import '../types.dart';
 import '../validate.dart' as v;
 
 /// ESC/POS language module.
 class EscposLang {
   /// Compile a [LabelBuilder] to ESC/POS binary commands as [Uint8List].
-  Uint8List compile(LabelBuilder builder, {EscPosEncoding? encoding}) =>
-      compileToESCPOS(builder.resolve(), encoding: encoding);
+  Uint8List compile(
+    LabelBuilder builder, {
+    EscPosEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) => compileToESCPOS(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to ESC/POS binary commands as [Uint8List].
-  ///
-  /// Convenience alias for [compile] providing naming consistency across protocols.
-  Uint8List compileBytes(LabelBuilder builder, {EscPosEncoding? encoding}) =>
-      compileToESCPOSBytes(builder.resolve(), encoding: encoding);
+  @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
+  Uint8List compileBytes(
+    LabelBuilder builder, {
+    EscPosEncoding? encoding,
+    UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+  }) => compile(builder, encoding: encoding, policy: policy);
 
   ESCPOSParseResult parse(Uint8List data) => parseESCPOS(data);
 

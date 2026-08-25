@@ -5,7 +5,7 @@
 library;
 
 // Re-export complete pure Dart engine
-export 'package:portakal_core/portakal_core.dart';
+export 'package:portakal_core/portakal_core.dart' hide Column;
 
 // Flutter-specific widgets
 export 'src/widgets/label_preview.dart';

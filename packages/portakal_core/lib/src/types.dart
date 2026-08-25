@@ -1,4 +1,16 @@
+import 'dart:convert';
 import 'dart:typed_data';
+
+import 'encoding.dart';
+
+/// Policy for handling unsupported elements or features in target compiler.
+enum UnsupportedFeaturePolicy {
+  /// Throws [UnsupportedFeatureError] when an unsupported element is encountered.
+  throwError,
+
+  /// Silently omits or skips the unsupported element.
+  ignore,
+}
 
 /// Unit of measurement for label dimensions.
 enum Unit {
@@ -412,11 +424,60 @@ class EraseElement extends LabelElement {
   String get type => 'erase';
 }
 
-/// Raw command element (passed through to printer).
+/// Raw command element (passed through to printer as canonical byte sequence).
 class RawElement extends LabelElement {
-  final Object content;
+  final Uint8List bytes;
 
-  const RawElement({required this.content});
+  /// Creates a raw element from binary bytes, defensively copying the data.
+  RawElement.bytes(Uint8List rawBytes) : bytes = Uint8List.fromList(rawBytes);
+
+  /// Creates a raw element from a byte list, defensively copying the data.
+  RawElement.fromList(List<int> rawList) : bytes = Uint8List.fromList(rawList);
+
+  /// Creates a raw element from ASCII text.
+  ///
+  /// Throws [UnsupportedCharacterException] if any character is outside the standard 7-bit ASCII range (0x00-0x7F).
+  RawElement.ascii(String text) : bytes = _validateAndEncodeAscii(text);
+
+  /// Legacy constructor accepting Object (String, Uint8List, `List<int>`).
+  @Deprecated(
+    'Use RawElement.bytes or RawElement.ascii instead. Will be removed in 2.0.',
+  )
+  RawElement({required Object content})
+    : bytes = _convertLegacyContent(content);
+
+  static Uint8List _validateAndEncodeAscii(String text) {
+    final list = <int>[];
+    for (final rune in text.runes) {
+      if (rune > 0x7F) {
+        throw UnsupportedCharacterException(
+          character: String.fromCharCode(rune),
+          codePoint: rune,
+          codePage: PrinterCodePage.cp437,
+          message:
+              'Non-ASCII character "$text" contains U+${rune.toRadixString(16).padLeft(4, '0').toUpperCase()} which cannot be encoded in ASCII raw command.',
+        );
+      }
+      list.add(rune);
+    }
+    return Uint8List.fromList(list);
+  }
+
+  static Uint8List _convertLegacyContent(Object content) {
+    if (content is Uint8List) {
+      return Uint8List.fromList(content);
+    } else if (content is List<int>) {
+      return Uint8List.fromList(content);
+    } else if (content is String) {
+      return Uint8List.fromList(latin1.encode(content));
+    } else {
+      return Uint8List.fromList(latin1.encode(content.toString()));
+    }
+  }
+
+  /// Legacy content getter for backward compatibility.
+  @Deprecated('Use bytes instead. Will be removed in 2.0.')
+  Object get content => bytes;
 
   @override
   String get type => 'raw';

@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:portakal_core/src/builder.dart';
 import 'package:portakal_core/src/encoding.dart';
 import 'package:portakal_core/src/lang/dpl.dart';
+import 'package:portakal_core/src/languages/dpl.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
@@ -47,13 +48,10 @@ void main() {
                 );
 
         final byteOutput = dpl.compileBytes(builder);
-        final stringOutput = dpl.compile(builder);
+        final canonicalOutput = dpl.compile(builder);
 
-        // Verify exact byte equivalence with legacy string output
-        expect(
-          byteOutput,
-          equals(Uint8List.fromList(ascii.encode(stringOutput))),
-        );
+        // Verify exact byte equivalence between compile and compileBytes
+        expect(byteOutput, equals(canonicalOutput));
       },
     );
 
@@ -202,8 +200,8 @@ void main() {
 
     test('Raw element passes through unescaped command strings and bytes', () {
       final builder = label(const LabelConfig(width: 40, height: 30))
-          .raw('CUSTOM_DPL_RAW')
-          .raw(Uint8List.fromList([0x01, 0x41, 0x0A])); // SOH A \n
+          .rawAscii('CUSTOM_DPL_RAW\n')
+          .rawBytes(Uint8List.fromList([0x01, 0x41, 0x0A])); // SOH A \n
 
       final output = dpl.compileBytes(builder);
       final text = latin1.decode(output);
@@ -212,12 +210,12 @@ void main() {
       expect(text, contains('\x01A\n'));
     });
 
-    test('String wrapper decodes 1:1 via latin1', () {
+    test('String wrapper compileToDPL decodes 1:1 via latin1', () {
       final builder = label(
         const LabelConfig(width: 40, height: 30),
       ).text('Café', const TextOptions(x: 10, y: 20));
 
-      final stringOutput = dpl.compile(builder);
+      final stringOutput = compileToDPL(builder.resolve());
       expect(stringOutput, isA<String>());
       expect(
         stringOutput.codeUnits.contains(0x82),

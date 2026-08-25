@@ -3,24 +3,21 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../encoding.dart';
+import '../errors.dart';
 import '../types.dart';
 import 'ipl_writer.dart';
 
 /// Compile a resolved label to IPL commands as a byte sequence ([Uint8List]).
 ///
-/// Uses actual control bytes (`STX` = 0x02, `ETX` = 0x03, `ESC` = 0x1B, `SI` = 0x0F).
-///
-/// NOTE: The universal IPL compiler preserves the historical/direct Portakal compatibility
-/// output path (`<STX><ESC>C1<ETX>`, `<STX><ESC>P<ETX>`, configs/fields, `<STX><ESC>E1<ETX>`, `<STX>R<ETX>`).
-/// The protocol-native builder [IplPrinter] provides the authentic Honeywell IPL
-/// Program Mode / Format Editing (`E<n>`, `F<n>`), Format Selection (`<ESC>E<n>`), and Print Execution (`<ETB>`) operations.
+/// Uses actual control bytes (`STX` = 0x02, `ETX` = 0x03, `ESC` = 0x1B).
 ///
 /// If [encoding] is supplied, text fields are encoded using the configured [CodePageEncoder].
-/// Control characters (`STX`, `ETX`, `ESC`, `SI`) inside text fields are explicitly rejected with
-/// [UnsupportedCharacterException] (or replaced with `?` if `replaceUnsupported: true`) to prevent
-/// framing corruption.
 /// If omitted, defaults to [IplEncoding.defaultEncoding] ([IplEncoding.legacy]).
-Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
+Uint8List compileToIPLBytes(
+  ResolvedLabel label, {
+  IplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? IplEncoding.defaultEncoding;
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
@@ -116,7 +113,11 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
       case ImageElement():
       case ReverseElement():
       case EraseElement():
-        // Universal AST does not implement graphic download commands for IPL currently
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'IPL compiler does not support ${el.runtimeType}',
+          );
+        }
         break;
 
       case BarcodeElement():
@@ -142,13 +143,7 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          IplCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          IplCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          IplCommandWriter.writeRawAscii(writer, el.content as String);
-        }
+        IplCommandWriter.writeRawBytes(writer, el.bytes);
     }
   }
 
@@ -165,12 +160,19 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
   return writer.toBytes();
 }
 
-/// Compile a resolved label to IPL commands as a [String].
+/// Compile a resolved label to IPL commands as a [String] compatibility view.
 ///
 /// Decodes the underlying byte stream via [latin1.decode], providing a 1:1 lossless
 /// mapping of 8-bit byte values.
-String compileToIPL(ResolvedLabel label, {IplEncoding? encoding}) {
-  final bytes = compileToIPLBytes(label, encoding: encoding);
+@Deprecated(
+  'Use compileToIPLBytes instead. compileToIPL is a Latin-1 compatibility view and will be removed in 2.0.',
+)
+String compileToIPL(
+  ResolvedLabel label, {
+  IplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
+  final bytes = compileToIPLBytes(label, encoding: encoding, policy: policy);
   return latin1.decode(bytes);
 }
 

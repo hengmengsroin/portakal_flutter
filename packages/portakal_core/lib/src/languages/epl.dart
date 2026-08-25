@@ -12,7 +12,11 @@ import 'epl_writer.dart';
 /// and character set selection commands (`I8,<countryCode>,001`) are emitted if requested.
 /// If omitted, defaults to [EplEncoding.defaultEncoding] ([EplEncoding.legacy]), preserving
 /// exact historical EPL baseline behavior.
-Uint8List compileToEPLBytes(ResolvedLabel label, {EplEncoding? encoding}) {
+Uint8List compileToEPLBytes(
+  ResolvedLabel label, {
+  EplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? EplEncoding.defaultEncoding;
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
@@ -172,17 +176,7 @@ Uint8List compileToEPLBytes(ResolvedLabel label, {EplEncoding? encoding}) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          EplCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          EplCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          EplCommandWriter.writeRawAscii(
-            writer,
-            el.content as String,
-            appendNewline: true,
-          );
-        }
+        EplCommandWriter.writeRawBytes(writer, el.bytes);
     }
   }
 
@@ -190,12 +184,19 @@ Uint8List compileToEPLBytes(ResolvedLabel label, {EplEncoding? encoding}) {
   return writer.toBytes();
 }
 
-/// Compile a resolved label to EPL2 commands as a [String].
+/// Compile a resolved label to EPL2 commands as a [String] compatibility view.
 ///
 /// Decodes the underlying byte stream via [latin1.decode], providing a 1:1 lossless
 /// mapping of 8-bit byte values.
-String compileToEPL(ResolvedLabel label, {EplEncoding? encoding}) {
-  final bytes = compileToEPLBytes(label, encoding: encoding);
+@Deprecated(
+  'Use compileToEPLBytes instead. compileToEPL is a Latin-1 compatibility view and will be removed in 2.0.',
+)
+String compileToEPL(
+  ResolvedLabel label, {
+  EplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
+  final bytes = compileToEPLBytes(label, encoding: encoding, policy: policy);
   return latin1.decode(bytes);
 }
 

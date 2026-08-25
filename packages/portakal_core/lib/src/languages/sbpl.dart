@@ -14,7 +14,11 @@ import 'sbpl_writer.dart';
 /// Control character `ESC` (0x1B) inside text fields is rejected with [UnsupportedCharacterException]
 /// (or replaced with `?` if `replaceUnsupported: true`) to prevent command injection / framing breaks.
 /// If omitted, defaults to [SbplEncoding.defaultEncoding] ([SbplEncoding.legacy]).
-Uint8List compileToSBPLBytes(ResolvedLabel label, {SbplEncoding? encoding}) {
+Uint8List compileToSBPLBytes(
+  ResolvedLabel label, {
+  SbplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
   final enc = encoding ?? SbplEncoding.defaultEncoding;
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
@@ -71,14 +75,15 @@ Uint8List compileToSBPLBytes(ResolvedLabel label, {SbplEncoding? encoding}) {
         );
 
       case ImageElement():
-        throw UnsupportedFeatureError(
-          'SBPL generic raster graphics (ImageElement) are currently unsupported in SBPL compiler.',
-        );
-
       case CircleElement():
       case EllipseElement():
       case ReverseElement():
       case EraseElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'SBPL compiler does not support ${el.runtimeType}',
+          );
+        }
         break;
 
       case BarcodeElement():
@@ -107,13 +112,7 @@ Uint8List compileToSBPLBytes(ResolvedLabel label, {SbplEncoding? encoding}) {
         );
 
       case RawElement():
-        if (el.content is Uint8List) {
-          SbplCommandWriter.writeRawBytes(writer, el.content as Uint8List);
-        } else if (el.content is List<int>) {
-          SbplCommandWriter.writeRawBytes(writer, el.content as List<int>);
-        } else if (el.content is String) {
-          SbplCommandWriter.writeRawAscii(writer, el.content as String);
-        }
+        SbplCommandWriter.writeRawBytes(writer, el.bytes);
     }
   }
 
@@ -127,12 +126,19 @@ Uint8List compileToSBPLBytes(ResolvedLabel label, {SbplEncoding? encoding}) {
   return writer.toBytes();
 }
 
-/// Compile a resolved label to SBPL commands as a [String].
+/// Compile a resolved label to SBPL commands as a [String] compatibility view.
 ///
 /// Decodes the underlying byte stream via [latin1.decode], providing a 1:1 lossless
 /// mapping of 8-bit byte values.
-String compileToSBPL(ResolvedLabel label, {SbplEncoding? encoding}) {
-  final bytes = compileToSBPLBytes(label, encoding: encoding);
+@Deprecated(
+  'Use compileToSBPLBytes instead. compileToSBPL is a Latin-1 compatibility view and will be removed in 2.0.',
+)
+String compileToSBPL(
+  ResolvedLabel label, {
+  SbplEncoding? encoding,
+  UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
+}) {
+  final bytes = compileToSBPLBytes(label, encoding: encoding, policy: policy);
   return latin1.decode(bytes);
 }
 

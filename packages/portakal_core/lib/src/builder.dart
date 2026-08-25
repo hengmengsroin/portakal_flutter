@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'types.dart';
 import 'errors.dart';
 import 'utils.dart';
@@ -18,10 +20,16 @@ LabelBuilder label(LabelConfig config) {
 class LabelBuilder {
   final LabelConfig _config;
   final List<LabelElement> _elements = [];
+  int? _copies;
 
   LabelBuilder(this._config) {
     if (_config.width <= 0) {
       throw InvalidConfigError('width must be greater than 0');
+    }
+    if (_config.copies != null && _config.copies! < 1) {
+      throw InvalidConfigError(
+        'copies must be at least 1, got ${_config.copies}',
+      );
     }
   }
 
@@ -89,15 +97,35 @@ class LabelBuilder {
     return this;
   }
 
+  /// Add raw binary bytes passthrough, defensively copying the data.
+  LabelBuilder rawBytes(Uint8List bytes) {
+    _elements.add(RawElement.bytes(bytes));
+    return this;
+  }
+
+  /// Add raw ASCII command passthrough.
+  ///
+  /// Throws [UnsupportedCharacterException] if [ascii] contains non-ASCII characters.
+  LabelBuilder rawAscii(String ascii) {
+    _elements.add(RawElement.ascii(ascii));
+    return this;
+  }
+
   /// Add a raw command passthrough.
+  @Deprecated('Use rawBytes() or rawAscii() instead. Will be removed in 2.0.')
   LabelBuilder raw(Object content) {
     _elements.add(RawElement(content: content));
     return this;
   }
 
-  /// Add multiple copies.
-  LabelBuilder print(int copies) {
-    // Sets copies in config — handled at resolve time via config
+  /// Set number of copies to print.
+  ///
+  /// Eagerly validates that [copies] is $\ge 1$.
+  LabelBuilder print([int copies = 1]) {
+    if (copies < 1) {
+      throw InvalidConfigError('copies must be at least 1, got $copies');
+    }
+    _copies = copies;
     return this;
   }
 
@@ -122,6 +150,13 @@ class LabelBuilder {
         ? toDots(_config.height!, unit, dpi)
         : 0;
 
+    final effectiveCopies = _copies ?? _config.copies ?? 1;
+    if (effectiveCopies < 1) {
+      throw InvalidConfigError(
+        'copies must be at least 1, got $effectiveCopies',
+      );
+    }
+
     return ResolvedLabel(
       widthDots: widthDots,
       heightDots: heightDots,
@@ -129,7 +164,7 @@ class LabelBuilder {
       speed: _config.speed ?? 4,
       density: _config.density ?? 8,
       direction: _config.direction ?? 0,
-      copies: _config.copies ?? 1,
+      copies: effectiveCopies,
       gap: _config.gap ?? 3,
       gapOffset: _config.gapOffset ?? 0,
       unit: unit,

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
@@ -6,19 +7,26 @@ import 'package:portakal_core/src/lang/tsc.dart';
 import 'package:portakal_core/src/types.dart';
 
 void main() {
+  String compile(LabelBuilder b) => latin1.decode(tsc.compile(b));
+
   group('TSC compiler', () {
+    test('tsc.compile returns byte-native Uint8List', () {
+      final bytes = tsc.compile(label(LabelConfig(width: 40, height: 30)));
+      expect(bytes, isA<Uint8List>());
+    });
+
     test('generates SIZE with mm', () {
-      final output = tsc.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('SIZE 40 mm,30 mm'));
     });
 
     test('generates GAP', () {
-      final output = tsc.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('GAP 3 mm,0 mm'));
     });
 
     test('generates SPEED and DENSITY', () {
-      final output = tsc.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30, speed: 6, density: 10)),
       );
       expect(output, contains('SPEED 6'));
@@ -26,19 +34,19 @@ void main() {
     });
 
     test('generates DIRECTION', () {
-      final output = tsc.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30, direction: 1)),
       );
       expect(output, contains('DIRECTION 1'));
     });
 
     test('generates CLS', () {
-      final output = tsc.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('CLS'));
     });
 
     test('generates TEXT with position and font', () {
-      final output = tsc.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).text('Hello TSC', TextOptions(x: 10, y: 20, font: '3', size: 2)),
@@ -47,7 +55,7 @@ void main() {
     });
 
     test('generates BOX', () {
-      final output = tsc.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
@@ -56,7 +64,7 @@ void main() {
     });
 
     test('generates BAR (horizontal line)', () {
-      final output = tsc.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).line(LineOptions(x1: 5, y1: 55, x2: 315, y2: 55, thickness: 1)),
@@ -65,7 +73,7 @@ void main() {
     });
 
     test('generates CIRCLE', () {
-      final output = tsc.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).circle(CircleOptions(x: 250, y: 180, diameter: 40, thickness: 1)),
@@ -80,7 +88,7 @@ void main() {
         height: 2,
         bytesPerRow: 1,
       );
-      final output = tsc.compile(
+      final output = compile(
         label(
           LabelConfig(width: 40, height: 30),
         ).image(bitmap, ImageOptions(x: 10, y: 10)),
@@ -89,21 +97,21 @@ void main() {
     });
 
     test('generates raw passthrough', () {
-      final output = tsc.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30)).raw('SET CUTTER BATCH'),
       );
       expect(output, contains('SET CUTTER BATCH'));
     });
 
     test('generates PRINT with copies', () {
-      final output = tsc.compile(
+      final output = compile(
         label(LabelConfig(width: 40, height: 30, copies: 5)),
       );
       expect(output, contains('PRINT 5'));
     });
 
     test('generates PRINT 1 by default', () {
-      final output = tsc.compile(label(LabelConfig(width: 40, height: 30)));
+      final output = compile(label(LabelConfig(width: 40, height: 30)));
       expect(output, contains('PRINT 1'));
     });
   });
