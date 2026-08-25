@@ -34,29 +34,59 @@ void main() {
     });
 
     group('Job Framing & Control Sequences', () {
-      test('emits exact ESC A, ESC CS, ESC Q, ESC Z control sequences', () {
-        final printer = SbplPrinter()
-          ..startJob()
-          ..copies(3)
-          ..endJob();
-
+      test('startJob() emits exact ESC A only (not ESC CS)', () {
+        final printer = SbplPrinter()..startJob();
         final output = printer.toBytes().toList();
 
-        // Starts with ESC A [0x1B, 0x41] and ESC CS [0x1B, 0x43, 0x53]
-        expect(output.sublist(0, 5), equals([0x1B, 0x41, 0x1B, 0x43, 0x53]));
+        // Exact ESC A [0x1B, 0x41]
+        expect(output, equals([0x1B, 0x41]));
 
-        // ESC Q3 -> [0x1B, 0x51, 0x33]
-        expect(_findSequence(output, [0x1B, 0x51, 0x33]), greaterThan(-1));
-
-        // Ends with ESC Z -> [0x1B, 0x5A]
-        expect(output.sublist(output.length - 2), equals([0x1B, 0x5A]));
+        // Regression: startJob must NOT emit ESC CS
+        expect(_findSequence(output, [0x1B, 0x43, 0x53]), equals(-1));
       });
+
+      test('speed() emits exact ESC CS<speed> sequence', () {
+        final printer = SbplPrinter()..speed(4);
+        final output = printer.toBytes().toList();
+
+        // Exact ESC CS4 [0x1B, 0x43, 0x53, 0x34]
+        expect(output, equals([0x1B, 0x43, 0x53, 0x34]));
+      });
+
+      test(
+        'emits exact ESC A, ESC CS<speed>, ESC Q, ESC Z control sequences in job',
+        () {
+          final printer = SbplPrinter()
+            ..startJob()
+            ..speed(5)
+            ..copies(3)
+            ..endJob();
+
+          final output = printer.toBytes().toList();
+
+          // Starts with ESC A [0x1B, 0x41]
+          expect(output.sublist(0, 2), equals([0x1B, 0x41]));
+
+          // Speed ESC CS5 -> [0x1B, 0x43, 0x53, 0x35]
+          expect(
+            _findSequence(output, [0x1B, 0x43, 0x53, 0x35]),
+            greaterThan(-1),
+          );
+
+          // ESC Q3 -> [0x1B, 0x51, 0x33]
+          expect(_findSequence(output, [0x1B, 0x51, 0x33]), greaterThan(-1));
+
+          // Ends with ESC Z -> [0x1B, 0x5A]
+          expect(output.sublist(output.length - 2), equals([0x1B, 0x5A]));
+        },
+      );
 
       test(
         'regression: never emits literal printable placeholder text for ESC/A/Z/Q',
         () {
           final printer = SbplPrinter()
             ..startJob()
+            ..speed(4)
             ..copies(2)
             ..endJob();
 
@@ -198,61 +228,6 @@ void main() {
       });
     });
 
-    group('Graphics & ASCII Hex Golden Test', () {
-      test(
-        'transforms binary bitmap bytes [00, 7F, 80, FF] to ASCII hex "007F80FF"',
-        () {
-          // Source data: [0x00, 0x7F, 0x80, 0xFF]
-          final data = Uint8List.fromList([0x00, 0x7F, 0x80, 0xFF]);
-          final printer = SbplPrinter()
-            ..graphic(x: 10, y: 15, bytesPerRow: 2, height: 2, data: data);
-
-          final output = printer.toBytes();
-          final text = latin1.decode(output);
-
-          // Header check
-          expect(text, contains('\x1bH0010\x1bV0015\x1bGM00004,007F80FF'));
-
-          // Payload wire bytes: [0x30, 0x30, 0x37, 0x46, 0x38, 0x30, 0x46, 0x46]
-          final expectedHexBytes = <int>[
-            0x30,
-            0x30,
-            0x37,
-            0x46,
-            0x38,
-            0x30,
-            0x46,
-            0x46,
-          ];
-          expect(
-            _findSequence(output.toList(), expectedHexBytes),
-            greaterThan(-1),
-          );
-
-          // Negative check: binary bytes are NOT directly written
-          expect(
-            _findSequence(output.toList(), [0x00, 0x7F, 0x80, 0xFF]),
-            equals(-1),
-          );
-        },
-      );
-
-      test('supports graphicFromMonochrome helper', () {
-        final bitmap = MonochromeBitmap(
-          data: Uint8List.fromList([0x00, 0x7F, 0x80, 0xFF]),
-          width: 16,
-          height: 2,
-          bytesPerRow: 2,
-        );
-
-        final printer = SbplPrinter()
-          ..graphicFromMonochrome(bitmap, x: 10, y: 15);
-
-        final text = latin1.decode(printer.toBytes());
-        expect(text, contains('\x1bH0010\x1bV0015\x1bGM00004,007F80FF'));
-      });
-    });
-
     group('Raw Passthrough & Parser Compatibility', () {
       test('emits rawBytes and rawAscii verbatim', () {
         final raw = Uint8List.fromList([0x1B, 0x4B, 0x43, 0x32]);
@@ -273,7 +248,7 @@ void main() {
 
         final parsed = parseSBPL(latin1.decode(printer.toBytes()));
 
-        expect(parsed.commands.length, greaterThanOrEqualTo(4));
+        expect(parsed.commands.length, greaterThanOrEqualTo(3));
         expect(parsed.elements.length, equals(1));
         expect(parsed.elements[0], isA<TextElement>());
         expect(
@@ -334,20 +309,11 @@ void main() {
         );
       });
 
-      test('validates graphic buffer size match', () {
+      test('validates speed bounds and copy count', () {
         expect(
-          () => SbplPrinter().graphic(
-            x: 0,
-            y: 0,
-            bytesPerRow: 2,
-            height: 2,
-            data: Uint8List.fromList([0x00, 0x01]), // 2 bytes instead of 4
-          ),
+          () => SbplPrinter().speed(0),
           throwsA(isA<InvalidConfigError>()),
         );
-      });
-
-      test('validates copy count', () {
         expect(
           () => SbplPrinter().copies(0),
           throwsA(isA<InvalidConfigError>()),
@@ -357,13 +323,6 @@ void main() {
 
     group('Universal AST vs Native Builder Equivalence', () {
       test('produces identical byte stream for standard label layout', () {
-        final bitmap = MonochromeBitmap(
-          data: Uint8List.fromList([0x00, 0x7F, 0x80, 0xFF]),
-          width: 16,
-          height: 2,
-          bytesPerRow: 2,
-        );
-
         final labelBuilder =
             label(
                   const LabelConfig(
@@ -393,7 +352,6 @@ void main() {
                     thickness: 2,
                   ),
                 )
-                .image(bitmap, const ImageOptions(x: 10, y: 15))
                 .barcode(
                   '123456',
                   const BarcodeOptions(x: 10, y: 20, type: '128', height: 40),
@@ -408,6 +366,7 @@ void main() {
         // Native equivalent:
         final nativePrinter = SbplPrinter()
           ..startJob()
+          ..speed(4)
           ..text(
             x: 100,
             y: 50,
@@ -418,7 +377,6 @@ void main() {
           )
           ..box(x: 10, y: 20, width: 200, height: 100, thickness: 2)
           ..line(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2)
-          ..graphicFromMonochrome(bitmap, x: 10, y: 15)
           ..barcode(
             x: 10,
             y: 20,

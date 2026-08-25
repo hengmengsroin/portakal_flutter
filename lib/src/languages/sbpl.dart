@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../encoding.dart';
+import '../errors.dart';
 import '../types.dart';
 import 'sbpl_writer.dart';
 
@@ -18,11 +19,13 @@ Uint8List compileToSBPLBytes(ResolvedLabel label, {SbplEncoding? encoding}) {
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
 
-  // ESC A — Start
+  // ESC A — Start Job
   SbplCommandWriter.writeStartJob(writer);
 
-  // ESC CS — Clear buffer
-  SbplCommandWriter.writeClearBuffer(writer);
+  // ESC CS<speed> — Print Speed (if specified)
+  if (label.speed > 0) {
+    SbplCommandWriter.writePrintSpeed(writer, label.speed);
+  }
 
   for (final el in label.elements) {
     switch (el) {
@@ -68,17 +71,8 @@ Uint8List compileToSBPLBytes(ResolvedLabel label, {SbplEncoding? encoding}) {
         );
 
       case ImageElement():
-        final o = el.options;
-        final x = o.x ?? 0;
-        final y = o.y ?? 0;
-        final bmp = el.bitmap;
-        SbplCommandWriter.writeGraphic(
-          writer,
-          x: x,
-          y: y,
-          bytesPerRow: bmp.bytesPerRow,
-          height: bmp.height,
-          data: bmp.data,
+        throw UnsupportedFeatureError(
+          'SBPL generic raster graphics (ImageElement) are currently unsupported in SBPL compiler.',
         );
 
       case CircleElement():

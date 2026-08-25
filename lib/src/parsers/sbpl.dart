@@ -32,8 +32,13 @@ SBPLParseResult parseSBPL(String code) {
         commands.add(SBPLCommand(cmd: 'END'));
         i++;
       } else if (code[i] == 'C' && i + 1 < code.length && code[i + 1] == 'S') {
-        commands.add(SBPLCommand(cmd: 'CS'));
         i += 2;
+        final start = i;
+        while (i < code.length && code.codeUnitAt(i) != 0x1B) {
+          i++;
+        }
+        final params = code.substring(start, i);
+        commands.add(SBPLCommand(cmd: 'CS', params: params));
       } else if (code[i] == 'H') {
         i++;
         final start = i;

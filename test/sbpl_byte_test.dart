@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
 import 'package:portakal_flutter/src/builder.dart';
 import 'package:portakal_flutter/src/encoding.dart';
+import 'package:portakal_flutter/src/errors.dart';
 import 'package:portakal_flutter/src/lang/sbpl.dart';
 import 'package:portakal_flutter/src/types.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('SBPL Byte-Native Compiler', () {
@@ -51,18 +52,18 @@ void main() {
     });
 
     test(
-      'Job framing and ESC verification: exact ESC A, ESC CS, ESC Q, ESC Z sequences',
+      'Job framing and ESC verification: exact ESC A, ESC CS<speed>, ESC Q, ESC Z sequences',
       () {
         final builder = label(
-          const LabelConfig(width: 40, height: 30, copies: 3),
+          const LabelConfig(width: 40, height: 30, speed: 4, copies: 3),
         );
         final output = sbpl.compileBytes(builder);
         final outputList = output.toList();
 
-        // Starts with ESC A [0x1B, 0x41] and ESC CS [0x1B, 0x43, 0x53]
+        // Starts with ESC A [0x1B, 0x41] and ESC CS4 [0x1B, 0x43, 0x53, 0x34]
         expect(
-          outputList.sublist(0, 5),
-          equals([0x1B, 0x41, 0x1B, 0x43, 0x53]),
+          outputList.sublist(0, 6),
+          equals([0x1B, 0x41, 0x1B, 0x43, 0x53, 0x34]),
         );
 
         // ESC Q3 -> [0x1B, 0x51, 0x33]
@@ -217,8 +218,7 @@ void main() {
       expect(text, contains('\x1bK9BHello ??'));
     });
 
-    test('Graphics audit: ESC GM encodes bitmap data as uppercase ASCII hex', () {
-      // 4 bytes: [0x00, 0x7F, 0x80, 0xFF]
+    test('Throws UnsupportedFeatureError for ImageElement', () {
       final bitmap = MonochromeBitmap(
         data: Uint8List.fromList([0x00, 0x7F, 0x80, 0xFF]),
         width: 16,
@@ -230,24 +230,10 @@ void main() {
         const LabelConfig(width: 40, height: 30),
       ).image(bitmap, const ImageOptions(x: 10, y: 15));
 
-      final output = sbpl.compileBytes(builder);
-      final text = latin1.decode(output);
-
-      // Verify ESC GM00004,007F80FF
-      expect(text, contains('\x1bH0010\x1bV0015\x1bGM00004,007F80FF'));
-
-      // Verify exact ASCII hex bytes: [0x30, 0x30, 0x37, 0x46, 0x38, 0x30, 0x46, 0x46]
-      final expectedHexBytes = <int>[
-        0x30,
-        0x30,
-        0x37,
-        0x46,
-        0x38,
-        0x30,
-        0x46,
-        0x46,
-      ];
-      expect(_findSequence(output.toList(), expectedHexBytes), greaterThan(-1));
+      expect(
+        () => sbpl.compileBytes(builder),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
     });
 
     test('Barcode and QR elements use real ESC control framing', () {

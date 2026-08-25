@@ -13,11 +13,8 @@ class SbplCommandWriter {
 
   static const int esc = 0x1B;
 
-  static String _hex(int byte) =>
-      byte.toRadixString(16).toUpperCase().padLeft(2, '0');
   static String _pad2(int n) => n.toString().padLeft(2, '0');
   static String _pad4(int n) => n.toString().padLeft(4, '0');
-  static String _pad5(int n) => n.toString().padLeft(5, '0');
 
   /// Emits `ESC A` — Start Job.
   static void writeStartJob(PrinterByteWriter writer) {
@@ -25,10 +22,15 @@ class SbplCommandWriter {
     writer.writeAscii('A');
   }
 
-  /// Emits `ESC CS` — Clear Buffer.
-  static void writeClearBuffer(PrinterByteWriter writer) {
+  /// Emits `ESC CS<speed>` — Set Print Speed.
+  static void writePrintSpeed(PrinterByteWriter writer, int speed) {
+    if (speed <= 0) {
+      throw InvalidConfigError(
+        'SBPL print speed must be positive, got: $speed',
+      );
+    }
     writer.writeByte(esc);
-    writer.writeAscii('CS');
+    writer.writeAscii('CS$speed');
   }
 
   /// Emits `ESC H<xxxx>` — Set Horizontal Position.
@@ -266,36 +268,6 @@ class SbplCommandWriter {
     writer.writeByte(esc);
     writer.writeAscii('BQ${_pad2(cellWidth)}200');
     writer.writeAscii(content);
-  }
-
-  /// Emits a raster graphic using GM command with ASCII hex payload: `ESC H<x> ESC V<y> ESC GM<length>,<hexData>`.
-  static void writeGraphic(
-    PrinterByteWriter writer, {
-    required int x,
-    required int y,
-    required int bytesPerRow,
-    required int height,
-    required Uint8List data,
-  }) {
-    if (x < 0 || y < 0 || bytesPerRow <= 0 || height <= 0) {
-      throw InvalidConfigError(
-        'SBPL graphic parameters must be positive, got x: $x, y: $y, bytesPerRow: $bytesPerRow, height: $height',
-      );
-    }
-    final expectedLength = bytesPerRow * height;
-    if (data.length != expectedLength) {
-      throw InvalidConfigError(
-        'SBPL graphic data length (${data.length}) does not match bytesPerRow ($bytesPerRow) * height ($height) = $expectedLength',
-      );
-    }
-
-    writeHorizontalPosition(writer, x);
-    writeVerticalPosition(writer, y);
-    writer.writeByte(esc);
-    writer.writeAscii('GM${_pad5(data.length)},');
-    for (int i = 0; i < data.length; i++) {
-      writer.writeAscii(_hex(data[i]));
-    }
   }
 
   /// Emits `ESC Q<copies>` — Print Copies.
