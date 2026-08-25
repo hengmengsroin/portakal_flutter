@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:portakal_core/portakal_core.dart';
@@ -34,7 +35,63 @@ class MockDocTransport implements PrinterTransport {
 
 void main() {
   group('Executable Documentation Examples — Core', () {
-    test('1. Getting Started: ESC/POS Receipt Example', () {
+    test('1. Pure Dart Quick Start (Preview-Before-Print via SVG & Bytes)', () {
+      // 1. Build universal label layout
+      final builder = label(const LabelConfig(width: 80, height: 50))
+        ..text('Invoice Item', const TextOptions(x: 10, y: 10, size: 2, bold: true))
+        ..barcode('ITEM-9988', const BarcodeOptions(x: 10, y: 60, type: '128', height: 50))
+        ..qrcode('https://example.com/invoice/9988', const QRCodeOptions(x: 10, y: 130, cellWidth: 3))
+        ..box(const BoxOptions(x: 5, y: 5, width: 620, height: 380, thickness: 2));
+
+      // 2. Resolve once into canonical logical print job
+      final ResolvedLabel job = builder.resolve();
+
+      // 3. Render pure-Dart SVG preview string for web / backend verification
+      final String svg = renderPreview(job);
+      expect(svg, contains('<svg'));
+      expect(svg, contains('Invoice Item'));
+
+      // 4. Compile that SAME resolved job to printer bytes
+      final Uint8List zplBytes = zpl.compileResolved(job);
+      final Uint8List tscBytes = tsc.compileResolved(job);
+
+      expect(zplBytes, isNotEmpty);
+      expect(tscBytes, isNotEmpty);
+    });
+
+    test('2. Pure Dart Simple vs Resolved Workflows', () {
+      final builder = label(const LabelConfig(width: 80, height: 50))
+        ..text('BATCH JOB #500', const TextOptions(x: 10, y: 10));
+
+      // Simple: compile directly
+      final Uint8List batchBytes = tsc.compile(builder);
+      expect(batchBytes, isNotEmpty);
+
+      // Resolved: resolve then compile
+      final job = builder.resolve();
+      final Uint8List frozenBytes = tsc.compileResolved(job);
+      expect(frozenBytes, equals(batchBytes));
+    });
+
+    test('3. Byte Contract: Authoritative Uint8List vs String Corruption', () {
+      final builder = label(const LabelConfig(width: 40, height: 30))
+        ..text('TEST', const TextOptions(x: 10, y: 10));
+      final job = builder.resolve();
+
+      final Uint8List bytes = tsc.compileResolved(job);
+
+      // RIGHT: Raw bytes written directly to transport sink
+      final transportSink = <int>[];
+      transportSink.addAll(bytes);
+      expect(transportSink, equals(bytes));
+
+      // WRONG demonstration: Converting binary bytes through UTF-8 strings
+      // is lossy for non-UTF-8 raster data / binary control sequences
+      final decodedDiagnostic = latin1.decode(bytes);
+      expect(decodedDiagnostic, isNotEmpty);
+    });
+
+    test('4. Getting Started: ESC/POS Receipt Example', () {
       final printer = EscPosPrinter()
         ..initialize()
         ..align(EscPosAlignment.center)
@@ -60,7 +117,7 @@ void main() {
       expect(bytes, containsAllInOrder([0x1B, 0x40])); // ESC @
     });
 
-    test('2. Getting Started: TSC Label Example', () {
+    test('5. Getting Started: TSC Label Example', () {
       final printer = TscPrinter()
         ..sizeDots(800, 1200)
         ..cls()
@@ -90,7 +147,7 @@ void main() {
       expect(text, contains('EXPRESS SHIPPING'));
     });
 
-    test('3. Universal Builder: Layout & Multi-Protocol Compilation', () {
+    test('6. Universal Builder: Layout & Multi-Protocol Compilation', () {
       final myLabel = label(const LabelConfig(width: 80, height: 50))
         ..text(
           'SHIPPING LABEL',
@@ -117,7 +174,7 @@ void main() {
       expect(eplBytes, isA<Uint8List>());
     });
 
-    test('4. UnsupportedFeaturePolicy: Default Throws vs Ignore Omission', () {
+    test('7. UnsupportedFeaturePolicy: Default Throws vs Ignore Omission', () {
       final circleLabel = label(const LabelConfig(width: 80, height: 60))
         ..circle(const CircleOptions(x: 100, y: 100, diameter: 80));
 
@@ -136,7 +193,7 @@ void main() {
       expect(safeBytes, isNotEmpty);
     });
 
-    test('5. Character Encoding & Safe Replacement Policy', () {
+    test('8. Character Encoding & Safe Replacement Policy', () {
       final encoder = getEncoder(PrinterCodePage.cp858);
       final Uint8List encoded = encoder.encode('Total: 15.50 €');
       expect(encoded, isNotEmpty);
@@ -157,7 +214,7 @@ void main() {
       expect(decodedAscii, equals('Total: 15.50 ?'));
     });
 
-    test('6. Raw Bytes Passthrough & ASCII Validation', () {
+    test('9. Raw Bytes Passthrough & ASCII Validation', () {
       final buffer = Uint8List.fromList([0x1B, 0x40]);
       final labelBuilder = label(const LabelConfig(width: 50, height: 30))
         ..rawBytes(buffer)
@@ -173,7 +230,7 @@ void main() {
       );
     });
 
-    test('7. Receipt Formatting: ReceiptColumn', () {
+    test('10. Receipt Formatting: ReceiptColumn', () {
       final table = formatTable(
         [
           const ReceiptColumn(width: 20, align: 'left'),
@@ -190,7 +247,7 @@ void main() {
       expect(table.join('\n'), contains('\$3.50'));
     });
 
-    test('8. Transport Contracts: chunkedWrite and writeWithRetry', () async {
+    test('11. Transport Contracts: chunkedWrite and writeWithRetry', () async {
       final transport = MockDocTransport();
       await transport.connect();
 
@@ -222,7 +279,7 @@ void main() {
       expect(usbVendorIds.epson, equals(0x04B8));
     });
 
-    test('9. IPL 7-Phase Lifecycle Native Builder', () {
+    test('12. IPL 7-Phase Lifecycle Native Builder', () {
       final printer = IplPrinter()
         ..advancedMode()
         ..programMode()
@@ -243,7 +300,7 @@ void main() {
       expect(text, contains('INTERMEC IPL TEST'));
     });
 
-    test('10. Image Dithering Pipeline', () {
+    test('13. Image Dithering Pipeline', () {
       final rgba = Uint8List(16 * 16 * 4); // 16x16 white square
       for (int i = 0; i < rgba.length; i += 4) {
         rgba[i] = 255;

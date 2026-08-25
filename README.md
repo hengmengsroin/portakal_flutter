@@ -6,101 +6,39 @@ Generate exact, byte-native command streams for 9 printer languages: **ESC/POS, 
 
 ---
 
-## Packages
+## Choosing Your Package
 
-| Package | Role | Dependencies | Description |
+| If you are building... | Install | Dependencies | What it provides |
 | :--- | :--- | :--- | :--- |
-| [`portakal_core`](packages/portakal_core/) | **Pure Dart Engine** | Zero runtime dependencies | Universal AST builder, 9 protocol compilers, 9 native builders, 9 parsers, character encodings, dithering, SVG preview, and transport contracts. Runs on Dart CLI, backend servers, microservices, Flutter, and web. |
-| [`portakal_flutter`](packages/portakal_flutter/) | **Flutter Integration** | Flutter SDK, `portakal_core` | Flutter `LabelPreview` widget and re-export of `portakal_core` (with `ReceiptColumn` collision shielding). |
+| **Flutter Application** (Mobile, Desktop, Web) | [`portakal_flutter`](packages/portakal_flutter/) | Flutter SDK, `portakal_core` | Live `LabelPreview` widget, visual DPI scaling, and re-export of `portakal_core` with `ReceiptColumn` collision shielding. |
+| **Pure Dart / Backend / CLI / Microservice** | [`portakal_core`](packages/portakal_core/) | **Zero dependencies** | Universal AST builder, 9 protocol compilers, 9 native builders, 9 parsers, encodings, dithering, SVG preview (`renderPreview`), and transport contracts. |
 
----
-
-## Features
-
-- 🖨️ **9 Printer Protocols** — ESC/POS, TSC (TSPL2), ZPL II, EPL2, CPCL, DPL, IPL, SBPL, and Star PRNT.
-- ⚡ **9 Protocol-Native Builders** — 1:1 hardware control with exact command lifecycles, memory slots, and cutter triggers.
-- 🏷️ **Universal Label Builder** — Design cross-protocol labels once; compile to any supported language.
-- 🔒 **Authoritative Byte-Native Output** — Compilers and builders output immutable `Uint8List` byte streams.
-- 👁️ **Preview-Before-Print Workflow** — Single-resolve pattern (`LabelPreview.resolved` in Flutter, `renderPreview` in pure Dart SVG).
-- 🌐 **Full Character Encoding Engine** — CP437, CP850, CP858 (Euro €), CP1252, CP866 (Cyrillic), CP857 (Turkish), UTF-8.
-- 🖼️ **Image Processing & Dithering** — 1-bit monochrome conversion with 4 dithering modes (Floyd-Steinberg, Atkinson, Ordered, Threshold).
-- 🔍 **9 Diagnostic Parsers** — Parse and inspect command streams for preview reconstruction and syntax validation.
-- 🔌 **Decoupled Transport Boundary** — Pure Dart `PrinterTransport` contract, chunked writes, and exponential backoff retry.
-- 🎨 **19 Practical Real-World Examples** — Complete runnable templates across Retail, Pharmacy, Restaurant, Warehouse, Logistics, Tickets, Asset Management, and Advanced.
-
----
-
-## Installation
-
-### For Flutter Applications
+### Installation Commands
 
 ```bash
+# For Flutter applications
 flutter pub add portakal_flutter
-```
 
-`portakal_flutter` automatically re-exports `portakal_core` with `ReceiptColumn` collision shielding, so you only need one dependency in your Flutter project.
-
-### For Pure Dart Projects (CLI / Backend / Cloud Workers)
-
-```bash
+# For Pure Dart projects (CLI, backend, cloud workers)
 dart pub add portakal_core
 ```
 
 ---
 
-## 30-Second Quick Start
+## 30-Second Quick Starts
 
-Portakal's primary purpose is to **generate exact printer command bytes (`Uint8List`)**.
+### 1. Flutter Interactive Quick Start (`portakal_flutter`)
+
+In interactive Flutter applications, use the **Preview-Before-Print** workflow. The exact same `ResolvedLabel` reviewed by the user in `LabelPreview.resolved` is compiled for printing:
 
 ```dart
 import 'dart:typed_data';
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-void main() {
-  // 1. Build a label layout
-  final builder = label(const LabelConfig(width: 40, height: 30))
-    ..text('Product A1', const TextOptions(x: 20, y: 20, size: 2, bold: true))
-    ..qrcode('https://example.com/a1', const QRCodeOptions(x: 20, y: 70, cellWidth: 3));
-
-  // 2. Resolve into an immutable print job
-  final ResolvedLabel job = builder.resolve();
-
-  // 3. Compile the exact same job to authoritative printer bytes
-  final Uint8List bytes = tsc.compileResolved(job);
-
-  // 4. Transmit bytes to your hardware transport (Bluetooth, USB, Network)
-}
-```
-
----
-
-## Workflows: Simple vs Preview-Before-Print
-
-Portakal supports two distinct compilation workflows:
-
-### 1. Simple Workflow (`compile`)
-*Best for: Automated background batch printing, headless servers, microservices, and non-interactive print queues.*
-
-```dart
-final builder = label(const LabelConfig(width: 80, height: 50))
-  ..text('BATCH ITEM #1042', const TextOptions(x: 20, y: 20));
-
-// Compiles directly to Uint8List
-final Uint8List bytes = tsc.compile(builder);
-```
-
-### 2. Preview-Before-Print Workflow (`resolve` + `compileResolved`) — *Recommended for Flutter*
-*Best for: Interactive applications where the user inspects a visual preview before confirming physical printing.*
-
-This workflow guarantees that the exact `ResolvedLabel` viewed on screen is the identical object compiled for the printer head, preventing mutation race conditions:
-
-```dart
 import 'package:flutter/material.dart';
 import 'package:portakal_flutter/portakal_flutter.dart';
 
-class LabelPreviewScreen extends StatelessWidget {
+class LabelConfirmationScreen extends StatelessWidget {
   final LabelBuilder builder;
-  const LabelPreviewScreen({super.key, required this.builder});
+  const LabelConfirmationScreen({super.key, required this.builder});
 
   @override
   Widget build(BuildContext context) {
@@ -116,9 +54,9 @@ class LabelPreviewScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.print),
         onPressed: () {
-          // 3. Compile that SAME resolved job to printer bytes
+          // 3. Compile that SAME resolved job to authoritative printer bytes
           final Uint8List bytes = tsc.compileResolved(job);
-          // Pass bytes to your Bluetooth, USB, or TCP socket transport
+          // 4. Pass bytes to your transport (Bluetooth, USB, Network Socket)
         },
       ),
     );
@@ -126,9 +64,46 @@ class LabelPreviewScreen extends StatelessWidget {
 }
 ```
 
+### 2. Pure Dart Quick Start (`portakal_core`)
+
+`portakal_core` has zero Flutter dependencies and runs seamlessly on backend servers, cloud functions, and Dart CLI tools:
+
+```dart
+import 'dart:typed_data';
+import 'package:portakal_core/portakal_core.dart';
+
+void main() {
+  // 1. Build universal label layout
+  final builder = label(const LabelConfig(width: 80, height: 50))
+    ..text('Invoice Item', const TextOptions(x: 10, y: 10, size: 2, bold: true))
+    ..barcode('ITEM-9988', const BarcodeOptions(x: 10, y: 60, type: '128', height: 50))
+    ..qrcode('https://example.com/invoice/9988', const QRCodeOptions(x: 10, y: 130, cellWidth: 3))
+    ..box(const BoxOptions(x: 5, y: 5, width: 620, height: 380, thickness: 2));
+
+  // 2. Resolve once into an immutable job
+  final ResolvedLabel job = builder.resolve();
+
+  // 3. Generate pure Dart SVG preview string for web / server-side verification
+  final String svg = renderPreview(job);
+
+  // 4. Compile the exact same job to printer command bytes
+  final Uint8List zplBytes = zpl.compileResolved(job);
+  final Uint8List tscBytes = tsc.compileResolved(job);
+}
+```
+
 ---
 
-## Architecture & Decoupling
+## Simple vs Resolved Workflows
+
+| Workflow | Method Call | Best Used For | Key Characteristic |
+| :--- | :--- | :--- | :--- |
+| **Simple** | `final bytes = tsc.compile(builder);` | Automated batch printing, headless servers, backend microservices, non-interactive background print jobs. | Direct compilation from `LabelBuilder` to `Uint8List` in a single call. |
+| **Resolved (Safe)** | `final job = builder.resolve();`<br>`LabelPreview.resolved(job: job);`<br>`final bytes = tsc.compileResolved(job);` | Interactive UI applications, print confirmation dialogs, multi-protocol preview benches. | Freezes the layout into an immutable `ResolvedLabel` to guarantee that what the user previewed is what prints. |
+
+---
+
+## Architecture & Transport Boundary
 
 ```
 LabelBuilder (Universal AST)
@@ -146,28 +121,27 @@ ResolvedLabel (Immutable Logical Job)
 ```
 
 > [!IMPORTANT]
-> **Transport is application-owned.** Portakal handles layout composition, protocol encoding, and byte stream generation. Transmitting those bytes over Bluetooth, USB, or Network TCP sockets is handled by your application or custom transport.
+> **Transport is application-owned.** Portakal is a command generation and layout engine. Physical communication (Bluetooth Low Energy, USB, Serial, or TCP Network Sockets) is handled by your application or custom transport layer.
 
 ---
 
-## The Byte-Safe Contract & Transport Boundary
+## The Byte-Safe Contract
 
 All Portakal compilers (`facade.compile()`, `facade.compileResolved()`) and protocol-native builders (`printer.toBytes()`) return **`Uint8List`**.
 
-- **DO**: Pass the raw `Uint8List` bytes directly to your communication transport:
-  ```dart
-  transport.write(bytes);
-  ```
-- **DO NOT**: Convert printer byte streams to or from strings:
-  ```dart
-  // ❌ DANGEROUS: Corrupts binary bitmap matrices, code page bytes, and ESC controls
-  final string = utf8.decode(bytes);
-  socket.write(string);
-  ```
+`Uint8List` is the authoritative binary representation. String decodings (such as ASCII or Latin-1 representations) are diagnostic compatibility views only.
 
-### Conceptual Transport Examples
+```dart
+// ✅ RIGHT: Pass raw Uint8List bytes directly to your transport sink
+final Uint8List bytes = tsc.compileResolved(job);
+await transport.write(bytes);
 
-Portakal is transport-neutral. Connect `Uint8List` output to any hardware channel:
+// ❌ WRONG: Converting binary bytes through UTF-8 strings corrupts raster matrices & control bytes
+final string = utf8.decode(bytes); // DANGEROUS: Throws or alters non-UTF-8 bytes
+await transport.write(utf8.encode(string));
+```
+
+### Conceptual Transport Integrations
 
 #### TCP / Network Socket (Port 9100 Raw JetDirect)
 ```dart
@@ -185,7 +159,7 @@ Future<void> sendToNetworkPrinter(String ip, Uint8List bytes) async {
 #### Bluetooth Low Energy (Conceptual)
 ```dart
 Future<void> sendToBlePrinter(dynamic writeCharacteristic, Uint8List bytes) async {
-  // Transmit raw bytes to the printer's write characteristic
+  // Transmit raw bytes to your BLE plugin's write characteristic
   await writeCharacteristic.write(bytes, withoutResponse: false);
 }
 ```
@@ -193,15 +167,16 @@ Future<void> sendToBlePrinter(dynamic writeCharacteristic, Uint8List bytes) asyn
 #### USB / Serial (Conceptual)
 ```dart
 Future<void> sendToUsbPrinter(dynamic usbEndpoint, Uint8List bytes) async {
+  // Transmit raw bytes to your USB interface
   await usbEndpoint.write(bytes);
 }
 ```
 
 ---
 
-## 🎨 Practical Real-World Example Gallery
+## 🎨 19 Practical Real-World Printing Examples
 
-The [`example/`](example/) application features **19 production-style, copyable printing templates** across real-world domains with live visual preview, 9-protocol compilation, and raw byte inspection:
+The [`example/`](example/) application contains **19 production-style, copyable printing templates** across real-world domains with live visual preview, 9-protocol compilation, and raw byte inspection:
 
 > *Note: These are practical, real-world examples. Businesses should adapt fields, layout geometry, barcode symbologies, and regulatory disclosures to their specific domain and jurisdiction.*
 
@@ -238,37 +213,39 @@ The [`example/`](example/) application features **19 production-style, copyable 
 - In the example gallery, continuous templates (`kitchen_ticket.dart`, `customer_receipt.dart`, `queue_ticket.dart`) specify a representative preview height (e.g. 75mm–80mm / 600–640 dots) to provide deterministic bounds in visual previews.
 
 > [!NOTE]
-> Physical receipt length is normally determined by content and paper feed behavior; example preview heights are illustrative.
+> Physical continuous receipt length is normally content and paper feed driven; example preview heights are illustrative.
 
 ---
 
 ## Preview Unicode Support vs Printer Hardware Encoding
 
-- **Flutter Visual Preview**: Renders any Unicode script (including Khmer, Thai, Japanese, Arabic, and European accents) using the device operating system's typography engine.
-- **Physical Thermal Printers**: Process text according to their firmware capabilities:
+- **Flutter Visual Preview**: Renders any Unicode script (including Khmer, Thai, Japanese, Arabic, and European accents) using the host platform typography engine.
+- **Physical Thermal Printers**: Process text according to their firmware command interpreter and memory architecture:
   - Standard label/receipt printers use 8-bit code pages (CP437, CP850, CP1252) and only support Latin-1 or specific regional subsets.
-  - ZPL printers in UTF-8 mode (`^CI28`) can process Unicode text if appropriate font ROM cards (e.g. Swiss 721 / Andale) are installed.
-  - For complex Asian scripts on legacy printers, convert text into a 1-bit monochrome raster bitmap via `imageToMonochrome()` before transmission.
-- If a compiler cannot encode a character in the active code page, Portakal throws an **`EncodingError`** (or `UnsupportedCharacterException`).
+  - ZPL printers in UTF-8 mode (`^CI28`) can process Unicode text if appropriate font ROM cards (e.g. Swiss 721 / Andale) are installed on the device.
+  - For complex Asian scripts on legacy printers lacking Unicode ROM fonts, convert text into a 1-bit monochrome raster bitmap via `imageToMonochrome()` before transmission.
+- **`Preview support != printer-native Unicode support`**. If a compiler cannot encode a character in the active code page, Portakal throws an **`EncodingError`** (or `UnsupportedCharacterException`).
 
 ---
 
 ## Protocol Choice Guide
 
-| Protocol | Typical Target Hardware | Primary Use Case |
+Printers are classified by their **implemented command language**, not solely by manufacturer brand:
+
+| Protocol | Implemented Command Language | Typical Applications |
 | :--- | :--- | :--- |
-| **TSC (TSPL2)** | Desktop / Industrial label printers (TSC, Xprinter, Gprinter, Godex) | Product labels, barcode stickers, shipping tags |
-| **ZPL II** | Industrial label printers (Zebra, Honeywell, Printronix, SATO emulation) | Enterprise logistics, warehouse bin tags, cross-border shipping |
-| **ESC/POS** | Point-of-sale receipt printers (Epson, Bixolon, Star, generic 58/80mm POS) | Restaurant dining receipts, retail POS slips, kitchen tickets |
-| **EPL2** | Desktop label printers (Legacy Eltron, Zebra 2844 / GK420d) | Small courier parcels, retail shelf price tags |
-| **CPCL** | Mobile portable printers (Zebra QLn/ZQ series, Bixolon mobile) | Mobile ticketing, meter reading, delivery route receipts |
-| **DPL** | Datamax / O'Neil thermal printers | Industrial asset tracking, compliance labeling |
-| **IPL** | Intermec / Honeywell industrial printers | High-throughput manufacturing and warehouse workflows |
-| **SBPL** | SATO industrial barcode printers | High-resolution medical, electronics, and parcel labels |
-| **Star PRNT**| Star Micronics line thermal printers (TSP100/650/700 series) | Hospitality POS receipts, cloud kitchen order tickets |
+| **TSC (TSPL2)** | Printers implementing TSPL-compatible commands | Product price labels, barcode stickers, courier shipping tags |
+| **ZPL II** | Printers implementing ZPL-compatible commands | Enterprise logistics, warehouse bin tags, cross-border shipping |
+| **ESC/POS** | Printers implementing ESC/POS-compatible commands | Restaurant dining receipts, retail POS slips, kitchen tickets |
+| **EPL2** | Printers implementing EPL2-compatible commands | Small courier parcels, retail shelf price tags |
+| **CPCL** | Printers implementing CPCL-compatible commands | Mobile ticketing, meter reading, delivery route receipts |
+| **DPL** | Printers implementing DPL-compatible commands | Industrial asset tracking, compliance labeling |
+| **IPL** | Printers implementing IPL-compatible commands | High-throughput manufacturing and warehouse workflows |
+| **SBPL** | Printers implementing SBPL-compatible commands | High-resolution medical, electronics, and parcel labels |
+| **Star PRNT**| Printers implementing Star PRNT-compatible commands | Hospitality POS receipts, cloud kitchen order tickets |
 
 > [!TIP]
-> **Tested Protocols vs Device Compatibility**: In the example gallery, `testedProtocols` indicates the protocols against which that specific example's compilation pipeline has been tested without error under `UnsupportedFeaturePolicy.throwError`. Always check your physical printer's programming manual for supported command emulations.
+> **Tested Protocols Definition**: In the example gallery, `testedProtocols` indicates that *this specific example's layout successfully compiles through those Portakal protocol implementations in the test suite under `UnsupportedFeaturePolicy.throwError`*. Always consult your physical printer's programming manual for supported command emulations.
 
 ---
 
