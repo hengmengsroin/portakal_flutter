@@ -18,10 +18,10 @@
     "payload": "ä ö ü ß ± °"
   },
   "hardware": {
-    "manufacturer": "Generic",
-    "model": "POS-80",
-    "firmware": "V1.0",
-    "command_mode": "ESC/POS"
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
   },
   "result": {
     "level2": "N/T",

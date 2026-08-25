@@ -18,10 +18,10 @@
     "payload": "ä ö ü ß ± °"
   },
   "hardware": {
-    "manufacturer": "TSC",
-    "model": "TE200",
-    "firmware": "V8.04 EZ",
-    "command_mode": "TSPL2"
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
   },
   "result": {
     "level2": "N/T",

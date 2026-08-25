@@ -18,10 +18,10 @@
     "payload": "PORTAKAL123456"
   },
   "hardware": {
-    "manufacturer": "Zebra",
-    "model": "ZD421",
-    "firmware": "V93.21.15Z",
-    "command_mode": "ZPL II"
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
   },
   "result": {
     "level2": "N/T",

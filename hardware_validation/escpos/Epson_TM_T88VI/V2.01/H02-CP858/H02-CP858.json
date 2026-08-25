@@ -18,10 +18,10 @@
     "payload": "é à è ù ç €"
   },
   "hardware": {
-    "manufacturer": "Epson",
-    "model": "TM-T88VI",
-    "firmware": "V2.01 ESC/POS",
-    "command_mode": "ESC/POS Standard"
+    "manufacturer": null,
+    "model": null,
+    "firmware": null,
+    "command_mode": null
   },
   "result": {
     "level2": "N/T",
