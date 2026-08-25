@@ -4,17 +4,13 @@ import 'dart:typed_data';
 import '../byte_writer.dart';
 import '../encoding.dart';
 import '../types.dart';
-
-const int _stx = 0x02;
-const int _etx = 0x03;
-const int _esc = 0x1B;
-const int _si = 0x0F;
+import 'ipl_writer.dart';
 
 /// Compile a resolved label to IPL commands as a byte sequence ([Uint8List]).
 ///
 /// Uses actual control bytes (`STX` = 0x02, `ETX` = 0x03, `ESC` = 0x1B, `SI` = 0x0F).
 /// If [encoding] is supplied, text fields are encoded using the configured [CodePageEncoder].
-/// Control characters (`STX`, `ETX`, `ESC`) inside text fields are explicitly rejected with
+/// Control characters (`STX`, `ETX`, `ESC`, `SI`) inside text fields are explicitly rejected with
 /// [UnsupportedCharacterException] (or replaced with `?` if `replaceUnsupported: true`) to prevent
 /// framing corruption.
 /// If omitted, defaults to [IplEncoding.defaultEncoding] ([IplEncoding.legacy]).
@@ -24,39 +20,20 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
   final writer = PrinterByteWriter();
 
   // STX ESC C1 ETX — Create format 1 / Advanced mode
-  writer.writeByte(_stx);
-  writer.writeByte(_esc);
-  writer.writeAscii('C1');
-  writer.writeByte(_etx);
+  IplCommandWriter.writeCreateFormat(writer, 1);
 
   // STX ESC P ETX — Enter Program mode
-  writer.writeByte(_stx);
-  writer.writeByte(_esc);
-  writer.writeAscii('P');
-  writer.writeByte(_etx);
+  IplCommandWriter.writeProgramMode(writer);
 
   // Label size and printer configuration: <STX><SI>L<height><ETX>, <STX><SI>W<width><ETX>
-  writer.writeByte(_stx);
-  writer.writeByte(_si);
-  writer.writeAscii('L${label.heightDots}');
-  writer.writeByte(_etx);
-
-  writer.writeByte(_stx);
-  writer.writeByte(_si);
-  writer.writeAscii('W${label.widthDots}');
-  writer.writeByte(_etx);
+  IplCommandWriter.writeLabelLength(writer, label.heightDots);
+  IplCommandWriter.writeLabelWidth(writer, label.widthDots);
 
   if (label.speed > 0) {
-    writer.writeByte(_stx);
-    writer.writeByte(_si);
-    writer.writeAscii('S${label.speed}0');
-    writer.writeByte(_etx);
+    IplCommandWriter.writeSpeed(writer, label.speed);
   }
   if (label.density > 0) {
-    writer.writeByte(_stx);
-    writer.writeByte(_si);
-    writer.writeAscii('d${label.density}');
-    writer.writeByte(_etx);
+    IplCommandWriter.writeDensity(writer, label.density);
   }
 
   int fieldNum = 0;
@@ -71,26 +48,32 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
         final rotation = _iplRotation(o.rotation ?? 0);
         final size = o.size ?? 1;
 
-        writer.writeByte(_stx);
-        writer.writeAscii('H$fieldNum;o$x,$y;f$rotation;');
-        writer.writeAscii('h${size * 12};w${size * 12};c26;');
-        writer.writeAscii('d3,');
-
-        final textBytes = _encodeIplText(
-          el.content,
-          encoder,
+        IplCommandWriter.writeTextField(
+          writer,
+          fieldNumber: fieldNum,
+          x: x,
+          y: y,
+          rotation: rotation,
+          fontHeight: size * 12,
+          fontWidth: size * 12,
+          fontCode: 26,
+          text: el.content,
+          encoder: encoder,
           replaceUnsupported: enc.replaceUnsupported,
         );
-        writer.writeBytes(textBytes);
-        writer.writeByte(_etx);
 
       case BoxElement():
         fieldNum++;
         final o = el.options;
-        writer.writeByte(_stx);
-        writer.writeAscii('W$fieldNum;o${o.x},${o.y};f0;');
-        writer.writeAscii('l${o.width};h${o.height};w${o.thickness ?? 1}');
-        writer.writeByte(_etx);
+        IplCommandWriter.writeBoxField(
+          writer,
+          fieldNumber: fieldNum,
+          x: o.x,
+          y: o.y,
+          width: o.width,
+          height: o.height,
+          thickness: o.thickness ?? 1,
+        );
 
       case LineElement():
         fieldNum++;
@@ -99,15 +82,27 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
         if (o.y1 == o.y2) {
           // Horizontal line
           final len = (o.x2 - o.x1).abs();
-          writer.writeByte(_stx);
-          writer.writeAscii('L$fieldNum;o${o.x1},${o.y1};f0;l$len;w$t');
-          writer.writeByte(_etx);
+          IplCommandWriter.writeLineField(
+            writer,
+            fieldNumber: fieldNum,
+            x: o.x1,
+            y: o.y1,
+            length: len,
+            thickness: t,
+            isVertical: false,
+          );
         } else if (o.x1 == o.x2) {
           // Vertical line
           final len = (o.y2 - o.y1).abs();
-          writer.writeByte(_stx);
-          writer.writeAscii('L$fieldNum;o${o.x1},${o.y1};f1;l$len;w$t');
-          writer.writeByte(_etx);
+          IplCommandWriter.writeLineField(
+            writer,
+            fieldNumber: fieldNum,
+            x: o.x1,
+            y: o.y1,
+            length: len,
+            thickness: t,
+            isVertical: true,
+          );
         }
 
       case CircleElement():
@@ -120,90 +115,48 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
 
       case BarcodeElement():
         final o = el.options;
-        writer.writeByte(_stx);
-        writer.writeAscii(
-          'B1;o0;f0;c0;h${o.height};w${o.wide ?? 2};d0,${o.y};',
+        IplCommandWriter.writeBarcodeField(
+          writer,
+          fieldNumber: 1,
+          y: o.y,
+          height: o.height,
+          wideMultiplier: o.wide ?? 2,
+          content: el.content,
+          symbologyCode: 0,
         );
-        writer.writeByte(_etx);
-        writer.writeAscii('\n');
-        writer.writeByte(_stx);
-        writer.writeAscii(el.content);
-        writer.writeByte(_etx);
-        writer.writeAscii('\n');
 
       case QRCodeElement():
         final o = el.options;
-        writer.writeByte(_stx);
-        writer.writeAscii(
-          'B2;o0;f0;c21;w${o.cellWidth ?? 4};h${o.cellWidth ?? 4};d0,${o.y};',
+        IplCommandWriter.writeQrCodeField(
+          writer,
+          fieldNumber: 2,
+          y: o.y,
+          cellWidth: o.cellWidth ?? 4,
+          content: el.content,
         );
-        writer.writeByte(_etx);
-        writer.writeAscii('\n');
-        writer.writeByte(_stx);
-        writer.writeAscii(el.content);
-        writer.writeByte(_etx);
-        writer.writeAscii('\n');
 
       case RawElement():
         if (el.content is Uint8List) {
-          writer.writeBytes(el.content as Uint8List);
+          IplCommandWriter.writeRawBytes(writer, el.content as Uint8List);
         } else if (el.content is List<int>) {
-          writer.writeBytes(el.content as List<int>);
+          IplCommandWriter.writeRawBytes(writer, el.content as List<int>);
         } else if (el.content is String) {
-          writer.writeString(el.content as String, encoding: latin1);
+          IplCommandWriter.writeRawAscii(writer, el.content as String);
         }
     }
   }
 
   if (label.copies > 1) {
-    writer.writeByte(_stx);
-    writer.writeByte(_esc);
-    writer.writeAscii('M${label.copies}');
-    writer.writeByte(_etx);
+    IplCommandWriter.writeCopies(writer, label.copies);
   }
 
   // STX ESC E1 ETX — End format
-  writer.writeByte(_stx);
-  writer.writeByte(_esc);
-  writer.writeAscii('E1');
-  writer.writeByte(_etx);
+  IplCommandWriter.writeEndFormat(writer, 1);
 
   // STX R ETX — Print / Execute
-  writer.writeByte(_stx);
-  writer.writeAscii('R');
-  writer.writeByte(_etx);
+  IplCommandWriter.writePrint(writer);
 
   return writer.toBytes();
-}
-
-/// Helper to encode text and guard against dangerous control bytes that break IPL framing.
-Uint8List _encodeIplText(
-  String text,
-  CodePageEncoder encoder, {
-  bool replaceUnsupported = false,
-}) {
-  final bytes = encoder.encode(text, replaceUnsupported: replaceUnsupported);
-  final result = Uint8List(bytes.length);
-  for (int i = 0; i < bytes.length; i++) {
-    final b = bytes[i];
-    if (b == _stx || b == _etx || b == _esc) {
-      if (replaceUnsupported) {
-        result[i] = 0x3F; // '?'
-      } else {
-        throw UnsupportedCharacterException(
-          character: String.fromCharCode(b),
-          codePoint: b,
-          codePage: encoder.codePage,
-          message:
-              'Control character (0x${b.toRadixString(16).padLeft(2, '0').toUpperCase()}) '
-              'is not supported inside unescaped IPL text records.',
-        );
-      }
-    } else {
-      result[i] = b;
-    }
-  }
-  return result;
 }
 
 /// Compile a resolved label to IPL commands as a [String].
