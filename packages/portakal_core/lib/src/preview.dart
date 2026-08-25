@@ -80,6 +80,44 @@ String _renderItem(PreviewItem item) {
       final colorHex = item.color == PreviewColor.white ? '#fff' : '#000';
       return '<ellipse cx="${_fmt(item.cx)}" cy="${_fmt(item.cy)}" rx="${item.rx.round()}" ry="${item.ry.round()}" fill="none" stroke="$colorHex" stroke-width="${_fmt(item.thickness)}"/>';
 
+    case PreviewBarcodeItem():
+      final transform = item.rotation != 0
+          ? ' transform="rotate(${item.rotation} ${_fmt(item.x)} ${_fmt(item.y)})"'
+          : '';
+      final buf = StringBuffer();
+      buf.write('<g$transform>');
+      for (final bar in item.bars) {
+        buf.write(
+          '<rect x="${_fmt(item.x + bar.targetX)}" y="${_fmt(item.y + bar.targetY)}" width="${_fmt(bar.targetWidth)}" height="${_fmt(bar.targetHeight)}" fill="#000"/>',
+        );
+      }
+      if (item.readable) {
+        final textY = item.y + item.height - 2.0;
+        final textX = item.x + item.width / 2.0;
+        buf.write(
+          '<text x="${_fmt(textX)}" y="${_fmt(textY)}" fill="#000" font-size="10" font-family="monospace" text-anchor="middle">${_escapeXml(item.payload)}</text>',
+        );
+      }
+      buf.write('</g>');
+      return buf.toString();
+
+    case PreviewQrItem():
+      final transform = item.rotation != 0
+          ? ' transform="rotate(${item.rotation} ${_fmt(item.x)} ${_fmt(item.y)})"'
+          : '';
+      final buf = StringBuffer();
+      buf.write('<g$transform>');
+      buf.write(
+        '<rect x="${_fmt(item.x)}" y="${_fmt(item.y)}" width="${_fmt(item.width)}" height="${_fmt(item.height)}" fill="#fff"/>',
+      );
+      for (final m in item.modules) {
+        buf.write(
+          '<rect x="${_fmt(item.x + m.targetX)}" y="${_fmt(item.y + m.targetY)}" width="${_fmt(m.targetWidth)}" height="${_fmt(m.targetHeight)}" fill="#000"/>',
+        );
+      }
+      buf.write('</g>');
+      return buf.toString();
+
     case PreviewPlaceholderItem():
       final transform = item.rotation != 0
           ? ' transform="rotate(${item.rotation} ${_fmt(item.x)} ${_fmt(item.y)})"'

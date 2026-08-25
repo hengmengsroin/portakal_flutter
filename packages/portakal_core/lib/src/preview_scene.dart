@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'barcode_encoder.dart';
 import 'builder.dart';
+import 'qr_encoder.dart';
 import 'types.dart';
 
 /// Preview color palette for monochromatic thermal output representation.
@@ -302,7 +304,129 @@ class PreviewOvalItem extends PreviewItem {
   int get hashCode => Object.hash(cx, cy, rx, ry, thickness, color);
 }
 
-/// Deterministic layout placeholder for 1D barcodes and 2D QR codes.
+/// Visual 1D barcode element composed of exact bar spans.
+class PreviewBarcodeItem extends PreviewItem {
+  final double x;
+  final double y;
+  final double width;
+  final double height;
+  final int rotation;
+  final String symbology;
+  final String payload;
+  final bool readable;
+  final List<PreviewBitmapSpan> bars;
+
+  const PreviewBarcodeItem({
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+    required this.rotation,
+    required this.symbology,
+    required this.payload,
+    required this.readable,
+    required this.bars,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PreviewBarcodeItem || runtimeType != other.runtimeType) {
+      return false;
+    }
+    if (x != other.x ||
+        y != other.y ||
+        width != other.width ||
+        height != other.height ||
+        rotation != other.rotation ||
+        symbology != other.symbology ||
+        payload != other.payload ||
+        readable != other.readable ||
+        bars.length != other.bars.length) {
+      return false;
+    }
+    for (var i = 0; i < bars.length; i++) {
+      if (bars[i] != other.bars[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        x,
+        y,
+        width,
+        height,
+        rotation,
+        symbology,
+        payload,
+        readable,
+        Object.hashAll(bars),
+      );
+}
+
+/// Visual 2D QR code element composed of exact module spans.
+class PreviewQrItem extends PreviewItem {
+  final double x;
+  final double y;
+  final double width;
+  final double height;
+  final int rotation;
+  final String payload;
+  final int moduleSize;
+  final int matrixSize;
+  final List<PreviewBitmapSpan> modules;
+
+  const PreviewQrItem({
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+    required this.rotation,
+    required this.payload,
+    required this.moduleSize,
+    required this.matrixSize,
+    required this.modules,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PreviewQrItem || runtimeType != other.runtimeType) {
+      return false;
+    }
+    if (x != other.x ||
+        y != other.y ||
+        width != other.width ||
+        height != other.height ||
+        rotation != other.rotation ||
+        payload != other.payload ||
+        moduleSize != other.moduleSize ||
+        matrixSize != other.matrixSize ||
+        modules.length != other.modules.length) {
+      return false;
+    }
+    for (var i = 0; i < modules.length; i++) {
+      if (modules[i] != other.modules[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        x,
+        y,
+        width,
+        height,
+        rotation,
+        payload,
+        moduleSize,
+        matrixSize,
+        Object.hashAll(modules),
+      );
+}
+
+/// Deterministic layout placeholder fallback for unsupported or unencodable visual codes.
 class PreviewPlaceholderItem extends PreviewItem {
   final double x;
   final double y;
@@ -409,9 +533,6 @@ class PreviewBitmapItem extends PreviewItem {
 }
 
 /// Canonical, immutable intermediate representation of a resolved label scene.
-///
-/// Converts a [ResolvedLabel] into a unified tree of geometric primitives that
-/// can be deterministically rendered by pure Dart SVG generators or Flutter CustomPainters.
 class PreviewScene {
   final int widthDots;
   final int heightDots;
@@ -625,10 +746,52 @@ class PreviewScene {
         final x = o.x.toDouble();
         final y = o.y.toDouble();
         final h = o.height.toDouble();
+        final rot = o.rotation ?? 0;
+        final isReadable = (o.readable ?? 0) != 0;
+
+        final pattern = BarcodeEncoder.encode(o.type, el.content);
+        if (pattern != null) {
+          final nw = max(1, o.narrow ?? 2).toDouble();
+          final textHeight = isReadable ? 14.0 : 0.0;
+          final barHeight = max(4.0, h - textHeight);
+          final bars = <PreviewBitmapSpan>[];
+
+          var currentX = 0.0;
+          for (var i = 0; i < pattern.moduleWidths.length; i++) {
+            final w = pattern.moduleWidths[i] * nw;
+            final isBar = (i % 2 == 0);
+            if (isBar) {
+              bars.add(
+                PreviewBitmapSpan(
+                  y: 0,
+                  xStart: currentX.toInt(),
+                  pixelCount: w.toInt(),
+                  targetX: currentX,
+                  targetY: 0,
+                  targetWidth: w,
+                  targetHeight: barHeight,
+                ),
+              );
+            }
+            currentX += w;
+          }
+
+          return PreviewBarcodeItem(
+            x: x,
+            y: y,
+            width: currentX,
+            height: h,
+            rotation: rot,
+            symbology: o.type,
+            payload: el.content,
+            readable: isReadable,
+            bars: List.unmodifiable(bars),
+          );
+        }
+
+        // Fallback placeholder
         final labelText = 'BARCODE: ${el.content}';
         final w = max(100.0, labelText.length * 8.0);
-        final rot = o.rotation ?? 0;
-
         return PreviewPlaceholderItem(
           x: x,
           y: y,
@@ -645,15 +808,63 @@ class PreviewScene {
         final o = el.options;
         final x = o.x.toDouble();
         final y = o.y.toDouble();
-        final cellW = (o.cellWidth ?? 4).toDouble();
-        final size = cellW * 20.0;
         final rot = o.rotation ?? 0;
+        final cellW = max(1, o.cellWidth ?? 4);
 
+        final qrMatrix =
+            QrCodeEncoder.encode(el.content, ecc: o.eccLevel ?? 'M');
+        if (qrMatrix != null) {
+          final size = qrMatrix.size;
+          final qz = 2; // 2 modules quiet zone
+          final totalDim = (size + qz * 2) * cellW.toDouble();
+          final modules = <PreviewBitmapSpan>[];
+
+          for (var r = 0; r < size; r++) {
+            var c = 0;
+            while (c < size) {
+              if (qrMatrix.isDark(r, c)) {
+                final startC = c;
+                while (c < size && qrMatrix.isDark(r, c)) {
+                  c++;
+                }
+                final count = c - startC;
+                modules.add(
+                  PreviewBitmapSpan(
+                    y: r,
+                    xStart: startC,
+                    pixelCount: count,
+                    targetX: (startC + qz) * cellW.toDouble(),
+                    targetY: (r + qz) * cellW.toDouble(),
+                    targetWidth: count * cellW.toDouble(),
+                    targetHeight: cellW.toDouble(),
+                  ),
+                );
+              } else {
+                c++;
+              }
+            }
+          }
+
+          return PreviewQrItem(
+            x: x,
+            y: y,
+            width: totalDim,
+            height: totalDim,
+            rotation: rot,
+            payload: el.content,
+            moduleSize: cellW,
+            matrixSize: size,
+            modules: List.unmodifiable(modules),
+          );
+        }
+
+        // Fallback placeholder
+        final placeholderSize = cellW * 20.0;
         return PreviewPlaceholderItem(
           x: x,
           y: y,
-          width: size,
-          height: size,
+          width: placeholderSize,
+          height: placeholderSize,
           rotation: rot,
           kind: PreviewPlaceholderKind.qrCode,
           typeName: 'QR',

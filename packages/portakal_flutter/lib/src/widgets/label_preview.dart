@@ -63,80 +63,88 @@ class LabelPreview extends StatelessWidget {
     final canvasRatio = widthDots / heightDots;
     final metaHeight = showMeta ? 18.0 : 0.0;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final hasFiniteWidth = constraints.maxWidth.isFinite;
-        final hasFiniteHeight = constraints.maxHeight.isFinite;
+    final widthMm = (widthDots / scene.dpi * 25.4).round();
+    final heightMm = (heightDots / scene.dpi * 25.4).round();
 
-        double targetWidth;
-        double targetHeight;
+    return Semantics(
+      label:
+          'Print preview, $widthMm by $heightMm millimeters, ${scene.widthDots} by ${scene.heightDots} dots',
+      image: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final hasFiniteWidth = constraints.maxWidth.isFinite;
+          final hasFiniteHeight = constraints.maxHeight.isFinite;
 
-        if (hasFiniteWidth && hasFiniteHeight) {
-          final maxCanvasHeight = math.max(
-            0.0,
-            constraints.maxHeight - metaHeight,
-          );
-          final widthFromHeight = maxCanvasHeight * canvasRatio;
+          double targetWidth;
+          double targetHeight;
 
-          if (widthFromHeight <= constraints.maxWidth) {
-            targetWidth = widthFromHeight;
-            targetHeight = maxCanvasHeight + metaHeight;
-          } else {
+          if (hasFiniteWidth && hasFiniteHeight) {
+            final maxCanvasHeight = math.max(
+              0.0,
+              constraints.maxHeight - metaHeight,
+            );
+            final widthFromHeight = maxCanvasHeight * canvasRatio;
+
+            if (widthFromHeight <= constraints.maxWidth) {
+              targetWidth = widthFromHeight;
+              targetHeight = maxCanvasHeight + metaHeight;
+            } else {
+              targetWidth = constraints.maxWidth;
+              targetHeight = (targetWidth / canvasRatio) + metaHeight;
+            }
+          } else if (hasFiniteWidth) {
             targetWidth = constraints.maxWidth;
             targetHeight = (targetWidth / canvasRatio) + metaHeight;
+          } else if (hasFiniteHeight) {
+            final maxCanvasHeight = math.max(
+              0.0,
+              constraints.maxHeight - metaHeight,
+            );
+            targetHeight = constraints.maxHeight;
+            targetWidth = maxCanvasHeight * canvasRatio;
+          } else {
+            targetWidth = 320.0;
+            targetHeight = (320.0 / canvasRatio) + metaHeight;
           }
-        } else if (hasFiniteWidth) {
-          targetWidth = constraints.maxWidth;
-          targetHeight = (targetWidth / canvasRatio) + metaHeight;
-        } else if (hasFiniteHeight) {
-          final maxCanvasHeight = math.max(
-            0.0,
-            constraints.maxHeight - metaHeight,
-          );
-          targetHeight = constraints.maxHeight;
-          targetWidth = maxCanvasHeight * canvasRatio;
-        } else {
-          targetWidth = 320.0;
-          targetHeight = (320.0 / canvasRatio) + metaHeight;
-        }
 
-        return Center(
-          child: SizedBox(
-            width: targetWidth,
-            height: targetHeight,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: RepaintBoundary(
-                    child: CustomPaint(
-                      painter: _LabelPreviewPainter(
-                        scene: scene,
-                        backgroundColor: backgroundColor,
-                        canvasColor: canvasColor,
-                        borderColor: borderColor,
+          return Center(
+            child: SizedBox(
+              width: targetWidth,
+              height: targetHeight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        painter: _LabelPreviewPainter(
+                          scene: scene,
+                          backgroundColor: backgroundColor,
+                          canvasColor: canvasColor,
+                          borderColor: borderColor,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                if (showMeta)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      '${scene.widthDots}x${scene.heightDots} dots (${scene.dpi} DPI)',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color(0xFFA1A1AA),
-                        fontSize: 10,
-                        fontFamily: 'monospace',
+                  if (showMeta)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        '${scene.widthDots}x${scene.heightDots} dots (${scene.dpi} DPI)',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xFFA1A1AA),
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -196,6 +204,10 @@ class _LabelPreviewPainter extends CustomPainter {
         _drawCircle(canvas, item);
       case PreviewOvalItem():
         _drawOval(canvas, item);
+      case PreviewBarcodeItem():
+        _drawBarcode(canvas, item);
+      case PreviewQrItem():
+        _drawQr(canvas, item);
       case PreviewPlaceholderItem():
         _drawPlaceholder(canvas, item);
       case PreviewBitmapItem():
@@ -327,6 +339,96 @@ class _LabelPreviewPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = item.thickness,
     );
+  }
+
+  void _drawBarcode(Canvas canvas, PreviewBarcodeItem item) {
+    final isRotated = item.rotation != 0;
+    if (isRotated) {
+      canvas.save();
+      canvas.translate(item.x, item.y);
+      canvas.rotate((item.rotation * math.pi) / 180.0);
+    }
+
+    final barPaint = Paint()..color = Colors.black;
+    for (final bar in item.bars) {
+      final rect = isRotated
+          ? Rect.fromLTWH(
+              bar.targetX,
+              bar.targetY,
+              bar.targetWidth,
+              bar.targetHeight,
+            )
+          : Rect.fromLTWH(
+              item.x + bar.targetX,
+              item.y + bar.targetY,
+              bar.targetWidth,
+              bar.targetHeight,
+            );
+      canvas.drawRect(rect, barPaint);
+    }
+
+    if (item.readable) {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: item.payload,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 10,
+            fontFamily: 'monospace',
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      final textX = isRotated
+          ? (item.width - painter.width) / 2.0
+          : item.x + (item.width - painter.width) / 2.0;
+      final textY = isRotated
+          ? item.height - painter.height
+          : item.y + item.height - painter.height;
+
+      painter.paint(canvas, Offset(textX, textY));
+    }
+
+    if (isRotated) {
+      canvas.restore();
+    }
+  }
+
+  void _drawQr(Canvas canvas, PreviewQrItem item) {
+    final isRotated = item.rotation != 0;
+    if (isRotated) {
+      canvas.save();
+      canvas.translate(item.x, item.y);
+      canvas.rotate((item.rotation * math.pi) / 180.0);
+    }
+
+    final bgRect = isRotated
+        ? Rect.fromLTWH(0, 0, item.width, item.height)
+        : Rect.fromLTWH(item.x, item.y, item.width, item.height);
+    canvas.drawRect(bgRect, Paint()..color = Colors.white);
+
+    final modulePaint = Paint()..color = Colors.black;
+    for (final m in item.modules) {
+      final rect = isRotated
+          ? Rect.fromLTWH(
+              m.targetX,
+              m.targetY,
+              m.targetWidth,
+              m.targetHeight,
+            )
+          : Rect.fromLTWH(
+              item.x + m.targetX,
+              item.y + m.targetY,
+              m.targetWidth,
+              m.targetHeight,
+            );
+      canvas.drawRect(rect, modulePaint);
+    }
+
+    if (isRotated) {
+      canvas.restore();
+    }
   }
 
   void _drawPlaceholder(Canvas canvas, PreviewPlaceholderItem item) {

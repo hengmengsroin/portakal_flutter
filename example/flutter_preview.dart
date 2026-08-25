@@ -77,13 +77,13 @@ class _PreviewBeforePrintScreenState extends State<PreviewBeforePrintScreen> {
         .text('\$5.50', const TextOptions(x: 520, y: 440, size: 1))
         .text('Total:', const TextOptions(x: 420, y: 490, size: 2, bold: true))
         .text('\$60.50', const TextOptions(x: 520, y: 490, size: 2, bold: true))
-        // Footer box
+        // Footer box containing barcode and QR
         .box(
           const BoxOptions(
             x: 20,
-            y: 580,
+            y: 560,
             width: 600,
-            height: 100,
+            height: 140,
             thickness: 2,
           ),
         )
@@ -91,7 +91,7 @@ class _PreviewBeforePrintScreenState extends State<PreviewBeforePrintScreen> {
           '123456789',
           const BarcodeOptions(
             x: 40,
-            y: 600,
+            y: 580,
             type: '128',
             height: 60,
             readable: 1,
@@ -99,7 +99,7 @@ class _PreviewBeforePrintScreenState extends State<PreviewBeforePrintScreen> {
         )
         .qrcode(
           'https://example.com/invoice/INV-001',
-          const QRCodeOptions(x: 460, y: 600, cellWidth: 5),
+          const QRCodeOptions(x: 460, y: 575, cellWidth: 4),
         );
 
     _resolvedJob = builder.resolve();

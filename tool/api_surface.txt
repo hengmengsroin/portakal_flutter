@@ -6,7 +6,7 @@
 ## PACKAGE: portakal_core
 Entrypoint: packages/portakal_core/lib/portakal_core.dart
 
-Total Public Declarations: 694
+Total Public Declarations: 714
 
     member BarcodeElement.content (in /packages/portakal_core/lib/src/types.dart)
     member BarcodeElement.options (in /packages/portakal_core/lib/src/types.dart)
@@ -186,6 +186,15 @@ Total Public Declarations: 694
     member PortakalError.PortakalError() (in /packages/portakal_core/lib/src/errors.dart)
     member PortakalError.message (in /packages/portakal_core/lib/src/errors.dart)
     member PortakalError.toString (in /packages/portakal_core/lib/src/errors.dart)
+    member PreviewBarcodeItem.bars (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.payload (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.readable (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.rotation (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.symbology (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.width (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.x (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.y (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBitmapItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBitmapItem.sourceHeight (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBitmapItem.sourceWidth (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -228,6 +237,15 @@ Total Public Declarations: 694
     member PreviewPlaceholderItem.width (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewPlaceholderItem.x (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewPlaceholderItem.y (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.matrixSize (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.moduleSize (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.modules (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.payload (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.rotation (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.width (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.x (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.y (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewRectItem.color (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewRectItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewRectItem.isFilled (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -553,6 +571,7 @@ Total Public Declarations: 694
   class MonochromeBitmap (in /packages/portakal_core/lib/src/types.dart)
   class MonochromeOptions (in /packages/portakal_core/lib/src/types.dart)
   class PortakalError (in /packages/portakal_core/lib/src/errors.dart)
+  class PreviewBarcodeItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewBitmapItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewBitmapSpan (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewCircleItem (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -560,6 +579,7 @@ Total Public Declarations: 694
   class PreviewLineItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewOvalItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewPlaceholderItem (in /packages/portakal_core/lib/src/preview_scene.dart)
+  class PreviewQrItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewRectItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewScene (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewTextItem (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -708,7 +728,7 @@ Total Public Declarations: 694
 ## PACKAGE: portakal_flutter
 Entrypoint: packages/portakal_flutter/lib/portakal_flutter.dart
 
-Total Public Declarations: 701
+Total Public Declarations: 721
 
     member BarcodeElement.content (in /packages/portakal_core/lib/src/types.dart)
     member BarcodeElement.options (in /packages/portakal_core/lib/src/types.dart)
@@ -894,6 +914,15 @@ Total Public Declarations: 701
     member PortakalError.PortakalError() (in /packages/portakal_core/lib/src/errors.dart)
     member PortakalError.message (in /packages/portakal_core/lib/src/errors.dart)
     member PortakalError.toString (in /packages/portakal_core/lib/src/errors.dart)
+    member PreviewBarcodeItem.bars (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.payload (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.readable (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.rotation (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.symbology (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.width (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.x (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.y (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBitmapItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBitmapItem.sourceHeight (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBitmapItem.sourceWidth (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -936,6 +965,15 @@ Total Public Declarations: 701
     member PreviewPlaceholderItem.width (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewPlaceholderItem.x (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewPlaceholderItem.y (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.matrixSize (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.moduleSize (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.modules (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.payload (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.rotation (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.width (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.x (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewQrItem.y (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewRectItem.color (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewRectItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewRectItem.isFilled (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -1262,6 +1300,7 @@ Total Public Declarations: 701
   class MonochromeBitmap (in /packages/portakal_core/lib/src/types.dart)
   class MonochromeOptions (in /packages/portakal_core/lib/src/types.dart)
   class PortakalError (in /packages/portakal_core/lib/src/errors.dart)
+  class PreviewBarcodeItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewBitmapItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewBitmapSpan (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewCircleItem (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -1269,6 +1308,7 @@ Total Public Declarations: 701
   class PreviewLineItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewOvalItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewPlaceholderItem (in /packages/portakal_core/lib/src/preview_scene.dart)
+  class PreviewQrItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewRectItem (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewScene (in /packages/portakal_core/lib/src/preview_scene.dart)
   class PreviewTextItem (in /packages/portakal_core/lib/src/preview_scene.dart)

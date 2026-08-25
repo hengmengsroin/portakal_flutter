@@ -134,7 +134,7 @@ void main() {
       expect(oval.thickness, equals(2.0));
     });
 
-    test('P05 — Barcode deterministic placeholder geometry', () {
+    test('P05 — Barcode visual bar pattern generation', () {
       final b = label(const LabelConfig(width: 40, height: 30)).barcode(
         '987654321',
         const BarcodeOptions(
@@ -143,45 +143,44 @@ void main() {
           type: '128',
           height: 60,
           rotation: 90,
+          readable: 1,
         ),
       );
       final scene = PreviewScene.fromResolved(b.resolve());
 
-      final item = scene.items.first as PreviewPlaceholderItem;
-      expect(item.kind, equals(PreviewPlaceholderKind.barcode));
+      final item = scene.items.first as PreviewBarcodeItem;
+      expect(item.symbology, equals('128'));
+      expect(item.payload, equals('987654321'));
       expect(item.x, equals(15.0));
       expect(item.y, equals(25.0));
       expect(item.height, equals(60.0));
       expect(item.rotation, equals(90));
-      expect(item.label, equals('BARCODE: 987654321'));
-      expect(item.width, greaterThanOrEqualTo(100.0));
+      expect(item.readable, isTrue);
+      expect(item.bars, isNotEmpty);
 
       final svg = renderPreviewScene(scene);
-      expect(svg, contains('BARCODE: 987654321'));
-      expect(svg, contains('stroke-dasharray="3,3"'));
+      expect(svg, contains('987654321'));
       expect(svg, contains('transform="rotate(90 15 25)"'));
     });
 
-    test('P06 — QR code deterministic placeholder geometry', () {
+    test('P06 — QR code visual matrix generation', () {
       final b = label(const LabelConfig(width: 40, height: 30)).qrcode(
         'https://portakal.dev',
         const QRCodeOptions(x: 50, y: 50, cellWidth: 5, rotation: 180),
       );
       final scene = PreviewScene.fromResolved(b.resolve());
 
-      final item = scene.items.first as PreviewPlaceholderItem;
-      expect(item.kind, equals(PreviewPlaceholderKind.qrCode));
+      final item = scene.items.first as PreviewQrItem;
+      expect(item.payload, equals('https://portakal.dev'));
       expect(item.x, equals(50.0));
       expect(item.y, equals(50.0));
-      expect(item.width, equals(100.0)); // 5 * 20
-      expect(item.height, equals(100.0));
+      expect(item.moduleSize, equals(5));
       expect(item.rotation, equals(180));
-      expect(item.label, contains('QR:'));
+      expect(item.modules, isNotEmpty);
 
       final svg = renderPreviewScene(scene);
-      expect(svg, contains('QR:'));
-      expect(svg, contains('https://portakal.dev'));
       expect(svg, contains('transform="rotate(180 50 50)"'));
+      expect(svg, contains('fill="#fff"'));
     });
 
     test('P07 — Bitmap spans generation without lossy downsampling', () {
@@ -376,6 +375,79 @@ void main() {
 
       final svg = renderPreviewScene(scene);
       expect(svg.length, greaterThan(1000));
+    });
+
+    test('Visual Acceptance Fixtures V01-V07', () {
+      // V01 Invoice
+      final v01 = label(const LabelConfig(width: 80, height: 100))
+          .text(
+            'INVOICE',
+            const TextOptions(x: 20, y: 20, size: 2, bold: true),
+          )
+          .barcode(
+            'INV100',
+            const BarcodeOptions(x: 20, y: 60, type: '128', height: 50),
+          )
+          .qrcode(
+            'https://inv.example.com/100',
+            const QRCodeOptions(x: 300, y: 60),
+          );
+      expect(PreviewScene.fromResolved(v01.resolve()).items.length, equals(3));
+
+      // V02 Shipping
+      final v02 = label(const LabelConfig(width: 100, height: 150))
+          .text('SHIP TO:', const TextOptions(x: 20, y: 20))
+          .barcode(
+            'TRACK123',
+            const BarcodeOptions(x: 20, y: 60, type: '39', height: 50),
+          );
+      expect(PreviewScene.fromResolved(v02.resolve()).items.length, equals(2));
+
+      // V03 Product Label
+      final v03 = label(const LabelConfig(width: 50, height: 30))
+          .text('ORGANIC COFFEE', const TextOptions(x: 10, y: 10, bold: true))
+          .text('\$14.99', const TextOptions(x: 10, y: 30, size: 2))
+          .barcode(
+            '4006381333931',
+            const BarcodeOptions(x: 10, y: 60, type: 'EAN13', height: 40),
+          );
+      expect(PreviewScene.fromResolved(v03.resolve()).items.length, equals(3));
+
+      // V04 Receipt
+      final v04 = label(
+        const LabelConfig(width: 80),
+      ).text('STORE #01', const TextOptions(x: 20, y: 10));
+      expect(PreviewScene.fromResolved(v04.resolve()).heightDots, equals(400));
+
+      // V05 Barcode / QR Matrix
+      final v05 = label(const LabelConfig(width: 60, height: 40))
+          .barcode(
+            'BAR123',
+            const BarcodeOptions(x: 10, y: 10, type: '128', height: 50),
+          )
+          .qrcode('QR123', const QRCodeOptions(x: 200, y: 10));
+      final sceneV05 = PreviewScene.fromResolved(v05.resolve());
+      expect(sceneV05.items[0], isA<PreviewBarcodeItem>());
+      expect(sceneV05.items[1], isA<PreviewQrItem>());
+
+      // V06 Unicode Label
+      final v06 = label(
+        const LabelConfig(width: 50, height: 30),
+      ).text('CAFÉ & THÉ: 10.50€', const TextOptions(x: 10, y: 10));
+      expect(renderPreview(v06.resolve()), contains('CAFÉ &amp; THÉ: 10.50€'));
+
+      // V07 Bitmap
+      final bmp = MonochromeBitmap(
+        data: Uint8List.fromList([0xAA, 0x55]),
+        width: 8,
+        height: 2,
+        bytesPerRow: 1,
+      );
+      final v07 = label(const LabelConfig(width: 40, height: 30)).image(bmp);
+      expect(
+        PreviewScene.fromResolved(v07.resolve()).items[0],
+        isA<PreviewBitmapItem>(),
+      );
     });
 
     test('Structural value equality on PreviewScene', () {
