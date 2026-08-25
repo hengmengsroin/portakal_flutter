@@ -65,3 +65,4 @@ export 'src/native/escpos.dart';
 export 'src/native/zpl.dart';
 export 'src/native/epl.dart';
 export 'src/native/cpcl.dart';
+export 'src/native/dpl.dart';
