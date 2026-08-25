@@ -7,7 +7,26 @@ on:
     branches: [ main ]
 
 jobs:
-  core-verification:
+  core-minimum:
+    name: Core Package (Minimum Dart 3.6.0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.6.0"
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Static analysis (portakal_core)
+        run: dart analyze --fatal-infos packages/portakal_core
+
+      - name: Run tests (portakal_core)
+        run: dart test packages/portakal_core
+
+  core-stable:
     name: Core Package (Dart Stable)
     runs-on: ubuntu-latest
     steps:
@@ -34,7 +53,7 @@ jobs:
 
       - name: API Surface Freeze Guard
         run: |
-          dart run tool/generate_api_snapshot.dart || true
+          dart run tool/generate_api_snapshot.dart
           git diff --exit-code tool/api_surface.txt
 
       - name: Publish dry-run (portakal_core)
@@ -42,7 +61,27 @@ jobs:
           cd packages/portakal_core
           dart pub publish --dry-run
 
-  flutter-verification:
+  flutter-minimum:
+    name: Flutter Package (Minimum Flutter 3.27.0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.27.0"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Static analysis (portakal_flutter)
+        run: flutter analyze --fatal-infos packages/portakal_flutter
+
+      - name: Run widget & documentation tests (portakal_flutter)
+        run: flutter test packages/portakal_flutter
+
+  flutter-stable:
     name: Flutter Package (Flutter Stable)
     runs-on: ubuntu-latest
     steps:
