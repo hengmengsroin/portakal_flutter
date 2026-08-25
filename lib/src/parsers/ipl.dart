@@ -66,9 +66,11 @@ IPLParseResult parseIPL(String code) {
       continue;
     }
 
-    // <SI> configuration
-    if (frame.startsWith('<SI>')) {
-      final rest = frame.substring(4);
+    // SI (0x0F) configuration
+    if (frame.startsWith('\x0f') || frame.startsWith('<SI>')) {
+      final rest = frame.startsWith('\x0f')
+          ? frame.substring(1)
+          : frame.substring(4);
       if (rest.startsWith('L')) {
         heightDots = int.tryParse(rest.substring(1)) ?? 0;
         commands.add(

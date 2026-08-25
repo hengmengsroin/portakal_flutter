@@ -8,10 +8,11 @@ import '../types.dart';
 const int _stx = 0x02;
 const int _etx = 0x03;
 const int _esc = 0x1B;
+const int _si = 0x0F;
 
 /// Compile a resolved label to IPL commands as a byte sequence ([Uint8List]).
 ///
-/// Uses actual control bytes (`STX` = 0x02, `ETX` = 0x03, `ESC` = 0x1B).
+/// Uses actual control bytes (`STX` = 0x02, `ETX` = 0x03, `ESC` = 0x1B, `SI` = 0x0F).
 /// If [encoding] is supplied, text fields are encoded using the configured [CodePageEncoder].
 /// Control characters (`STX`, `ETX`, `ESC`) inside text fields are explicitly rejected with
 /// [UnsupportedCharacterException] (or replaced with `?` if `replaceUnsupported: true`) to prevent
@@ -34,23 +35,27 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
   writer.writeAscii('P');
   writer.writeByte(_etx);
 
-  // Label size and printer configuration: <SI>L<height>, <SI>W<width>
+  // Label size and printer configuration: <STX><SI>L<height><ETX>, <STX><SI>W<width><ETX>
   writer.writeByte(_stx);
-  writer.writeAscii('<SI>L${label.heightDots}');
+  writer.writeByte(_si);
+  writer.writeAscii('L${label.heightDots}');
   writer.writeByte(_etx);
 
   writer.writeByte(_stx);
-  writer.writeAscii('<SI>W${label.widthDots}');
+  writer.writeByte(_si);
+  writer.writeAscii('W${label.widthDots}');
   writer.writeByte(_etx);
 
   if (label.speed > 0) {
     writer.writeByte(_stx);
-    writer.writeAscii('<SI>S${label.speed}0');
+    writer.writeByte(_si);
+    writer.writeAscii('S${label.speed}0');
     writer.writeByte(_etx);
   }
   if (label.density > 0) {
     writer.writeByte(_stx);
-    writer.writeAscii('<SI>d${label.density}');
+    writer.writeByte(_si);
+    writer.writeAscii('d${label.density}');
     writer.writeByte(_etx);
   }
 

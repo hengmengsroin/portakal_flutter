@@ -10,7 +10,7 @@ import 'package:portakal_flutter/src/types.dart';
 void main() {
   group('IPL Byte-Native Compiler', () {
     test(
-      'ASCII output is byte-for-byte identical to legacy string baseline',
+      'Output matches byte-for-byte with latin1 string wrapper and uses binary control bytes',
       () {
         final builder =
             label(
@@ -45,10 +45,10 @@ void main() {
         final byteOutput = ipl.compileBytes(builder);
         final stringOutput = ipl.compile(builder);
 
-        // Verify exact byte equivalence with legacy string output
+        // Verify exact byte equivalence with latin1 string output
         expect(
           byteOutput,
-          equals(Uint8List.fromList(ascii.encode(stringOutput))),
+          equals(Uint8List.fromList(latin1.encode(stringOutput))),
         );
       },
     );
@@ -92,18 +92,63 @@ void main() {
     );
 
     test(
-      'Session metrics framing generates exact <SI> records wrapped in STX/ETX',
+      'Session metrics framing generates exact binary SI (0x0F) commands in STX/ETX',
       () {
         final builder = label(
           const LabelConfig(width: 40, height: 30, speed: 6, density: 10),
         );
         final output = ipl.compileBytes(builder);
-        final text = latin1.decode(output);
+        final outputList = output.toList();
 
-        expect(text, contains('\x02<SI>L240\x03'));
-        expect(text, contains('\x02<SI>W320\x03'));
-        expect(text, contains('\x02<SI>S60\x03'));
-        expect(text, contains('\x02<SI>d10\x03'));
+        // <STX><SI>L240<ETX> -> [0x02, 0x0F, 0x4C, 0x32, 0x34, 0x30, 0x03]
+        expect(
+          _findSequence(outputList, [0x02, 0x0F, 0x4C, 0x32, 0x34, 0x30, 0x03]),
+          greaterThan(-1),
+          reason: '<SI>L length command must emit binary 0x0F',
+        );
+
+        // <STX><SI>W320<ETX> -> [0x02, 0x0F, 0x57, 0x33, 0x32, 0x30, 0x03]
+        expect(
+          _findSequence(outputList, [0x02, 0x0F, 0x57, 0x33, 0x32, 0x30, 0x03]),
+          greaterThan(-1),
+          reason: '<SI>W width command must emit binary 0x0F',
+        );
+
+        // <STX><SI>S60<ETX> -> [0x02, 0x0F, 0x53, 0x36, 0x30, 0x03]
+        expect(
+          _findSequence(outputList, [0x02, 0x0F, 0x53, 0x36, 0x30, 0x03]),
+          greaterThan(-1),
+          reason: '<SI>S speed command must emit binary 0x0F',
+        );
+
+        // <STX><SI>d10<ETX> -> [0x02, 0x0F, 0x64, 0x31, 0x30, 0x03]
+        expect(
+          _findSequence(outputList, [0x02, 0x0F, 0x64, 0x31, 0x30, 0x03]),
+          greaterThan(-1),
+          reason: '<SI>d density command must emit binary 0x0F',
+        );
+
+        // Verify no literal printable debug tokens exist in wire output
+        expect(
+          _findSequence(outputList, ascii.encode('<SI>')),
+          equals(-1),
+          reason: 'Must NOT contain literal "<SI>" text',
+        );
+        expect(
+          _findSequence(outputList, ascii.encode('<STX>')),
+          equals(-1),
+          reason: 'Must NOT contain literal "<STX>" text',
+        );
+        expect(
+          _findSequence(outputList, ascii.encode('<ETX>')),
+          equals(-1),
+          reason: 'Must NOT contain literal "<ETX>" text',
+        );
+        expect(
+          _findSequence(outputList, ascii.encode('<ESC>')),
+          equals(-1),
+          reason: 'Must NOT contain literal "<ESC>" text',
+        );
       },
     );
 

@@ -21,18 +21,20 @@ void main() {
       expect(output, contains('\x02R\x03'));
     });
 
-    test('generates label size config', () {
+    test('generates label size config with binary SI (0x0F)', () {
       final output = ipl.compile(label(LabelConfig(width: 40, height: 30)));
-      expect(output, contains('<SI>L240')); // 30mm at 203 DPI
-      expect(output, contains('<SI>W320')); // 40mm at 203 DPI
+      expect(output, contains('\x02\x0fL240\x03')); // 30mm at 203 DPI
+      expect(output, contains('\x02\x0fW320\x03')); // 40mm at 203 DPI
+      expect(output, isNot(contains('<SI>')));
     });
 
-    test('generates speed and density config', () {
+    test('generates speed and density config with binary SI (0x0F)', () {
       final output = ipl.compile(
         label(LabelConfig(width: 40, height: 30, speed: 6, density: 10)),
       );
-      expect(output, contains('<SI>S60'));
-      expect(output, contains('<SI>d10'));
+      expect(output, contains('\x02\x0fS60\x03'));
+      expect(output, contains('\x02\x0fd10\x03'));
+      expect(output, isNot(contains('<SI>')));
     });
 
     test('generates text field (H command)', () {
