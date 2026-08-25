@@ -2,27 +2,27 @@
 
 Flutter integration package for **Portakal**, the universal thermal and label printer SDK.
 
-- Provides the `LabelPreview` widget to visually render and preview label layouts before sending command streams to hardware.
-- Supports the **Preview-Before-Print** workflow: resolve a label once, review the preview widget, and compile that exact same resolved job for printing.
-- Re-exports the complete pure-Dart `portakal_core` engine — fluent AST builder, 9 protocol compilers, 9 native protocol builders, 9 parsers, encodings, and dithering.
+- Provides the `LabelPreview` widget to visually render and preview label layouts before sending command streams to physical hardware.
+- Supports the **Preview-Before-Print** workflow: resolve a label once into an immutable `ResolvedLabel`, review the preview widget, and compile that exact same resolved job for printing.
+- Re-exports the complete pure-Dart `portakal_core` engine — universal AST builder, 9 protocol compilers, 9 native protocol builders, 9 parsers, encodings, and dithering.
 - Re-exports `portakal_core` with `ReceiptColumn` collision shielding (`hide Column`), ensuring zero namespace conflict with Flutter's built-in `Column` widget.
 
 ---
 
 ## Installation
 
-```yaml
-dependencies:
-  portakal_flutter: ^1.1.0
+```bash
+flutter pub add portakal_flutter
 ```
 
 ---
 
 ## Headline Workflow: Preview-Before-Print
 
-The canonical 1.1 workflow guarantees that the exact logical job reviewed in the preview is the job compiled for printing:
+The canonical workflow guarantees that the exact logical job reviewed in the preview is the job compiled for printing:
 
 ```dart
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:portakal_flutter/portakal_flutter.dart';
 
@@ -56,10 +56,10 @@ class ShippingLabelScreen extends StatelessWidget {
         icon: const Icon(Icons.print),
         onPressed: () {
           // 4. Compile that SAME resolved job directly to Uint8List bytes
-          final tscBytes = tsc.compileResolved(job);
-          final zplBytes = zpl.compileResolved(job);
+          final Uint8List tscBytes = tsc.compileResolved(job);
+          final Uint8List zplBytes = zpl.compileResolved(job);
 
-          // Pass bytes to your Bluetooth, USB, or Network transport
+          // 5. Pass bytes to your Bluetooth, USB, or Network transport
         },
       ),
     );
@@ -67,9 +67,29 @@ class ShippingLabelScreen extends StatelessWidget {
 }
 ```
 
-### Simple Mode
+### Simple Mode (Non-Interactive)
 
-For quick demonstrations or dynamic builders where separate resolution is not required, `LabelPreview(label: builder)` and `tsc.compile(builder)` remain fully supported.
+For automated background batch jobs or quick testing where visual preview is not required, `tsc.compile(builder)` remains fully supported.
+
+---
+
+## Byte-Safe Contract & Transport Boundary
+
+Portakal produces **`Uint8List`** byte streams. Transmit raw bytes directly to your communication transport (Bluetooth Low Energy, USB, or TCP Socket). Never convert printer byte streams to strings.
+
+---
+
+## 🎨 19-Use-Case Practical Example Gallery
+
+Explore runnable real-world templates in the [`example/`](https://github.com/hengmengsroin/portakal_flutter/tree/main/example) directory covering:
+- **Retail**: Price Labels (EAN-13), Discount & Promotion Tags
+- **Pharmacy**: Prescription Usage Labels, Batch & Expiry Alert Tags
+- **Restaurant**: Kitchen Order Tickets (KOT), Itemized Dining Receipts
+- **Warehouse**: Location Bin Tags (Aisle/Rack), Inventory Lot Tags
+- **Logistics**: Cross-Border Shipping Labels, Compact Courier Routing Tags
+- **Tickets & Badges**: Event Admission Tickets, Queue Number Slips, Visitor Badges
+- **Asset Management**: Enterprise IT Hardware Tags
+- **Advanced**: Commercial Invoices, 1-bit Monochrome Bitmaps, Multilingual Text
 
 ---
 
@@ -118,8 +138,23 @@ Widget buildReceiptView() {
 
 ---
 
-## Documentation
+## Documentation & References
 
-- [Core Engine & Compiler Documentation](https://pub.dev/packages/portakal_core)
+- [Getting Started Guide](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/getting-started.md)
+- [Architecture & Concepts](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/concepts.md)
+- [Universal LabelBuilder Reference](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/universal-builder.md)
+- [Native Protocol Builders](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/native-builders.md)
+- [Character Encodings & Code Pages](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/encoding.md)
+- [Raw Bytes Passthrough](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/raw-bytes.md)
+- [Images & Raster Graphics](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/images-raster.md)
+- [Transport & Retries](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/transport.md)
+- [Hardware Validation Framework](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/validation.md)
+- [Hardware Compatibility Matrix](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/compatibility.md)
+- [Migration Guide (pre-1.0 to 1.0)](https://github.com/hengmengsroin/portakal_flutter/blob/main/docs/migration/pre-1.0-to-1.0.md)
 - [Issue Tracker](https://github.com/hengmengsroin/portakal_flutter/issues)
-- [Repository](https://github.com/hengmengsroin/portakal_flutter)
+
+---
+
+## License
+
+MIT License - see [LICENSE](LICENSE).
