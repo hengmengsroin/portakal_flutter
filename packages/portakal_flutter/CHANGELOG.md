@@ -7,7 +7,7 @@
 
 ### Changed
 - Standardized `portakal_flutter` as a clean Flutter companion package dependent on hosted `portakal_core`.
-- Updated SDK constraints to Dart `^3.6.0` and Flutter `>=3.24.0`.
+- Updated SDK constraints to Dart `^3.6.0` and Flutter `>=3.27.0`.
 
 ### Hardware Validation
 - Integrated interactive hardware test bench app supporting capability probe execution, manual override verification, and session evidence JSON export.

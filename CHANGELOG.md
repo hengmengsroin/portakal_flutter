@@ -16,7 +16,7 @@
 ### Changed
 - Decoupled `portakal_core` into an independent pure-Dart package with zero Flutter/UI dependencies.
 - Standardized all protocol serializers on direct byte stream generation.
-- Updated Dart SDK minimum environment constraint to `^3.6.0` and Flutter to `>=3.24.0`.
+- Updated Dart SDK minimum environment constraint to `^3.6.0` and Flutter to `>=3.27.0`.
 
 ### Deprecated
 - Deprecated `typedef Column = ReceiptColumn` in favor of `ReceiptColumn` (removal in 2.0).

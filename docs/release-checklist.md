@@ -40,7 +40,7 @@ This checklist defines the required release engineering steps for staging and pu
   - Set `version: 1.0.0-rc.1`
   - Ensure `dependencies.portakal_core: ^1.0.0-rc.1` (no path dependency)
   - Ensure `topics: [printer, thermal-printer, flutter, label, esc-pos]`
-  - Ensure `environment.sdk: "^3.6.0"`, `environment.flutter: ">=3.24.0"`
+  - Ensure `environment.sdk: "^3.6.0"`, `environment.flutter: ">=3.27.0"`
 - [ ] In `packages/portakal_flutter/CHANGELOG.md`:
   - Confirm `## 1.0.0-rc.1` release notes are finalized.
 - [ ] Verify clean git state: `git status`
