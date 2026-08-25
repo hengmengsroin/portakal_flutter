@@ -18,6 +18,14 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Print SDK versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Install workspace dependencies
+        run: flutter pub get
+
       - name: Verify code formatting
         run: dart format --output=none --set-exit-if-changed .
 
