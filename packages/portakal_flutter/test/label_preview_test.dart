@@ -11,7 +11,13 @@ void main() {
       final sampleLabel = label(const LabelConfig(width: 40, height: 30))
           .text('Hello Flutter', const TextOptions(x: 10, y: 10))
           .box(
-            const BoxOptions(x: 5, y: 5, width: 100, height: 80, thickness: 2),
+            const BoxOptions(
+              x: 5,
+              y: 5,
+              width: 100,
+              height: 80,
+              thickness: 2,
+            ),
           );
 
       await tester.pumpWidget(
@@ -74,7 +80,13 @@ void main() {
               const TextOptions(x: 10, y: 10, bold: true, size: 2),
             )
             .line(
-              const LineOptions(x1: 10, y1: 40, x2: 600, y2: 40, thickness: 2),
+              const LineOptions(
+                x1: 10,
+                y1: 40,
+                x2: 600,
+                y2: 40,
+                thickness: 2,
+              ),
             )
             .circle(
               const CircleOptions(x: 100, y: 100, diameter: 50, thickness: 2),
@@ -117,10 +129,14 @@ void main() {
     );
 
     test(
-      'verifies core builder and native printers accessible via portakal_flutter re-export',
+      'verifies core builder, native printers, and PreviewScene accessible via portakal_flutter re-export',
       () {
         final builder = label(const LabelConfig(width: 50, height: 30));
         expect(builder, isA<LabelBuilder>());
+
+        final scene = PreviewScene.fromBuilder(builder);
+        expect(scene, isA<PreviewScene>());
+        expect(scene.widthDots, equals(400));
 
         final tsc = TscPrinter();
         expect(tsc, isA<TscPrinter>());

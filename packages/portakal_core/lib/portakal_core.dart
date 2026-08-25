@@ -19,6 +19,7 @@ export 'src/transport.dart';
 
 // Preview & Validation
 export 'src/preview.dart';
+export 'src/preview_scene.dart';
 export 'src/validate.dart';
 
 // Cross-compilation & Markup

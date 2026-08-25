@@ -22,9 +22,9 @@ class LabelPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolved = label.resolve();
-    final widthDots = resolved.widthDots;
-    final heightDots = resolved.heightDots > 0 ? resolved.heightDots : 400;
+    final scene = PreviewScene.fromBuilder(label);
+    final widthDots = scene.widthDots.toDouble();
+    final heightDots = scene.heightDots.toDouble();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -42,7 +42,7 @@ class LabelPreview extends StatelessWidget {
               Expanded(
                 child: CustomPaint(
                   painter: _LabelPreviewPainter(
-                    label: resolved,
+                    scene: scene,
                     backgroundColor: backgroundColor,
                     canvasColor: canvasColor,
                     borderColor: borderColor,
@@ -53,7 +53,7 @@ class LabelPreview extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
-                    '${resolved.widthDots}x$heightDots dots (${resolved.dpi} DPI)',
+                    '${scene.widthDots}x${scene.heightDots} dots (${scene.dpi} DPI)',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Color(0xFFA1A1AA),
@@ -71,13 +71,13 @@ class LabelPreview extends StatelessWidget {
 }
 
 class _LabelPreviewPainter extends CustomPainter {
-  final ResolvedLabel label;
+  final PreviewScene scene;
   final Color backgroundColor;
   final Color canvasColor;
   final Color borderColor;
 
   const _LabelPreviewPainter({
-    required this.label,
+    required this.scene,
     required this.backgroundColor,
     required this.canvasColor,
     required this.borderColor,
@@ -85,9 +85,8 @@ class _LabelPreviewPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final widthDots = label.widthDots.toDouble();
-    final heightDots =
-        (label.heightDots > 0 ? label.heightDots : 400).toDouble();
+    final widthDots = scene.widthDots.toDouble();
+    final heightDots = scene.heightDots.toDouble();
 
     final bgPaint = Paint()..color = backgroundColor;
     final labelPaint = Paint()..color = canvasColor;
@@ -105,287 +104,227 @@ class _LabelPreviewPainter extends CustomPainter {
 
     canvas.save();
     canvas.scale(sx, sy);
+    canvas.clipRect(Rect.fromLTWH(0, 0, widthDots, heightDots));
 
-    for (final el in label.elements) {
-      _drawElement(canvas, el);
+    for (final item in scene.items) {
+      _drawItem(canvas, item);
     }
 
     canvas.restore();
   }
 
-  void _drawElement(Canvas canvas, LabelElement el) {
-    switch (el) {
-      case TextElement():
-        _drawText(canvas, el);
-      case ImageElement():
-        _drawImage(canvas, el);
-      case BoxElement():
-        _drawBox(canvas, el);
-      case LineElement():
-        _drawLine(canvas, el);
-      case CircleElement():
-        _drawCircle(canvas, el);
-      case EllipseElement():
-        _drawEllipse(canvas, el);
-      case BarcodeElement():
-        _drawBarcode(canvas, el);
-      case QRCodeElement():
-        _drawQRCode(canvas, el);
-      case ReverseElement():
-        final o = el.options;
-        canvas.drawRect(
-          Rect.fromLTWH(
-            o.x.toDouble(),
-            o.y.toDouble(),
-            o.width.toDouble(),
-            o.height.toDouble(),
-          ),
-          Paint()..color = Colors.black,
-        );
-      case EraseElement():
-        final o = el.options;
-        canvas.drawRect(
-          Rect.fromLTWH(
-            o.x.toDouble(),
-            o.y.toDouble(),
-            o.width.toDouble(),
-            o.height.toDouble(),
-          ),
-          Paint()..color = Colors.white,
-        );
-      case RawElement():
-        break;
+  void _drawItem(Canvas canvas, PreviewItem item) {
+    switch (item) {
+      case PreviewTextItem():
+        _drawText(canvas, item);
+      case PreviewRectItem():
+        _drawRect(canvas, item);
+      case PreviewLineItem():
+        _drawLine(canvas, item);
+      case PreviewCircleItem():
+        _drawCircle(canvas, item);
+      case PreviewOvalItem():
+        _drawOval(canvas, item);
+      case PreviewPlaceholderItem():
+        _drawPlaceholder(canvas, item);
+      case PreviewBitmapItem():
+        _drawBitmap(canvas, item);
     }
   }
 
-  void _drawText(Canvas canvas, TextElement el) {
-    final o = el.options;
-    final x = (o.x ?? 0).toDouble();
-    final y = (o.y ?? 0).toDouble();
-    final fs = _calcFontSize(o.size, o.yScale).toDouble();
-    final color = o.reverse == true ? Colors.white : Colors.black;
+  void _drawText(Canvas canvas, PreviewTextItem item) {
+    final color = item.isReverse ? Colors.white : Colors.black;
 
     final textStyle = TextStyle(
       color: color,
-      fontSize: fs,
-      fontWeight: o.bold == true ? FontWeight.bold : FontWeight.normal,
+      fontSize: item.fontSize.toDouble(),
+      fontWeight: item.bold ? FontWeight.bold : FontWeight.normal,
       decoration:
-          o.underline == true ? TextDecoration.underline : TextDecoration.none,
-      fontFamily: o.font == '0' ? null : 'monospace',
+          item.underline ? TextDecoration.underline : TextDecoration.none,
+      fontFamily: item.font == '0' ? null : 'monospace',
     );
 
     final painter = TextPainter(
-      text: TextSpan(text: el.content, style: textStyle),
+      text: TextSpan(text: item.text, style: textStyle),
       textDirection: TextDirection.ltr,
-      maxLines: 1,
-    )..layout(maxWidth: (o.maxWidth ?? double.infinity).toDouble());
+    )..layout(maxWidth: (item.maxWidth ?? double.infinity).toDouble());
 
-    double drawX = x;
-    if (o.maxWidth != null && o.align == 'center') {
-      drawX = x + (o.maxWidth! - painter.width) / 2;
-    } else if (o.maxWidth != null && o.align == 'right') {
-      drawX = x + o.maxWidth! - painter.width;
+    double drawX = item.x;
+    if (item.maxWidth != null && item.align == 'center') {
+      drawX = item.x + (item.maxWidth! - painter.width) / 2.0;
+    } else if (item.maxWidth != null && item.align == 'right') {
+      drawX = item.x + item.maxWidth! - painter.width;
     }
 
-    final drawY = y + fs * _baselineRatio(o.font) - painter.height;
+    final drawY = item.y;
 
-    if ((o.rotation ?? 0) != 0) {
+    if (item.rotation != 0) {
       canvas.save();
-      canvas.translate(x, y);
-      canvas.rotate((o.rotation! * math.pi) / 180);
-      painter.paint(canvas, Offset(drawX - x, drawY - y));
+      canvas.translate(item.x, item.y);
+      canvas.rotate((item.rotation * math.pi) / 180.0);
+      painter.paint(canvas, Offset(drawX - item.x, drawY - item.y));
       canvas.restore();
     } else {
       painter.paint(canvas, Offset(drawX, drawY));
     }
   }
 
-  void _drawImage(Canvas canvas, ImageElement el) {
-    final o = el.options;
-    final x = (o.x ?? 0).toDouble();
-    final y = (o.y ?? 0).toDouble();
-    final bmp = el.bitmap;
-    final targetW = (o.width ?? bmp.width).toDouble();
-    final targetH = (o.height ?? bmp.height).toDouble();
-    final scaleX = targetW / bmp.width;
-    final scaleY = targetH / bmp.height;
+  void _drawRect(Canvas canvas, PreviewRectItem item) {
+    final color =
+        item.color == PreviewColor.white ? Colors.white : Colors.black;
+    final rect = Rect.fromLTWH(item.x, item.y, item.width, item.height);
 
-    final p = Paint()..color = Colors.black;
-    for (var py = 0; py < bmp.height; py++) {
-      for (var px = 0; px < bmp.width; px++) {
-        final byteIdx = py * bmp.bytesPerRow + (px ~/ 8);
-        final bitIdx = 7 - (px % 8);
-        final isBlack = (bmp.data[byteIdx] >> bitIdx) & 1;
-        if (isBlack == 1) {
-          canvas.drawRect(
-            Rect.fromLTWH(
-              x + px * scaleX,
-              y + py * scaleY,
-              math.max(1, scaleX),
-              math.max(1, scaleY),
-            ),
-            p,
-          );
-        }
+    if (item.radius > 0) {
+      final rrect =
+          RRect.fromRectAndRadius(rect, Radius.circular(item.radius));
+      if (item.isFilled) {
+        canvas.drawRRect(rrect, Paint()..color = color);
+      } else {
+        canvas.drawRRect(
+          rrect,
+          Paint()
+            ..color = color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = item.thickness,
+        );
+      }
+    } else {
+      if (item.isFilled) {
+        canvas.drawRect(rect, Paint()..color = color);
+      } else {
+        canvas.drawRect(
+          rect,
+          Paint()
+            ..color = color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = item.thickness,
+        );
       }
     }
   }
 
-  void _drawBox(Canvas canvas, BoxElement el) {
-    final o = el.options;
-    final t = (o.thickness ?? 1).toDouble();
-    final rect = Rect.fromLTWH(
-      o.x.toDouble(),
-      o.y.toDouble(),
-      o.width.toDouble(),
-      o.height.toDouble(),
-    );
-    final radius = Radius.circular((o.radius ?? 0).toDouble());
-
-    if (t >= math.min(o.width, o.height)) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, radius),
-        Paint()..color = Colors.black,
-      );
-      return;
-    }
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect.deflate(t / 2), radius),
-      Paint()
-        ..color = Colors.black
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = t,
-    );
-  }
-
-  void _drawLine(Canvas canvas, LineElement el) {
-    final o = el.options;
-    final t = (o.thickness ?? 1).toDouble();
+  void _drawLine(Canvas canvas, PreviewLineItem item) {
+    final color =
+        item.color == PreviewColor.white ? Colors.white : Colors.black;
     canvas.drawLine(
-      Offset(o.x1.toDouble(), o.y1.toDouble()),
-      Offset(o.x2.toDouble(), o.y2.toDouble()),
+      Offset(item.x1, item.y1),
+      Offset(item.x2, item.y2),
       Paint()
-        ..color = Colors.black
+        ..color = color
         ..style = PaintingStyle.stroke
-        ..strokeWidth = t,
+        ..strokeWidth = item.thickness,
     );
   }
 
-  void _drawCircle(Canvas canvas, CircleElement el) {
-    final o = el.options;
-    final t = (o.thickness ?? 1).toDouble();
-    final r = o.diameter / 2.0;
-    final center = Offset(o.x + r, o.y + r);
+  void _drawCircle(Canvas canvas, PreviewCircleItem item) {
+    final color =
+        item.color == PreviewColor.white ? Colors.white : Colors.black;
+    final center = Offset(item.cx, item.cy);
 
-    if (t >= r) {
-      canvas.drawCircle(center, r, Paint()..color = Colors.black);
-      return;
+    if (item.isFilled) {
+      canvas.drawCircle(center, item.radius, Paint()..color = color);
+    } else {
+      canvas.drawCircle(
+        center,
+        item.radius,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = item.thickness,
+      );
     }
-
-    canvas.drawCircle(
-      center,
-      math.max(0, r - t / 2),
-      Paint()
-        ..color = Colors.black
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = t,
-    );
   }
 
-  void _drawEllipse(Canvas canvas, EllipseElement el) {
-    final o = el.options;
-    final t = (o.thickness ?? 1).toDouble();
-    final rect = Rect.fromLTWH(
-      o.x.toDouble(),
-      o.y.toDouble(),
-      o.width.toDouble(),
-      o.height.toDouble(),
+  void _drawOval(Canvas canvas, PreviewOvalItem item) {
+    final color =
+        item.color == PreviewColor.white ? Colors.white : Colors.black;
+    final rect = Rect.fromCenter(
+      center: Offset(item.cx, item.cy),
+      width: item.rx * 2.0,
+      height: item.ry * 2.0,
     );
+
     canvas.drawOval(
       rect,
       Paint()
-        ..color = Colors.black
+        ..color = color
         ..style = PaintingStyle.stroke
-        ..strokeWidth = t,
+        ..strokeWidth = item.thickness,
     );
   }
 
-  void _drawBarcode(Canvas canvas, BarcodeElement el) {
-    final o = el.options;
-    final x = o.x.toDouble();
-    final y = o.y.toDouble();
-    final h = o.height.toDouble();
-    final text = 'BARCODE: ${el.content}';
+  void _drawPlaceholder(Canvas canvas, PreviewPlaceholderItem item) {
+    final isRotated = item.rotation != 0;
+    if (isRotated) {
+      canvas.save();
+      canvas.translate(item.x, item.y);
+      canvas.rotate((item.rotation * math.pi) / 180.0);
+    }
 
-    // Approximate width for placeholder
-    final w = math.max(100.0, text.length * 8.0);
-    final rect = Rect.fromLTWH(x, y, w, h);
+    final localRect = isRotated
+        ? Rect.fromLTWH(0, 0, item.width, item.height)
+        : Rect.fromLTWH(item.x, item.y, item.width, item.height);
 
-    canvas.drawRect(rect, Paint()..color = Colors.grey.withValues(alpha: 0.3));
+    canvas.drawRect(localRect, Paint()..color = const Color(0xFFE4E4E7));
     canvas.drawRect(
-      rect,
+      localRect,
       Paint()
-        ..color = Colors.black
-        ..style = PaintingStyle.stroke,
+        ..color = const Color(0xFF71717A)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
     );
 
     final textPainter = TextPainter(
       text: TextSpan(
-        text: text,
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 10,
+        text: item.label,
+        style: TextStyle(
+          color: const Color(0xFF18181B),
+          fontSize: item.kind == PreviewPlaceholderKind.barcode ? 10 : 8,
           fontFamily: 'monospace',
         ),
       ),
       textDirection: TextDirection.ltr,
-    )..layout(maxWidth: w);
+    )..layout(maxWidth: math.max(1.0, item.width - 8));
 
-    textPainter.paint(canvas, Offset(x + 4, y + (h - textPainter.height) / 2));
+    final textOffset = isRotated
+        ? Offset(
+            4,
+            item.kind == PreviewPlaceholderKind.barcode
+                ? (item.height - textPainter.height) / 2.0
+                : 4,
+          )
+        : Offset(
+            item.x + 4,
+            item.kind == PreviewPlaceholderKind.barcode
+                ? item.y + (item.height - textPainter.height) / 2.0
+                : item.y + 4,
+          );
+
+    textPainter.paint(canvas, textOffset);
+
+    if (isRotated) {
+      canvas.restore();
+    }
   }
 
-  void _drawQRCode(Canvas canvas, QRCodeElement el) {
-    final o = el.options;
-    final x = o.x.toDouble();
-    final y = o.y.toDouble();
-    // Approximate size for placeholder based on cell width
-    final size = (o.cellWidth ?? 4) * 20.0;
-    final rect = Rect.fromLTWH(x, y, size, size);
-
-    canvas.drawRect(rect, Paint()..color = Colors.grey.withValues(alpha: 0.3));
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..color = Colors.black
-        ..style = PaintingStyle.stroke,
-    );
-
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: 'QR:\n${el.content}',
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 8,
-          fontFamily: 'monospace',
+  void _drawBitmap(Canvas canvas, PreviewBitmapItem item) {
+    final paint = Paint()..color = Colors.black;
+    for (final span in item.spans) {
+      canvas.drawRect(
+        Rect.fromLTWH(
+          span.targetX,
+          span.targetY,
+          span.targetWidth,
+          span.targetHeight,
         ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: size - 4);
-
-    textPainter.paint(canvas, Offset(x + 2, y + 2));
+        paint,
+      );
+    }
   }
-
-  int _calcFontSize(int? size, int? yScale) {
-    if (yScale != null && yScale > 10) return yScale;
-    return math.max(8, (size ?? 1) * 12);
-  }
-
-  double _baselineRatio(String? font) => font == '0' ? 0.78 : 0.82;
 
   @override
   bool shouldRepaint(covariant _LabelPreviewPainter oldDelegate) {
-    return oldDelegate.label != label ||
+    return oldDelegate.scene != scene ||
         oldDelegate.backgroundColor != backgroundColor ||
         oldDelegate.canvasColor != canvasColor ||
         oldDelegate.borderColor != borderColor;

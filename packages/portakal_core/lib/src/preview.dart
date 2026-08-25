@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'preview_scene.dart';
 import 'types.dart';
 
 /// Escape XML special characters.
@@ -10,141 +10,98 @@ String _escapeXml(String s) {
       .replaceAll('"', '&quot;');
 }
 
-/// Calculate font pixel height from size and yScale.
-int _calcFontSize(int? size, int? yScale) {
-  if (yScale != null && yScale > 10) return yScale;
-  return max(8, (size ?? 1) * 12);
+String _fmt(num v) {
+  if (v is int) return v.toString();
+  if (v == v.truncateToDouble()) return v.toInt().toString();
+  return ((v * 100).round() / 100).toString();
 }
 
-/// Baseline offset ratio.
-double _baselineRatio(String? font) {
-  return font == '0' ? 0.78 : 0.82;
-}
-
-/// CSS font-family.
-String _fontFamily(String? font) {
-  if (font == '0') return "'Helvetica Neue', Helvetica, Arial, sans-serif";
-  return 'monospace';
-}
-
-String _renderElement(LabelElement el) {
-  switch (el) {
-    case TextElement():
-      final o = el.options;
-      final x = o.x ?? 0;
-      final y = o.y ?? 0;
-      final fs = _calcFontSize(o.size, o.yScale);
-      final bl = _baselineRatio(o.font);
-      final ff = _fontFamily(o.font);
-      final weight = (o.bold == true) ? 'bold' : 'normal';
-      final decoration =
-          (o.underline == true) ? ' text-decoration="underline"' : '';
-      final transform = (o.rotation != null && o.rotation != 0)
-          ? ' transform="rotate(${o.rotation} $x $y)"'
+String _renderItem(PreviewItem item) {
+  switch (item) {
+    case PreviewTextItem():
+      final ff = PreviewScene.fontFamily(item.font);
+      final weight = item.bold ? 'bold' : 'normal';
+      final decoration = item.underline ? ' text-decoration="underline"' : '';
+      final transform = item.rotation != 0
+          ? ' transform="rotate(${item.rotation} ${_fmt(item.x)} ${_fmt(item.y)})"'
           : '';
+      final anchor =
+          item.svgAnchor != 'start' ? ' text-anchor="${item.svgAnchor}"' : '';
+      final fill = item.isReverse ? '#fff' : '#000';
+      return '<text x="${_fmt(item.textAnchorX)}" y="${_fmt(item.svgY)}" fill="$fill" font-size="${item.fontSize}" font-weight="$weight" font-family="$ff"$anchor$decoration$transform>${_escapeXml(item.text)}</text>';
 
-      var anchor = '';
-      var textX = x;
-      if (o.maxWidth != null && o.align == 'center') {
-        anchor = ' text-anchor="middle"';
-        textX = x + o.maxWidth! ~/ 2;
-      } else if (o.maxWidth != null && o.align == 'right') {
-        anchor = ' text-anchor="end"';
-        textX = x + o.maxWidth!;
+    case PreviewRectItem():
+      final colorHex = item.color == PreviewColor.white ? '#fff' : '#000';
+      final rxAttr = item.radius > 0
+          ? ' rx="${_fmt(item.radius)}" ry="${_fmt(item.radius)}"'
+          : '';
+      if (item.isFilled) {
+        return '<rect x="${_fmt(item.x)}" y="${_fmt(item.y)}" width="${_fmt(item.width)}" height="${_fmt(item.height)}" fill="$colorHex"$rxAttr/>';
       }
+      return '<rect x="${_fmt(item.x)}" y="${_fmt(item.y)}" width="${_fmt(item.width)}" height="${_fmt(item.height)}" fill="none" stroke="$colorHex" stroke-width="${_fmt(item.thickness)}"$rxAttr/>';
 
-      final fill = (o.reverse == true) ? '#fff' : '#000';
-      final svgY = ((y + fs * bl) * 100).round() / 100;
-      return '<text x="$textX" y="$svgY" fill="$fill" font-size="$fs" font-weight="$weight" font-family="$ff"$anchor$decoration$transform>${_escapeXml(el.content)}</text>';
+    case PreviewLineItem():
+      final colorHex = item.color == PreviewColor.white ? '#fff' : '#000';
+      return '<line x1="${_fmt(item.x1)}" y1="${_fmt(item.y1)}" x2="${_fmt(item.x2)}" y2="${_fmt(item.y2)}" stroke="$colorHex" stroke-width="${_fmt(item.thickness)}"/>';
 
-    case ImageElement():
-      final o = el.options;
-      final x = o.x ?? 0;
-      final y = o.y ?? 0;
-      final bmp = el.bitmap;
-      final w = o.width ?? bmp.width;
-      final h = o.height ?? bmp.height;
-      final step = max(1, max(bmp.width, bmp.height) ~/ 100);
-      final scaleX = w / bmp.width;
-      final scaleY = h / bmp.height;
+    case PreviewCircleItem():
+      final colorHex = item.color == PreviewColor.white ? '#fff' : '#000';
+      if (item.isFilled) {
+        return '<circle cx="${_fmt(item.cx)}" cy="${_fmt(item.cy)}" r="${_fmt(item.radius)}" fill="$colorHex"/>';
+      }
+      return '<circle cx="${_fmt(item.cx)}" cy="${_fmt(item.cy)}" r="${item.radius.round()}" fill="none" stroke="$colorHex" stroke-width="${_fmt(item.thickness)}"/>';
+
+    case PreviewOvalItem():
+      final colorHex = item.color == PreviewColor.white ? '#fff' : '#000';
+      return '<ellipse cx="${_fmt(item.cx)}" cy="${_fmt(item.cy)}" rx="${item.rx.round()}" ry="${item.ry.round()}" fill="none" stroke="$colorHex" stroke-width="${_fmt(item.thickness)}"/>';
+
+    case PreviewPlaceholderItem():
+      final transform = item.rotation != 0
+          ? ' transform="rotate(${item.rotation} ${_fmt(item.x)} ${_fmt(item.y)})"'
+          : '';
+      final textY = item.kind == PreviewPlaceholderKind.barcode
+          ? (item.y + item.height / 2.0 + 3.0)
+          : (item.y + 12.0);
+      final fontSize = item.kind == PreviewPlaceholderKind.barcode ? 10 : 8;
+      final labelEscaped = _escapeXml(item.label);
+
       final buf = StringBuffer();
-
-      for (var py = 0; py < bmp.height; py += step) {
-        for (var px = 0; px < bmp.width; px += step) {
-          final byteIdx = py * bmp.bytesPerRow + (px ~/ 8);
-          final bitIdx = 7 - (px % 8);
-          final isBlack = (bmp.data[byteIdx] >> bitIdx) & 1;
-          if (isBlack == 1) {
-            buf.write(
-              '<rect x="${x + px * scaleX}" y="${y + py * scaleY}" width="${step * scaleX}" height="${step * scaleY}" fill="#000"/>',
-            );
-          }
-        }
-      }
+      buf.write('<g$transform>');
+      buf.write(
+        '<rect x="${_fmt(item.x)}" y="${_fmt(item.y)}" width="${_fmt(item.width)}" height="${_fmt(item.height)}" fill="#e4e4e7" stroke="#71717a" stroke-width="1" stroke-dasharray="3,3"/>',
+      );
+      buf.write(
+        '<text x="${_fmt(item.x + 4)}" y="${_fmt(textY)}" fill="#18181b" font-size="$fontSize" font-family="monospace">$labelEscaped</text>',
+      );
+      buf.write('</g>');
       return buf.toString();
 
-    case BoxElement():
-      final o = el.options;
-      final t = o.thickness ?? 1;
-      final rx = o.radius ?? 0;
-
-      if (t >= min(o.width, o.height)) {
-        return '<rect x="${o.x}" y="${o.y}" width="${o.width}" height="${o.height}" fill="#000" rx="$rx" ry="$rx"/>';
+    case PreviewBitmapItem():
+      final buf = StringBuffer();
+      for (final span in item.spans) {
+        buf.write(
+          '<rect x="${_fmt(span.targetX)}" y="${_fmt(span.targetY)}" width="${_fmt(span.targetWidth)}" height="${_fmt(span.targetHeight)}" fill="#000"/>',
+        );
       }
-      return '<rect x="${o.x + t / 2}" y="${o.y + t / 2}" width="${o.width - t}" height="${o.height - t}" fill="none" stroke="#000" stroke-width="$t" rx="$rx" ry="$rx"/>';
-
-    case LineElement():
-      final o = el.options;
-      final t = o.thickness ?? 1;
-      return '<line x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}" stroke="#000" stroke-width="$t"/>';
-
-    case CircleElement():
-      final o = el.options;
-      final t = o.thickness ?? 1;
-      final r = o.diameter / 2;
-      if (t >= r) {
-        return '<circle cx="${o.x + r}" cy="${o.y + r}" r="$r" fill="#000"/>';
-      }
-      return '<circle cx="${o.x + r}" cy="${o.y + r}" r="${(r - t / 2).round()}" fill="none" stroke="#000" stroke-width="$t"/>';
-
-    case EllipseElement():
-      final o = el.options;
-      final t = o.thickness ?? 1;
-      final rx = o.width / 2;
-      final ry = o.height / 2;
-      return '<ellipse cx="${o.x + rx}" cy="${o.y + ry}" rx="${rx.round()}" ry="${ry.round()}" fill="none" stroke="#000" stroke-width="$t"/>';
-
-    case ReverseElement():
-      final o = el.options;
-      return '<rect x="${o.x}" y="${o.y}" width="${o.width}" height="${o.height}" fill="#000"/>';
-
-    case EraseElement():
-      final o = el.options;
-      return '<rect x="${o.x}" y="${o.y}" width="${o.width}" height="${o.height}" fill="#fff"/>';
-
-    case BarcodeElement():
-    case QRCodeElement():
-      return '';
-
-    case RawElement():
-      return '';
+      return buf.toString();
   }
 }
 
-/// Render a resolved label as an SVG preview string.
-String renderPreview(ResolvedLabel label, {String? languageName}) {
-  final w = label.widthDots;
-  final h = label.heightDots > 0 ? label.heightDots : 400;
+/// Render a [PreviewScene] as an SVG preview string.
+String renderPreviewScene(PreviewScene scene) {
+  final w = scene.widthDots;
+  final h = scene.heightDots;
   final padding = 10;
   final svgW = w + padding * 2;
   final svgH = h + padding * 2;
 
   final elements = StringBuffer();
-  for (final el in label.elements) {
-    elements.write(_renderElement(el));
+  for (final item in scene.items) {
+    elements.write(_renderItem(item));
   }
 
-  final langSuffix = languageName != null ? ' — $languageName' : '';
+  final langSuffix =
+      scene.languageName != null ? ' — ${scene.languageName}' : '';
 
   return [
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 $svgW $svgH" width="$svgW" height="$svgH">',
@@ -153,7 +110,13 @@ String renderPreview(ResolvedLabel label, {String? languageName}) {
     '<g transform="translate($padding,$padding)">',
     elements.toString(),
     '</g>',
-    '<text x="${svgW / 2}" y="${svgH - 1}" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="monospace">$w×$h dots (${label.dpi} DPI)$langSuffix</text>',
+    '<text x="${_fmt(svgW / 2)}" y="${svgH - 1}" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="monospace">$w×$h dots (${scene.dpi} DPI)$langSuffix</text>',
     '</svg>',
   ].join('\n');
+}
+
+/// Render a resolved label as an SVG preview string.
+String renderPreview(ResolvedLabel label, {String? languageName}) {
+  final scene = PreviewScene.fromResolved(label, languageName: languageName);
+  return renderPreviewScene(scene);
 }
