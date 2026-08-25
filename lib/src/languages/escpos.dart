@@ -150,3 +150,9 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
 
   return writer.toBytes();
 }
+
+/// Convenience alias for [compileToESCPOS] providing naming consistency across protocols.
+Uint8List compileToESCPOSBytes(
+  ResolvedLabel label, {
+  EscPosEncoding? encoding,
+}) => compileToESCPOS(label, encoding: encoding);
