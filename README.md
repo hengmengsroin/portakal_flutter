@@ -1,323 +1,90 @@
-# 🍊 portakal_flutter
+# 🍊 Portakal
 
-Universal printer language SDK for Flutter & Dart — **TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT** and more.
+Universal thermal printer language SDK for Dart & Flutter — **TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT**.
 
-Text, images, printer-native barcode/QR commands, and Flutter preview widgets.
+Text, images, printer-native commands, bit-packed graphics, encodings, and Flutter preview widgets.
 
-[![Tests](https://img.shields.io/badge/tests-392_passing-brightgreen)]()
-[![Dart](https://img.shields.io/badge/dart-%3E%3D3.11-blue)]()
-[![License](https://img.shields.io/badge/license-MIT-purple)]()
+---
 
-> **Note:** Barcode/QR generation is NOT in this package. Use [`etiket`](https://github.com/productdevbook/etiket) for barcode & QR code generation (SVG/PNG). Portakal sends printer-native barcode/QR commands (the printer's built-in encoder) OR accepts pre-rendered images for pixel-perfect output.
+## Packages in this Repository
+
+| Package | Role | Dependencies | Description |
+| :--- | :--- | :--- | :--- |
+| [`portakal_core`](packages/portakal_core/) | **Pure Dart** | Zero runtime dependencies | AST builder, 9 protocol compilers, 9 byte-native builders, 9 parsers, encodings, dithering, SVG preview, transport contracts. Runs on Dart CLI, backend servers, microservices, Flutter, and web. |
+| [`portakal_flutter`](packages/portakal_flutter/) | **Flutter Integration** | Flutter SDK, `portakal_core` | Flutter widgets (`LabelPreview`), CustomPainter rendering, and re-exports of `portakal_core`. |
 
 ---
 
 ## Features
 
-- 🖨️ **9 printer languages** — TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT
-- 🔄 **Cross-compilation** — convert between any supported languages
-- 🏷️ **Fluent label builder** — design labels with a clean, chainable API
-- 📝 **HTML-like markup** — `<label><text>Hello</text></label>` DSL
-- 🔍 **Parsers** — parse raw printer commands back to structured data
-- 👁️ **SVG preview** — render labels as SVG strings for visual inspection
-- 📱 **Flutter preview widget** — preview labels in-app before sending to printer
-- ✅ **Validation** — check command ordering, parameter ranges, and structure
-- 🖼️ **Image processing** — RGBA to monochrome with 4 dithering algorithms
-- 📇 **17 printer profiles** — Epson, Zebra, TSC, Star, Bixolon, Citizen, SATO, Honeywell
-- 💯 **Works across Flutter targets** — mobile, desktop, and web
+- 🖨️ **9 Printer Languages** — TSC (TSPL2), ZPL (ZPL II), EPL (EPL2), ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT.
+- ⚡ **9 Protocol-Native Builders** with exact command life-cycles, bit-packed graphics, control characters, and boundary validation.
+- 🔄 **Cross-compilation** — convert between supported printer languages via universal AST.
+- 🏷️ **Fluent Label Builder** — design labels with a clean, chainable API.
+- 📝 **HTML-like Markup** — `<label><text>Hello</text></label>` DSL.
+- 🔍 **Parsers** — parse raw printer commands back into structured AST data.
+- 👁️ **SVG Preview** — render labels as SVG strings for visual inspection (Pure Dart).
+- 📱 **Flutter Preview Widget** — preview labels in Flutter apps with `LabelPreview`.
+- 🌐 **Encoding & Code Pages** — CP437, CP850, CP858 (Euro €), CP1252, CP866 (Cyrillic), CP857 (Turkish), UTF-8.
+- 🖼️ **Image Processing** — RGBA to monochrome with 4 dithering algorithms (Floyd-Steinberg, Atkinson, Ordered, Threshold).
+- 📇 **Printer Profiles Database** — Epson, Zebra, TSC, Star, Bixolon, Citizen, SATO, Honeywell.
+- 🔌 **Transport Contracts & Retries** — `PrinterTransport`, chunked writes, and exponential backoff retry.
 
-## Installation
+---
+
+## Usage
+
+### Pure Dart (CLI / Server / Backend)
 
 ```yaml
 dependencies:
-  portakal_flutter: ^0.1.6
+  portakal_core: ^0.3.0
 ```
-
-## Example
-
-```bash
-dart run example/main.dart
-```
-
-```bash
-flutter run -t example/flutter_preview.dart
-```
-
-## Quick Start
-
-### Build & compile a label
 
 ```dart
-import 'package:portakal_flutter/portakal_flutter.dart';
+import 'package:portakal_core/portakal_core.dart';
 
-// Build a label with the fluent API
-final myLabel = label(LabelConfig(width: 40, height: 30, unit: Unit.mm))
-    .text('Hello World', TextOptions(x: 10, y: 10, font: '2', size: 2))
-    .box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2))
-    .circle(CircleOptions(x: 250, y: 150, diameter: 60));
-
-// Compile to TSC
-final tscCode = tsc.compile(myLabel);
-// SIZE 40 mm,30 mm
-// GAP 3 mm,0 mm
-// CLS
-// TEXT 10,10,"2",0,2,2,"Hello World"
-// BOX 5,5,315,235,2
-// CIRCLE 250,150,60,1
-// PRINT 1
-
-// Same label → ZPL
-final zplCode = zpl.compile(myLabel);
-// ^XA
-// ^FO10,10^A0N,60,60^FDHello World^FS
-// ^FO5,5^GB310,230,2^FS
-// ^FO250,150^GC60,1^FS
-// ^XZ
+void main() {
+  final bytes = TscPrinter()
+    ..sizeDots(width: 800, height: 1200)
+    ..cls()
+    ..text(x: 50, y: 50, content: 'Order #1042', size: 2, bold: true)
+    ..barcode(x: 50, y: 150, type: TscBarCode.code128, height: 80, content: 'ORD-1042')
+    ..print()
+    ..toBytes();
+}
 ```
 
-### HTML-like markup
+### Flutter Applications
 
-```dart
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-final code = tsc.compile(markup('''
-  <label width="100mm" height="150mm" dpi="203">
-    <text x="10" y="10" size="2" bold>FROM: Warehouse A</text>
-    <text x="10" y="40" size="3" bold>TO: John Doe</text>
-    <text x="10" y="80">123 Main St, New York, NY 10001</text>
-    <line x1="5" y1="110" x2="780" y2="110" thickness="2" />
-    <box x="5" y="5" width="780" height="1170" border="3" />
-  </label>
-'''));
+```yaml
+dependencies:
+  portakal_flutter: ^0.3.0
 ```
-
-### Cross-compilation
-
-```dart
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-// Convert TSC code to ZPL
-final result = convert(tscCode, 'tsc', 'zpl');
-print(result.output); // ZPL string
-
-// Convert ZPL to ESC/POS (binary)
-final receipt = convert(zplCode, 'zpl', 'escpos');
-print(receipt.output); // Uint8List
-```
-
-### Parse printer commands
-
-```dart
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-// Parse TSC
-final tscResult = tsc.parse('SIZE 40 mm,30 mm\nCLS\nTEXT 10,10,"2",0,1,1,"Hello"\nPRINT 1');
-print(tscResult.commands.length); // 4
-print(tscResult.widthDots);       // 320
-print(tscResult.elements.length); // 1 (TextElement)
-
-// Parse ZPL
-final zplResult = zpl.parse('^XA^FO10,10^A0N,30,30^FDHello^FS^XZ');
-print(zplResult.commands.length); // 6
-```
-
-### SVG preview
-
-```dart
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-final svg = tsc.preview(
-  label(LabelConfig(width: 40, height: 30))
-      .text('Preview Test', TextOptions(x: 10, y: 10, size: 2))
-      .box(BoxOptions(x: 5, y: 5, width: 310, height: 230, thickness: 2)),
-);
-// Returns SVG string — render in a WebView or save to file
-```
-
-### Flutter widget preview
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:portakal_flutter/portakal_flutter.dart';
 
-class LabelPreviewCard extends StatelessWidget {
-  const LabelPreviewCard({super.key});
+class MyPreviewScreen extends StatelessWidget {
+  const MyPreviewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final myLabel = label(LabelConfig(width: 40, height: 30))
-        .text('Preview before print', TextOptions(x: 12, y: 20, size: 2))
-        .box(BoxOptions(x: 8, y: 8, width: 300, height: 200, thickness: 2));
+    final myLabel = label(const LabelConfig(width: 80, height: 60))
+      .text('Shipping Label', const TextOptions(x: 20, y: 20, size: 2, bold: true))
+      .box(const BoxOptions(x: 10, y: 10, width: 620, height: 460, thickness: 2));
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: LabelPreview(label: myLabel),
-      ),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Label Preview')),
+      body: Center(child: LabelPreview(label: myLabel)),
     );
   }
 }
 ```
 
-### Validate commands
-
-```dart
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-// Validate TSC
-final r = tsc.validate('SIZE 40 mm,30 mm\nCLS\nTEXT 10,10,"2",0,1,1,"Hi"\nPRINT 1');
-print(r.valid);    // true
-print(r.errors);   // 0
-
-// Catch errors
-final bad = tsc.validate('TEXT 10,10,"2",0,1,1,"No CLS"\nPRINT 1');
-print(bad.valid);  // false
-print(bad.issues); // [CLS must appear before label elements]
-```
-
-### Image processing
-
-```dart
-import 'dart:typed_data';
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-// Convert RGBA pixels to monochrome bitmap
-final rgba = Uint8List(100 * 100 * 4); // 100x100 RGBA image
-final bitmap = imageToMonochrome(rgba, 100, 100);
-// bitmap.data — 1-bit packed bitmap
-// bitmap.bytesPerRow — bytes per scanline
-
-// Use with label builder
-final myLabel = label(LabelConfig(width: 40, height: 30))
-    .image(bitmap, ImageOptions(x: 10, y: 10));
-```
-
-### Printer profiles
-
-```dart
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-// Get a specific profile
-final profile = getProfile('zebra-zd420');
-print(profile?.dpi);        // 203
-print(profile?.language);   // zpl
-print(profile?.dotsPerLine); // 864
-
-// Find by USB vendor ID
-final epsonPrinters = findByVendorId(0x04B8);
-
-// Find by language
-final zplPrinters = findByLanguage('zpl');
-
-// Use with label builder — auto-sets DPI
-final myLabel = label(LabelConfig(
-  width: 40, height: 30,
-  printer: 'tsc-te310', // Uses 300 DPI from profile
-));
-```
-
-### Receipt formatting (ESC/POS)
-
-```dart
-import 'package:portakal_flutter/portakal_flutter.dart';
-
-// Format a receipt line
-final line = formatPair('Hamburger', '\$12.99', 32);
-// "Hamburger                 $12.99"
-
-// Word wrap
-final lines = wordWrap('This is a long text that needs wrapping', 20);
-// ["This is a long text", "that needs wrapping"]
-
-// Table
-final rows = formatTable(
-  [Column(width: 20), Column(width: 8, align: 'right'), Column(width: 4, align: 'right')],
-  [['Hamburger', '\$12.99', 'x2'], ['Fries', '\$4.99', 'x1']],
-  32,
-);
-```
-
-## Supported Languages
-
-| Language | Compile | Parse | Preview | Validate |
-|----------|---------|-------|---------|----------|
-| **TSC/TSPL2** | ✅ | ✅ | ✅ | ✅ Full |
-| **ZPL II** | ✅ | ✅ | ✅ | ✅ Full |
-| **EPL2** | ✅ | ✅ | ✅ | ℹ️ Basic |
-| **ESC/POS** | ✅ | ✅ | ✅ | ℹ️ Basic |
-| **CPCL** | ✅ | ✅ | ✅ | ℹ️ Basic |
-| **DPL** | ✅ | ✅ | ✅ | ℹ️ Basic |
-| **IPL** | ✅ | ✅ | ✅ | ℹ️ Basic |
-| **SBPL** | ✅ | ✅ | ✅ | ℹ️ Basic |
-| **Star PRNT** | ✅ | ✅ | ✅ | ℹ️ Basic |
-
-## Label Elements
-
-| Element | Description | TSC | ZPL | EPL | ESC/POS | CPCL | DPL | IPL | SBPL | Star PRNT |
-|---------|-------------|-----|-----|-----|---------|------|-----|-----|------|-----------|
-| `text` | Text with font, size, rotation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `image` | Monochrome bitmap | ✅ | ✅ | ✅ | ✅ | ✅ | — | — | ✅ | ✅ |
-| `box` | Rectangle with optional radius | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | — |
-| `line` | Line between two points | ✅ | ✅ | ⚠️ | — | ✅ | ⚠️ | ⚠️ | ⚠️ | — |
-| `circle` | Circle with thickness | ✅ | ✅ | — | — | — | — | — | — | — |
-| `ellipse` | Ellipse | ✅ | — | — | — | — | — | — | — | — |
-| `reverse` | Invert colors in region | ✅ | — | — | — | — | — | — | — | — |
-| `erase` | Clear region to white | ✅ | ✅ | — | — | — | — | — | — | — |
-| `raw` | Raw command passthrough | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-`⚠️` indicates a best-effort approximation (for example, non-diagonal-only line behavior).
-
-## Dithering Algorithms
-
-Four algorithms for converting images to 1-bit monochrome:
-
-| Algorithm | Best For |
-|-----------|----------|
-| `threshold` | Simple graphics, logos, barcodes |
-| `floydSteinberg` | Photos, gradients (best quality) |
-| `atkinson` | Retro aesthetic, lighter output |
-| `ordered` | Fast, predictable patterns |
-
-## API Reference
-
-### Language Modules
-
-Each language module (`tsc`, `zpl`, `epl`, `escpos`, `cpcl`, `dpl`, `ipl`, `sbpl`, `starprnt`) exports:
-
-```dart
-String    compile(LabelBuilder builder)  // Label → printer commands
-Result    parse(String code)             // Printer commands → structured data
-String    preview(LabelBuilder builder)  // Label → SVG string
-Result    validate(String code)          // Check command validity
-```
-
-### Core Functions
-
-```dart
-LabelBuilder  label(LabelConfig config)                           // Create label builder
-LabelBuilder  markup(String source)                               // Parse HTML-like markup
-ConvertResult convert(String code, String from, String to, {...}) // Cross-compile
-String        renderPreview(ResolvedLabel label)                  // SVG preview
-Result        validate(String code, String language)              // Validate commands
-```
-
-## Development
-
-```bash
-# Run tests
-dart test
-
-# Run a specific test
-dart test test/tsc_test.dart
-
-# Static analysis
-dart analyze
-```
-
-## Credits
-
-Dart/Flutter port of [portakal](https://github.com/productdevbook/portakal) by [productdevbook](https://github.com/productdevbook).
+---
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE).

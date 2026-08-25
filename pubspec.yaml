@@ -1,25 +1,11 @@
-name: portakal_flutter
-description: "Universal printer language SDK — TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT. Text, images, printer-native commands, and Flutter preview widgets."
-version: 0.1.7
-homepage: https://github.com/hengmengsroin/portakal_flutter
-repository: https://github.com/hengmengsroin/portakal_flutter
-issue_tracker: https://github.com/hengmengsroin/portakal_flutter
+name: portakal_workspace
+description: "Monorepo workspace for Portakal universal printer SDK."
+publish_to: "none"
 
 environment:
   sdk: ^3.11.4
 
-dependencies:
-  flutter:
-    sdk: flutter
-
-platforms:
-  android:
-  ios:
-  linux:
-  macos:
-  web:
-  windows:
-
-dev_dependencies:
-  test: ^1.26.2
-  lints: ^6.0.0
+workspace:
+  - packages/portakal_core
+  - packages/portakal_flutter
+  - example
