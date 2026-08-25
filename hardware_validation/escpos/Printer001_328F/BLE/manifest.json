@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "protocol": "escpos",
+  "device": {
+    "manufacturer": "Unknown / Generic",
+    "model": "Printer001-328F",
+    "firmware": "Unknown",
+    "connection": "BLE",
+    "protocol_dialect": "ESC/POS verified subset"
+  },
+  "validation_date": "2026-08-25",
+  "summary": {
+    "total_cases": 11,
+    "level2_pass": 11,
+    "level2_fail": 0,
+    "level3_pass": 10,
+    "level3_na": 1,
+    "level3_fail": 0,
+    "status": "PASS"
+  },
+  "cases": [
+    {
+      "case_id": "D00",
+      "title": "Pure ASCII Probe",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "Raw ASCII string printed cleanly without control commands"
+    },
+    {
+      "case_id": "D01",
+      "title": "Minimal ESC/POS Probe",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "ESC @ reset accepted and ASCII string printed"
+    },
+    {
+      "case_id": "H01-NOCUT",
+      "title": "ASCII Baseline (No Cut)",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "Title centered, bold styling, left alignment, 3 feeds printed cleanly"
+    },
+    {
+      "case_id": "H01",
+      "title": "ASCII Baseline Canonical (With Cut)",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "Formatted receipt printed, partial cut executed cleanly"
+    },
+    {
+      "case_id": "H02-CP437",
+      "title": "CP437 Latin Accented Characters",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "All glyphs ä, ö, ü, ß, ±, ° rendered with correct visual shapes"
+    },
+    {
+      "case_id": "H05",
+      "title": "Font Magnification Scaling",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "1x normal, 2x medium, 4x large magnification verified visually"
+    },
+    {
+      "case_id": "H06",
+      "title": "Code 128 1D Barcode",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": "PORTAKAL123456",
+      "notes": "Scanned with barcode reader, decoded exact expected payload"
+    },
+    {
+      "case_id": "H07",
+      "title": "QR Code 2D Barcode",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": "https://example.com/portakal-hw-test",
+      "notes": "Scanned with camera scanner, decoded exact URL payload"
+    },
+    {
+      "case_id": "H09",
+      "title": "1-Bit Raster Bitmap (64x64)",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "64x64 dot raster fixture printed cleanly without row skew, clipping, or inversion"
+    },
+    {
+      "case_id": "H11",
+      "title": "Partial Paper Cut",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "Partial cut executed cleanly; paper feed intact, footer not clipped"
+    },
+    {
+      "case_id": "H12",
+      "title": "Hardware Reset / Initialize",
+      "level2": "PASS",
+      "level3": "N/A",
+      "scanned_payload": null,
+      "notes": "ESC @ reset accepted by device; printer remained online and ready for subsequent commands"
+    }
+  ]
+}
