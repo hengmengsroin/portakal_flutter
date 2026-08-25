@@ -4,9 +4,7 @@ import 'dart:typed_data';
 import '../byte_writer.dart';
 import '../encoding.dart';
 import '../types.dart';
-
-/// Convert a byte to 2-char uppercase hex.
-String _hex(int byte) => byte.toRadixString(16).toUpperCase().padLeft(2, '0');
+import 'cpcl_writer.dart';
 
 /// Compile a resolved label to CPCL commands as a byte sequence ([Uint8List]).
 ///
@@ -20,28 +18,32 @@ Uint8List compileToCPCLBytes(ResolvedLabel label, {CpclEncoding? encoding}) {
   final writer = PrinterByteWriter();
 
   // Session header: ! offset hDPI vDPI height qty
-  writer.writeAscii(
-    '! 0 ${label.dpi} ${label.dpi} ${label.heightDots} ${label.copies}\r\n',
+  CpclCommandWriter.writeHeader(
+    writer,
+    offset: 0,
+    hDpi: label.dpi,
+    vDpi: label.dpi,
+    heightDots: label.heightDots,
+    copies: label.copies,
   );
 
   // If COUNTRY command is configured, emit COUNTRY <country>\r\n
   if (enc.sendCountryCommand && enc.country != null) {
-    writer.writeAscii('COUNTRY ${enc.country}\r\n');
+    CpclCommandWriter.writeCountry(writer, enc.country!);
   }
 
   if (label.density > 0) {
-    writer.writeAscii(
-      'TONE ${label.density > 8
-          ? 2
-          : label.density > 4
-          ? 1
-          : 0}\r\n',
-    );
+    final tone = label.density > 8
+        ? 2
+        : label.density > 4
+        ? 1
+        : 0;
+    CpclCommandWriter.writeTone(writer, tone);
   }
   if (label.speed > 0) {
-    writer.writeAscii('SPEED ${label.speed}\r\n');
+    CpclCommandWriter.writeSpeed(writer, label.speed);
   }
-  writer.writeAscii('PAGE-WIDTH ${label.widthDots}\r\n');
+  CpclCommandWriter.writePageWidth(writer, label.widthDots);
 
   for (final el in label.elements) {
     switch (el) {
@@ -52,22 +54,20 @@ Uint8List compileToCPCLBytes(ResolvedLabel label, {CpclEncoding? encoding}) {
         final font = o.font ?? '2';
         final size = o.size ?? 0;
         final r = o.rotation ?? 0;
-        final cmd = r == 90
-            ? 'TEXT90'
-            : r == 180
-            ? 'TEXT180'
-            : r == 270
-            ? 'TEXT270'
-            : 'TEXT';
-        writer.writeAscii('$cmd $font $size $x $y\r\n');
-        final textBytes = encoder.encode(
-          el.content,
+
+        CpclCommandWriter.writeText(
+          writer,
+          x: x,
+          y: y,
+          font: font,
+          size: size,
+          rotation: r,
+          text: el.content,
+          encoder: encoder,
           replaceUnsupported: enc.replaceUnsupported,
         );
-        writer.writeBytes(textBytes);
-        writer.writeAscii('\r\n');
         if (o.size != null && o.size! > 1) {
-          writer.writeAscii('SETMAG ${o.size} ${o.size}\r\n');
+          CpclCommandWriter.writeSetMag(writer, o.size!, o.size!);
         }
 
       case ImageElement():
@@ -75,22 +75,38 @@ Uint8List compileToCPCLBytes(ResolvedLabel label, {CpclEncoding? encoding}) {
         final x = o.x ?? 0;
         final y = o.y ?? 0;
         final bmp = el.bitmap;
-        final hexData = bmp.data.map(_hex).join();
-        writer.writeAscii(
-          'EG ${bmp.bytesPerRow} ${bmp.height} $x $y $hexData\r\n',
+        CpclCommandWriter.writeExpandedGraphic(
+          writer,
+          x: x,
+          y: y,
+          bytesPerRow: bmp.bytesPerRow,
+          height: bmp.height,
+          data: bmp.data,
         );
 
       case BoxElement():
         final o = el.options;
-        final x2 = o.x + o.width;
-        final y2 = o.y + o.height;
         final t = o.thickness ?? 1;
-        writer.writeAscii('BOX ${o.x} ${o.y} $x2 $y2 $t\r\n');
+        CpclCommandWriter.writeBox(
+          writer,
+          x: o.x,
+          y: o.y,
+          width: o.width,
+          height: o.height,
+          thickness: t,
+        );
 
       case LineElement():
         final o = el.options;
         final t = o.thickness ?? 1;
-        writer.writeAscii('LINE ${o.x1} ${o.y1} ${o.x2} ${o.y2} $t\r\n');
+        CpclCommandWriter.writeLine(
+          writer,
+          x1: o.x1,
+          y1: o.y1,
+          x2: o.x2,
+          y2: o.y2,
+          thickness: t,
+        );
 
       case CircleElement():
       case EllipseElement():
@@ -103,37 +119,47 @@ Uint8List compileToCPCLBytes(ResolvedLabel label, {CpclEncoding? encoding}) {
         final type = o.type == '39' ? '39' : '128';
         final n = o.narrow ?? 1;
         final ratio = (o.wide ?? 2) ~/ n;
-        if (o.readable == 1) {
-          writer.writeAscii('BARCODE-TEXT 7 0 5\r\n');
-        }
-        writer.writeAscii('BARCODE $type $n $ratio ${o.height} ${o.x} ${o.y} ');
-        writer.writeAscii(el.content);
-        writer.writeAscii('\r\n');
-        if (o.readable == 1) {
-          writer.writeAscii('BARCODE-TEXT OFF\r\n');
-        }
+        CpclCommandWriter.writeBarcode(
+          writer,
+          x: o.x,
+          y: o.y,
+          typeCode: type,
+          narrowBarWidth: n,
+          wideRatio: ratio == 0 ? 1 : ratio,
+          height: o.height,
+          humanReadable: o.readable == 1,
+          content: el.content,
+        );
 
       case QRCodeElement():
         final o = el.options;
         final cw = o.cellWidth ?? 4;
-        writer.writeAscii('BARCODE QR ${o.x} ${o.y} M 2 U $cw\r\n');
-        writer.writeAscii('MA,');
-        writer.writeAscii(el.content);
-        writer.writeAscii('\r\nENDQR\r\n');
+        CpclCommandWriter.writeQrCode(
+          writer,
+          x: o.x,
+          y: o.y,
+          cellWidth: cw,
+          content: el.content,
+          encoder: encoder,
+          replaceUnsupported: enc.replaceUnsupported,
+        );
 
       case RawElement():
         if (el.content is Uint8List) {
-          writer.writeBytes(el.content as Uint8List);
+          CpclCommandWriter.writeRawBytes(writer, el.content as Uint8List);
         } else if (el.content is List<int>) {
-          writer.writeBytes(el.content as List<int>);
+          CpclCommandWriter.writeRawBytes(writer, el.content as List<int>);
         } else if (el.content is String) {
-          writer.writeString(el.content as String, encoding: latin1);
-          writer.writeAscii('\r\n');
+          CpclCommandWriter.writeRawAscii(
+            writer,
+            el.content as String,
+            appendNewline: true,
+          );
         }
     }
   }
 
-  writer.writeAscii('PRINT\r\n');
+  CpclCommandWriter.writePrint(writer);
   return writer.toBytes();
 }
 
