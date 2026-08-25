@@ -249,8 +249,8 @@ Uint8List compileToZPLBytes(
 
 /// Compile a resolved label to ZPL II commands as a [String] compatibility view.
 ///
-/// Decodes the underlying byte stream strictly: via [utf8.decode] in UTF-8 mode,
-/// and via [latin1.decode] in legacy 8-bit mode.
+/// Decodes the underlying byte stream strictly: via `utf8.decode` in UTF-8 mode,
+/// and via `latin1.decode` in legacy 8-bit mode.
 @Deprecated(
   'Use compileToZPLBytes instead. compileToZPL is a string compatibility view and will be removed in 2.0.',
 )

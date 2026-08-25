@@ -128,7 +128,7 @@ Uint8List compileToSBPLBytes(
 
 /// Compile a resolved label to SBPL commands as a [String] compatibility view.
 ///
-/// Decodes the underlying byte stream via [latin1.decode], providing a 1:1 lossless
+/// Decodes the underlying byte stream via `latin1.decode`, providing a 1:1 lossless
 /// mapping of 8-bit byte values.
 @Deprecated(
   'Use compileToSBPLBytes instead. compileToSBPL is a Latin-1 compatibility view and will be removed in 2.0.',

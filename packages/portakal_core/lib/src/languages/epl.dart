@@ -186,7 +186,7 @@ Uint8List compileToEPLBytes(
 
 /// Compile a resolved label to EPL2 commands as a [String] compatibility view.
 ///
-/// Decodes the underlying byte stream via [latin1.decode], providing a 1:1 lossless
+/// Decodes the underlying byte stream via `latin1.decode`, providing a 1:1 lossless
 /// mapping of 8-bit byte values.
 @Deprecated(
   'Use compileToEPLBytes instead. compileToEPL is a Latin-1 compatibility view and will be removed in 2.0.',

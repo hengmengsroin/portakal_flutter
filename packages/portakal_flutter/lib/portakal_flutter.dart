@@ -1,7 +1,7 @@
 /// Portakal Flutter — Flutter integration package for Portakal printer SDK.
 ///
 /// Previews labels via Flutter widgets, CustomPainters, and provides
-/// full re-exports of the pure-Dart [portakal_core] engine.
+/// full re-exports of the pure-Dart `portakal_core` engine.
 library;
 
 // Re-export complete pure Dart engine
