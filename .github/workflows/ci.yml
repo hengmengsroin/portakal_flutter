@@ -25,8 +25,9 @@ jobs:
 
       - name: Install workspace & example dependencies
         run: |
-          flutter pub get
+          flutter pub get --no-example
           cd example && flutter pub get
+          cd ..
 
       - name: Verify code formatting
         run: dart format --output=none --set-exit-if-changed .
@@ -48,7 +49,7 @@ jobs:
           flutter --version
 
       - name: Install workspace dependencies
-        run: flutter pub get
+        run: flutter pub get --no-example
 
       - name: Static analysis (portakal_core)
         working-directory: packages/portakal_core
@@ -75,7 +76,7 @@ jobs:
           flutter --version
 
       - name: Install workspace dependencies
-        run: flutter pub get
+        run: flutter pub get --no-example
 
       - name: Static analysis (portakal_core)
         working-directory: packages/portakal_core
@@ -115,7 +116,7 @@ jobs:
           dart --version
 
       - name: Install workspace dependencies
-        run: flutter pub get
+        run: flutter pub get --no-example
 
       - name: Static analysis (portakal_flutter)
         working-directory: packages/portakal_flutter
@@ -142,7 +143,7 @@ jobs:
           dart --version
 
       - name: Install workspace dependencies
-        run: flutter pub get
+        run: flutter pub get --no-example
 
       - name: Static analysis (portakal_flutter)
         working-directory: packages/portakal_flutter
