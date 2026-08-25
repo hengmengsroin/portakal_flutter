@@ -499,6 +499,54 @@ class IplEncoding {
   static const IplEncoding defaultEncoding = IplEncoding.legacy();
 }
 
+/// Explicit SBPL character encoding configuration.
+class SbplEncoding {
+  /// The character mapping to use for user text.
+  final PrinterCodePage codePage;
+
+  /// Whether to replace unencodable or control characters with `?` (0x3F) instead of throwing.
+  final bool replaceUnsupported;
+
+  const SbplEncoding({required this.codePage, this.replaceUnsupported = false});
+
+  /// Default legacy SBPL mode (CP437 character mapping).
+  const SbplEncoding.legacy({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard CP437 mode.
+  const SbplEncoding.cp437({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard CP850 mode.
+  const SbplEncoding.cp850({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp850,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard Windows CP1252 mode.
+  const SbplEncoding.cp1252({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp1252,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Custom SBPL encoding configuration.
+  const SbplEncoding.custom({
+    required PrinterCodePage codePage,
+    bool replaceUnsupported = false,
+  }) : this(codePage: codePage, replaceUnsupported: replaceUnsupported);
+
+  /// The canonical default SBPL encoding (legacy CP437).
+  static const SbplEncoding defaultEncoding = SbplEncoding.legacy();
+}
+
 /// Character encoder for a single [PrinterCodePage].
 class CodePageEncoder {
   final PrinterCodePage codePage;
