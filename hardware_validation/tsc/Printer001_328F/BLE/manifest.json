@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "protocol": "tsc",
+  "device_ref": "hardware_validation/devices/Printer001_328F/device.json",
+  "device": {
+    "manufacturer": "Unknown / Generic",
+    "model": "Printer001-328F",
+    "firmware": "Unknown",
+    "connection": "BLE",
+    "dpi": 203,
+    "command_mode": "TSC / TSPL2 verified subset"
+  },
+  "media": {
+    "type": "gap",
+    "label_width_mm": 75,
+    "label_height_mm": 50,
+    "gap_mm": 3,
+    "calibrated": true
+  },
+  "validation_date": "2026-08-25",
+  "summary": {
+    "total_cases": 11,
+    "level2_pass": 11,
+    "level2_fail": 0,
+    "level3_pass": 10,
+    "level3_na": 1,
+    "level3_fail": 0,
+    "status": "PASS"
+  },
+  "cases": [
+    {
+      "case_id": "D00-TSC",
+      "title": "Minimal TSC Probe",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "Minimal TSPL job executed; 'PORTAKAL TSC TEST' printed cleanly at (50,50)"
+    },
+    {
+      "case_id": "H01",
+      "title": "ASCII Baseline",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "SIZE, CLS, scalable font header, 2x body text printed at exact coordinates"
+    },
+    {
+      "case_id": "H02-CP437",
+      "title": "CP437 Latin Encodings",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "CODEPAGE 437 accepted; ä, ö, ü, ß, ±, ° glyphs visually verified"
+    },
+    {
+      "case_id": "H02-CP850",
+      "title": "CP850 Multilingual Latin-1",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "CODEPAGE 850 accepted; é, à, è, ù, ç, ñ, Á, Í, Ó glyphs visually verified"
+    },
+    {
+      "case_id": "H02-CP1252",
+      "title": "CP1252 Windows Western European",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "CODEPAGE 1252 accepted; é, à, è, “, ”, ‘, ’, ©, ® symbols visually verified"
+    },
+    {
+      "case_id": "H05",
+      "title": "Font Scaling (1x, 2x, 4x)",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "Font magnification 1x, 2x, 4x width/height verified visually without clipping"
+    },
+    {
+      "case_id": "H06",
+      "title": "1D Barcode Code 128",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": "PORTAKAL123456",
+      "notes": "BARCODE command executed; optical reader scanned exact payload 'PORTAKAL123456'"
+    },
+    {
+      "case_id": "H07",
+      "title": "2D QR Code",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": "https://example.com/portakal-hw-test",
+      "notes": "QRCODE command executed; camera reader scanned exact URL 'https://example.com/portakal-hw-test'"
+    },
+    {
+      "case_id": "H08",
+      "title": "Drawing Primitives (Box, Line, Circle)",
+      "level2": "PASS",
+      "level3": "PASS",
+      "scanned_payload": null,
+      "notes": "BOX, BAR, and CIRCLE rendered crisply with correct geometry"
+    },
+    {
+      "case_id": "H09",
+      "title": "1-Bit Raster Bitmap (64x64)",
+      "level2": "PASS",
+      "level3": "PASS",
+      "byte_count": 631,
+      "stream_sha256": "743515de16b76c24747fb9b86b84e9c917ac0f1d3f35fe465ffd487ab26a55dc",
+      "raw_fixture_sha256": "5316b8b37a5b2d8d1f68f92a3d0ef18b43caa01091b6b694ffb4ec8e62c1a3d9",
+      "scanned_payload": null,
+      "notes": "BITMAP command with canonical raw 512-byte matrix; printed with correct polarity, crisp borders, and zero row skew"
+    },
+    {
+      "case_id": "H10",
+      "title": "Copies (Batch 3 Labels)",
+      "level2": "PASS",
+      "level3": "PASS",
+      "requested_copies": 3,
+      "actual_copies": 3,
+      "scanned_payload": null,
+      "notes": "PRINT 1, 3 emitted; exactly 3 physical labels dispensed from single job"
+    },
+    {
+      "case_id": "H12",
+      "title": "Initialization & CLS Buffer Clear",
+      "level2": "PASS",
+      "level3": "N/A",
+      "scanned_payload": null,
+      "notes": "CLS buffer clear executed cleanly; follow-up D00-TSC print job printed immediately without fault"
+    }
+  ]
+}

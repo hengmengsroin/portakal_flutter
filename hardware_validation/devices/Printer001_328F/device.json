@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "device_id": "Printer001_328F",
+  "display_name": "Printer001-328F",
+  "manufacturer": "Unknown / Generic",
+  "model": "Printer001-328F",
+  "firmware": "Unknown",
+  "transport": {
+    "primary": "BLE",
+    "gatt_service": "Standard / Generic Thermal BLE",
+    "write_characteristic_mode": "writeWithoutResponse / write"
+  },
+  "physical_spec": {
+    "print_technology": "Direct Thermal (Dual Receipt / Label)",
+    "dpi": 203,
+    "dots_per_mm": 8
+  },
+  "supported_command_modes": [
+    {
+      "protocol": "escpos",
+      "dialect": "ESC/POS verified subset",
+      "status": "PASS",
+      "evidence_manifest": "hardware_validation/escpos/Printer001_328F/BLE/manifest.json"
+    },
+    {
+      "protocol": "tsc",
+      "dialect": "TSC / TSPL2 verified subset",
+      "status": "PASS",
+      "evidence_manifest": "hardware_validation/tsc/Printer001_328F/BLE/manifest.json"
+    }
+  ],
+  "validation_notes": "Single physical Bluetooth multi-emulation thermal printer capable of accepting both ESC/POS receipt streams and TSC/TSPL2 label jobs over BLE."
+}
