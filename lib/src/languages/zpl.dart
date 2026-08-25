@@ -4,31 +4,7 @@ import 'dart:typed_data';
 import '../byte_writer.dart';
 import '../encoding.dart';
 import '../types.dart';
-
-/// Convert a byte to 2-char uppercase hex.
-String _hex(int byte) => byte.toRadixString(16).toUpperCase().padLeft(2, '0');
-
-/// Escapes ZPL command control delimiters (^ and ~) using ZPL ^FH hex escape format.
-///
-/// When ^FH is enabled on a field, literal underscores must also be escaped as
-/// `_5F` to prevent the printer from misinterpreting following hexadecimal characters
-/// (e.g. `_41` becoming `A`).
-String _escapeZplHex(String text) {
-  final buf = StringBuffer();
-  for (int i = 0; i < text.length; i++) {
-    final char = text[i];
-    if (char == '^') {
-      buf.write('_5E');
-    } else if (char == '~') {
-      buf.write('_7E');
-    } else if (char == '_') {
-      buf.write('_5F');
-    } else {
-      buf.write(char);
-    }
-  }
-  return buf.toString();
-}
+import 'zpl_writer.dart';
 
 /// Compile a resolved label to ZPL II commands as a byte sequence ([Uint8List]).
 ///
@@ -40,22 +16,22 @@ Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
   final isUtf8 = enc.type == ZplTextEncoding.utf8;
   final writer = PrinterByteWriter();
 
-  writer.writeAscii('^XA\n');
+  ZplCommandWriter.writeStartFormat(writer);
 
   // Emit ^CI28 for UTF-8 mode
   if (isUtf8 && enc.emitCiCommand) {
-    writer.writeAscii('^CI28\n');
+    ZplCommandWriter.writeCodePage(writer, 28);
   }
 
-  writer.writeAscii('^PW${label.widthDots}\n');
+  ZplCommandWriter.writePrintWidth(writer, label.widthDots);
   if (label.heightDots > 0) {
-    writer.writeAscii('^LL${label.heightDots}\n');
+    ZplCommandWriter.writeLabelLength(writer, label.heightDots);
   }
   if (label.speed > 0) {
-    writer.writeAscii('^PR${label.speed}\n');
+    ZplCommandWriter.writeSpeed(writer, label.speed);
   }
   if (label.density > 0) {
-    writer.writeAscii('~SD${label.density.toString().padLeft(2, '0')}\n');
+    ZplCommandWriter.writeDarkness(writer, label.density.toDouble());
   }
 
   // Elements
@@ -69,59 +45,68 @@ Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
         final h = size * 30;
         final w = h;
         final r = _zplRotation(o.rotation ?? 0);
-        writer.writeAscii('^FO$x,$y');
-        writer.writeAscii('^A0$r,$h,$w');
+        ZplCommandWriter.writeFieldOrigin(writer, x, y);
+        ZplCommandWriter.writeFont(
+          writer,
+          fontCode: '0',
+          rotationCode: r,
+          height: h,
+          width: w,
+        );
         if (o.maxWidth != null) {
           final align = o.align == 'center'
               ? 'C'
               : o.align == 'right'
               ? 'R'
               : 'L';
-          writer.writeAscii('^FB${o.maxWidth},1,0,$align');
+          ZplCommandWriter.writeFieldBlock(
+            writer,
+            width: o.maxWidth!,
+            maxLines: 1,
+            lineSpacing: 0,
+            align: align,
+            hangingIndent: 0,
+          );
         }
         if (o.reverse == true) {
-          writer.writeAscii('^FR');
+          ZplCommandWriter.writeFieldReverse(writer);
         }
 
-        // Text field escaping and encoding
-        final content = el.content;
-        if (content.contains('^') || content.contains('~')) {
-          // Contains ZPL control characters — activate ^FH (Field Hex) escaping
-          final escaped = _escapeZplHex(content);
-          writer.writeAscii('^FH^FD');
-          if (isUtf8) {
-            writer.writeString(escaped, encoding: utf8);
-          } else {
-            writer.writeString(escaped, encoding: latin1);
-          }
-          writer.writeAscii('^FS\n');
-        } else {
-          writer.writeAscii('^FD');
-          if (isUtf8) {
-            writer.writeString(content, encoding: utf8);
-          } else {
-            writer.writeString(content, encoding: latin1);
-          }
-          writer.writeAscii('^FS\n');
-        }
+        ZplCommandWriter.writeFieldData(
+          writer,
+          text: el.content,
+          isUtf8: isUtf8,
+        );
+        ZplCommandWriter.writeFieldSeparator(writer);
 
       case ImageElement():
         final o = el.options;
         final x = o.x ?? 0;
         final y = o.y ?? 0;
         final bmp = el.bitmap;
-        final totalBytes = bmp.data.length;
-        final hexData = bmp.data.map(_hex).join();
-        writer.writeAscii(
-          '^FO$x,$y^GFA,$totalBytes,$totalBytes,${bmp.bytesPerRow},$hexData^FS\n',
+        ZplCommandWriter.writeGraphicField(
+          writer,
+          x: x,
+          y: y,
+          bytesPerRow: bmp.bytesPerRow,
+          height: bmp.height,
+          data: bmp.data,
+          useTypeset: false,
         );
 
       case BoxElement():
         final o = el.options;
         final t = o.thickness ?? 1;
         final r = o.radius ?? 0;
-        writer.writeAscii(
-          '^FO${o.x},${o.y}^GB${o.width},${o.height},$t,B,$r^FS\n',
+        ZplCommandWriter.writeBox(
+          writer,
+          x: o.x,
+          y: o.y,
+          width: o.width,
+          height: o.height,
+          thickness: t,
+          radius: r,
+          white: false,
         );
 
       case LineElement():
@@ -131,12 +116,32 @@ Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
           // Horizontal line
           final x = o.x1 < o.x2 ? o.x1 : o.x2;
           final w = (o.x2 - o.x1).abs();
-          writer.writeAscii('^FO$x,${o.y1}^GB$w,$t,$t^FS\n');
+          final width = w == 0 ? 1 : w;
+          ZplCommandWriter.writeBox(
+            writer,
+            x: x,
+            y: o.y1,
+            width: width,
+            height: t,
+            thickness: t,
+            radius: 0,
+            white: false,
+          );
         } else if (o.x1 == o.x2) {
           // Vertical line
           final y = o.y1 < o.y2 ? o.y1 : o.y2;
           final h = (o.y2 - o.y1).abs();
-          writer.writeAscii('^FO${o.x1},$y^GB$t,$h,$t^FS\n');
+          final height = h == 0 ? 1 : h;
+          ZplCommandWriter.writeBox(
+            writer,
+            x: o.x1,
+            y: y,
+            width: t,
+            height: height,
+            thickness: t,
+            radius: 0,
+            white: false,
+          );
         } else {
           // Diagonal — use GD
           final w = (o.x2 - o.x1).abs();
@@ -144,13 +149,25 @@ Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
           final x = o.x1 < o.x2 ? o.x1 : o.x2;
           final y = o.y1 < o.y2 ? o.y1 : o.y2;
           final dir = ((o.x2 > o.x1) == (o.y2 > o.y1)) ? 'R' : 'L';
-          writer.writeAscii('^FO$x,$y^GD$w,$h,$t,B,$dir^FS\n');
+          ZplCommandWriter.writeDiagonal(
+            writer,
+            x: x,
+            y: y,
+            width: w == 0 ? 1 : w,
+            height: h == 0 ? 1 : h,
+            thickness: t,
+            direction: dir,
+          );
         }
 
       case CircleElement():
         final o = el.options;
-        writer.writeAscii(
-          '^FO${o.x},${o.y}^GC${o.diameter},${o.thickness ?? 1},B^FS\n',
+        ZplCommandWriter.writeCircle(
+          writer,
+          x: o.x,
+          y: o.y,
+          diameter: o.diameter,
+          thickness: o.thickness ?? 1,
         );
 
       case EllipseElement():
@@ -163,58 +180,76 @@ Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
 
       case EraseElement():
         final o = el.options;
-        writer.writeAscii(
-          '^FO${o.x},${o.y}^GB${o.width},${o.height},${o.width},W^FS\n',
+        final w = o.width;
+        final h = o.height;
+        ZplCommandWriter.writeBox(
+          writer,
+          x: o.x,
+          y: o.y,
+          width: w,
+          height: h,
+          thickness: w,
+          radius: 0,
+          white: true,
         );
 
       case BarcodeElement():
         final o = el.options;
         final type = o.type == '39' ? '3' : 'C'; // 3=Code39, C=Code128
-        final hr = o.readable == 1 ? 'Y' : 'N';
-        final rot = o.rotation == 90
-            ? 'R'
-            : o.rotation == 180
-            ? 'I'
-            : o.rotation == 270
-            ? 'B'
-            : 'N';
-        writer.writeAscii('^FO${o.x},${o.y}^B$type$rot,${o.height},$hr,N,N^FD');
-        writer.writeAscii(el.content);
-        writer.writeAscii('^FS\n');
+        final rot = _zplRotation(o.rotation ?? 0);
+        ZplCommandWriter.writeBarcode(
+          writer,
+          x: o.x,
+          y: o.y,
+          typeCode: type,
+          rotCode: rot,
+          height: o.height,
+          interpretationLine: o.readable == 1,
+          interpretationAbove: false,
+          content: el.content,
+          useTypeset: false,
+        );
 
       case QRCodeElement():
         final o = el.options;
         final cw = o.cellWidth ?? 4;
         final ecc = o.eccLevel ?? 'Q';
-        final rot = o.rotation == 90
-            ? 'R'
-            : o.rotation == 180
-            ? 'I'
-            : o.rotation == 270
-            ? 'B'
-            : 'N';
-        writer.writeAscii('^FO${o.x},${o.y}^BQ$rot,2,$cw,$ecc,7^FDQA,');
-        if (isUtf8) {
-          writer.writeString(el.content, encoding: utf8);
-        } else {
-          writer.writeString(el.content, encoding: latin1);
-        }
-        writer.writeAscii('^FS\n');
+        ZplCommandWriter.writeQrCode(
+          writer,
+          x: o.x,
+          y: o.y,
+          model: 2,
+          magnification: cw,
+          eccCode: ecc,
+          mask: 7,
+          content: el.content,
+          isUtf8: isUtf8,
+          useTypeset: false,
+        );
 
       case RawElement():
         if (el.content is Uint8List) {
-          writer.writeBytes(el.content as Uint8List);
+          ZplCommandWriter.writeRawBytes(writer, el.content as Uint8List);
         } else if (el.content is List<int>) {
-          writer.writeBytes(el.content as List<int>);
+          ZplCommandWriter.writeRawBytes(writer, el.content as List<int>);
         } else if (el.content is String) {
-          writer.writeString(el.content as String, encoding: utf8);
-          writer.writeAscii('\n');
+          ZplCommandWriter.writeRawAscii(
+            writer,
+            el.content as String,
+            appendNewline: true,
+          );
         }
     }
   }
 
-  writer.writeAscii('^PQ${label.copies}\n');
-  writer.writeAscii('^XZ\n');
+  ZplCommandWriter.writePrintQuantity(
+    writer,
+    copies: label.copies,
+    pauseAndCut: 0,
+    replicates: 0,
+    overridePause: false,
+  );
+  ZplCommandWriter.writeEndFormat(writer);
   return writer.toBytes();
 }
 
