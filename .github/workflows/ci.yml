@@ -7,23 +7,43 @@ on:
     branches: [ main ]
 
 jobs:
+  format:
+    name: Code Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Verify code formatting
+        run: dart format --output=none --set-exit-if-changed .
+
   core-minimum:
     name: Core Package (Minimum Dart 3.6.0)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
         with:
-          sdk: "3.6.0"
+          flutter-version: "3.27.0"
+          cache: true
+
+      - name: Print SDK versions
+        run: |
+          dart --version
+          flutter --version
 
       - name: Install dependencies
-        run: dart pub get
+        run: flutter pub get
 
       - name: Static analysis (portakal_core)
         run: dart analyze --fatal-infos packages/portakal_core
 
-      - name: Run tests (portakal_core)
+      - name: Run unit tests (portakal_core)
         run: dart test packages/portakal_core
 
   core-stable:
@@ -32,15 +52,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
         with:
-          sdk: stable
+          channel: stable
+          cache: true
+
+      - name: Print SDK versions
+        run: |
+          dart --version
+          flutter --version
 
       - name: Install dependencies
-        run: dart pub get
-
-      - name: Verify code formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: flutter pub get
 
       - name: Static analysis (portakal_core)
         run: dart analyze --fatal-infos packages/portakal_core
@@ -72,13 +95,18 @@ jobs:
           flutter-version: "3.27.0"
           cache: true
 
+      - name: Print SDK versions
+        run: |
+          flutter --version
+          dart --version
+
       - name: Install dependencies
         run: flutter pub get
 
       - name: Static analysis (portakal_flutter)
         run: flutter analyze --fatal-infos packages/portakal_flutter
 
-      - name: Run widget & documentation tests (portakal_flutter)
+      - name: Run widget & acceptance tests (portakal_flutter)
         run: flutter test packages/portakal_flutter
 
   flutter-stable:
@@ -92,13 +120,18 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Print SDK versions
+        run: |
+          flutter --version
+          dart --version
+
       - name: Install dependencies
         run: flutter pub get
 
       - name: Static analysis (portakal_flutter)
         run: flutter analyze --fatal-infos packages/portakal_flutter
 
-      - name: Run widget & documentation tests (portakal_flutter)
+      - name: Run widget & acceptance tests (portakal_flutter)
         run: flutter test packages/portakal_flutter
 
       - name: Verify Dartdoc generation (portakal_flutter)
