@@ -8,7 +8,6 @@ environment:
 workspace:
   - packages/portakal_core
   - packages/portakal_flutter
-  - example
 
 dev_dependencies:
   lints: ^5.0.0

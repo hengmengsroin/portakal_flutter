@@ -23,8 +23,10 @@ jobs:
           flutter --version
           dart --version
 
-      - name: Install workspace dependencies
-        run: flutter pub get
+      - name: Install workspace & example dependencies
+        run: |
+          flutter pub get
+          cd example && flutter pub get
 
       - name: Verify code formatting
         run: dart format --output=none --set-exit-if-changed .
@@ -45,7 +47,7 @@ jobs:
           dart --version
           flutter --version
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: flutter pub get
 
       - name: Static analysis (portakal_core)
@@ -72,7 +74,7 @@ jobs:
           dart --version
           flutter --version
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: flutter pub get
 
       - name: Static analysis (portakal_core)
@@ -112,7 +114,7 @@ jobs:
           flutter --version
           dart --version
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: flutter pub get
 
       - name: Static analysis (portakal_flutter)
@@ -139,7 +141,7 @@ jobs:
           flutter --version
           dart --version
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: flutter pub get
 
       - name: Static analysis (portakal_flutter)
@@ -169,7 +171,13 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install dependencies
+      - name: Print SDK versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Install example dependencies
+        working-directory: example
         run: flutter pub get
 
       - name: Static analysis (example)
