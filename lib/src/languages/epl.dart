@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import '../byte_writer.dart';
 import '../encoding.dart';
 import '../types.dart';
+import 'epl_writer.dart';
 
 /// Compile a resolved label to EPL2 commands as a byte sequence ([Uint8List]).
 ///
@@ -16,19 +17,23 @@ Uint8List compileToEPLBytes(ResolvedLabel label, {EplEncoding? encoding}) {
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
 
-  writer.writeAscii('N\n');
+  EplCommandWriter.writeClear(writer);
 
   // If character set command is configured, emit I8,<countryCode>,001\n
   if (enc.sendSetCharSetCommand && enc.countryCode != null) {
-    writer.writeAscii('I8,${enc.countryCode},001\n');
+    EplCommandWriter.writeCharSet(writer, enc.countryCode!);
   }
 
-  writer.writeAscii('q${label.widthDots}\n');
+  EplCommandWriter.writeLabelWidth(writer, label.widthDots);
   if (label.heightDots > 0) {
-    writer.writeAscii('Q${label.heightDots},24\n');
+    EplCommandWriter.writeLabelLength(writer, label.heightDots, gapDots: 24);
   }
-  writer.writeAscii('S${label.speed}\n');
-  writer.writeAscii('D${label.density}\n');
+  if (label.speed > 0) {
+    EplCommandWriter.writeSpeed(writer, label.speed);
+  }
+  if (label.density > 0) {
+    EplCommandWriter.writeDensity(writer, label.density);
+  }
 
   for (final el in label.elements) {
     switch (el) {
@@ -40,16 +45,21 @@ Uint8List compileToEPLBytes(ResolvedLabel label, {EplEncoding? encoding}) {
         final rotation = _eplRotation(o.rotation ?? 0);
         final xMul = o.xScale ?? o.size ?? 1;
         final yMul = o.yScale ?? o.size ?? 1;
-        final reverse = o.reverse == true ? 'R' : 'N';
+        final reverse = o.reverse == true;
 
-        // Format: A<x>,<y>,<rot>,<font>,<xMul>,<yMul>,<reverse>,"<content>"\n
-        writer.writeAscii('A$x,$y,$rotation,$font,$xMul,$yMul,$reverse,"');
-        final textBytes = encoder.encode(
-          el.content,
+        EplCommandWriter.writeText(
+          writer,
+          x: x,
+          y: y,
+          rotation: rotation,
+          font: font,
+          xMultiplier: xMul,
+          yMultiplier: yMul,
+          reverse: reverse,
+          text: el.content,
+          encoder: encoder,
           replaceUnsupported: enc.replaceUnsupported,
         );
-        writer.writeBytes(textBytes);
-        writer.writeAscii('"\n');
 
       case ImageElement():
         final o = el.options;
@@ -57,20 +67,27 @@ Uint8List compileToEPLBytes(ResolvedLabel label, {EplEncoding? encoding}) {
         final y = o.y ?? 0;
         final bmp = el.bitmap;
         // EPL GW: polarity INVERTED (0=black in data)
-        writer.writeAscii('GW$x,$y,${bmp.bytesPerRow},${bmp.height}\n');
-        final inverted = Uint8List(bmp.data.length);
-        for (int i = 0; i < bmp.data.length; i++) {
-          inverted[i] = ~bmp.data[i] & 0xFF;
-        }
-        writer.writeBytes(inverted);
-        writer.writeAscii('\n');
+        EplCommandWriter.writeGraphic(
+          writer,
+          x: x,
+          y: y,
+          bytesPerRow: bmp.bytesPerRow,
+          height: bmp.height,
+          data: bmp.data,
+          invert: true,
+        );
 
       case BoxElement():
         final o = el.options;
-        final x2 = o.x + o.width;
-        final y2 = o.y + o.height;
         final t = o.thickness ?? 1;
-        writer.writeAscii('X${o.x},${o.y},$x2,$y2,$t\n');
+        EplCommandWriter.writeBox(
+          writer,
+          x: o.x,
+          y: o.y,
+          width: o.width,
+          height: o.height,
+          thickness: t,
+        );
 
       case LineElement():
         final o = el.options;
@@ -78,15 +95,37 @@ Uint8List compileToEPLBytes(ResolvedLabel label, {EplEncoding? encoding}) {
         if (o.y1 == o.y2) {
           final x = o.x1 < o.x2 ? o.x1 : o.x2;
           final w = (o.x2 - o.x1).abs();
-          writer.writeAscii('LO$x,${o.y1},$w,$t\n');
+          final width = w == 0 ? 1 : w;
+          EplCommandWriter.writeLine(
+            writer,
+            x: x,
+            y: o.y1,
+            width: width,
+            height: t,
+          );
         } else if (o.x1 == o.x2) {
           final y = o.y1 < o.y2 ? o.y1 : o.y2;
           final h = (o.y2 - o.y1).abs();
-          writer.writeAscii('LO${o.x1},$y,$t,$h\n');
+          final height = h == 0 ? 1 : h;
+          EplCommandWriter.writeLine(
+            writer,
+            x: o.x1,
+            y: y,
+            width: t,
+            height: height,
+          );
         } else {
           // EPL doesn't support diagonal — approximate with LO
-          writer.writeAscii(
-            'LO${o.x1},${o.y1},${(o.x2 - o.x1).abs()},${(o.y2 - o.y1).abs()}\n',
+          final w = (o.x2 - o.x1).abs();
+          final h = (o.y2 - o.y1).abs();
+          final x = o.x1 < o.x2 ? o.x1 : o.x2;
+          final y = o.y1 < o.y2 ? o.y1 : o.y2;
+          EplCommandWriter.writeLine(
+            writer,
+            x: x,
+            y: y,
+            width: w == 0 ? 1 : w,
+            height: h == 0 ? 1 : h,
           );
         }
 
@@ -100,41 +139,54 @@ Uint8List compileToEPLBytes(ResolvedLabel label, {EplEncoding? encoding}) {
       case BarcodeElement():
         final o = el.options;
         final type = o.type == '39' ? '3' : '1'; // 3=Code39, 1=Code128
-        final rot = o.rotation == 90
-            ? 1
-            : o.rotation == 180
-            ? 2
-            : o.rotation == 270
-            ? 3
-            : 0;
-        final hr = o.readable == 1 ? 'B' : 'N';
+        final rot = _eplRotation(o.rotation ?? 0);
+        final hr = o.readable == 1;
         final n = o.narrow ?? 2;
         final w = o.wide ?? 4;
-        writer.writeAscii('B${o.x},${o.y},$rot,$type,$n,$w,${o.height},$hr,"');
-        writer.writeAscii(el.content);
-        writer.writeAscii('"\n');
+        EplCommandWriter.writeBarcode(
+          writer,
+          x: o.x,
+          y: o.y,
+          rotation: rot,
+          typeCode: type,
+          narrowBarWidth: n,
+          wideBarWidth: w,
+          height: o.height,
+          humanReadable: hr,
+          content: el.content,
+        );
 
       case QRCodeElement():
         final o = el.options;
         final cw = o.cellWidth ?? 4;
         final ecc = o.eccLevel ?? 'Q';
-        writer.writeAscii('b${o.x},${o.y},"Q",m2,s$cw,e$ecc,"');
-        writer.writeAscii(el.content);
-        writer.writeAscii('"\n');
+        EplCommandWriter.writeQrCode(
+          writer,
+          x: o.x,
+          y: o.y,
+          cellWidth: cw,
+          eccCode: ecc,
+          content: el.content,
+          encoder: encoder,
+          replaceUnsupported: enc.replaceUnsupported,
+        );
 
       case RawElement():
         if (el.content is Uint8List) {
-          writer.writeBytes(el.content as Uint8List);
+          EplCommandWriter.writeRawBytes(writer, el.content as Uint8List);
         } else if (el.content is List<int>) {
-          writer.writeBytes(el.content as List<int>);
+          EplCommandWriter.writeRawBytes(writer, el.content as List<int>);
         } else if (el.content is String) {
-          writer.writeString(el.content as String, encoding: latin1);
-          writer.writeAscii('\n');
+          EplCommandWriter.writeRawAscii(
+            writer,
+            el.content as String,
+            appendNewline: true,
+          );
         }
     }
   }
 
-  writer.writeAscii('P${label.copies}\n');
+  EplCommandWriter.writePrint(writer, sets: label.copies, copies: 1);
   return writer.toBytes();
 }
 

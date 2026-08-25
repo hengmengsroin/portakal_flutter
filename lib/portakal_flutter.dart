@@ -63,3 +63,4 @@ export 'src/parsers/starprnt.dart';
 export 'src/native/tsc.dart';
 export 'src/native/escpos.dart';
 export 'src/native/zpl.dart';
+export 'src/native/epl.dart';
