@@ -9,6 +9,12 @@ import 'ipl_writer.dart';
 /// Compile a resolved label to IPL commands as a byte sequence ([Uint8List]).
 ///
 /// Uses actual control bytes (`STX` = 0x02, `ETX` = 0x03, `ESC` = 0x1B, `SI` = 0x0F).
+///
+/// NOTE: The universal IPL compiler preserves the historical/direct Portakal compatibility
+/// output path (`<STX><ESC>C1<ETX>`, `<STX><ESC>P<ETX>`, configs/fields, `<STX><ESC>E1<ETX>`, `<STX>R<ETX>`).
+/// The protocol-native builder [IplPrinter] provides the authentic Honeywell IPL
+/// Program Mode / Format Editing (`E<n>`, `F<n>`), Format Selection (`<ESC>E<n>`), and Print Execution (`<ETB>`) operations.
+///
 /// If [encoding] is supplied, text fields are encoded using the configured [CodePageEncoder].
 /// Control characters (`STX`, `ETX`, `ESC`, `SI`) inside text fields are explicitly rejected with
 /// [UnsupportedCharacterException] (or replaced with `?` if `replaceUnsupported: true`) to prevent
@@ -19,8 +25,8 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
   final encoder = getEncoder(enc.codePage);
   final writer = PrinterByteWriter();
 
-  // STX ESC C1 ETX — Create format 1 / Advanced mode
-  IplCommandWriter.writeCreateFormat(writer, 1);
+  // STX ESC C1 ETX — Create format 1 / Advanced mode (legacy baseline)
+  IplCommandWriter.writeLegacyCreateFormat(writer, 1);
 
   // STX ESC P ETX — Enter Program mode
   IplCommandWriter.writeProgramMode(writer);
@@ -150,11 +156,11 @@ Uint8List compileToIPLBytes(ResolvedLabel label, {IplEncoding? encoding}) {
     IplCommandWriter.writeCopies(writer, label.copies);
   }
 
-  // STX ESC E1 ETX — End format
-  IplCommandWriter.writeEndFormat(writer, 1);
+  // STX ESC E1 ETX — End format (legacy baseline)
+  IplCommandWriter.writeLegacyEndFormat(writer, 1);
 
-  // STX R ETX — Print / Execute
-  IplCommandWriter.writePrint(writer);
+  // STX R ETX — Print / Execute (legacy baseline)
+  IplCommandWriter.writeLegacyPrint(writer);
 
   return writer.toBytes();
 }

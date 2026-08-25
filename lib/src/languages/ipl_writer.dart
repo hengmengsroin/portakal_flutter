@@ -12,6 +12,9 @@ import '../errors.dart';
 /// - ETX (0x03)
 /// - ESC (0x1B)
 /// - SI  (0x0F)
+/// - ETB (0x17)
+/// - US  (0x1F)
+/// - RS  (0x1E)
 class IplCommandWriter {
   const IplCommandWriter._();
 
@@ -19,20 +22,15 @@ class IplCommandWriter {
   static const int etx = 0x03;
   static const int esc = 0x1B;
   static const int si = 0x0F;
+  static const int etb = 0x17;
+  static const int us = 0x1F;
+  static const int rs = 0x1E;
 
-  /// Emits `<STX><ESC>C<formatNumber><ETX>` — Create Format (Advanced Mode).
-  static void writeCreateFormat(
-    PrinterByteWriter writer, [
-    int formatNumber = 1,
-  ]) {
-    if (formatNumber < 1) {
-      throw InvalidConfigError(
-        'IPL format number must be positive, got: $formatNumber',
-      );
-    }
+  /// Emits `<STX><ESC>C<ETX>` — Select Advanced Mode.
+  static void writeAdvancedMode(PrinterByteWriter writer) {
     writer.writeByte(stx);
     writer.writeByte(esc);
-    writer.writeAscii('C$formatNumber');
+    writer.writeAscii('C');
     writer.writeByte(etx);
   }
 
@@ -41,6 +39,99 @@ class IplCommandWriter {
     writer.writeByte(stx);
     writer.writeByte(esc);
     writer.writeAscii('P');
+    writer.writeByte(etx);
+  }
+
+  /// Emits `<STX>E<formatNumber><ETX>` — Erase Format (in Program Mode).
+  static void writeEraseFormat(PrinterByteWriter writer, int formatNumber) {
+    if (formatNumber < 0) {
+      throw InvalidConfigError(
+        'IPL format number must be non-negative, got: $formatNumber',
+      );
+    }
+    writer.writeByte(stx);
+    writer.writeAscii('E$formatNumber');
+    writer.writeByte(etx);
+  }
+
+  /// Emits `<STX>F<formatNumber><ETX>` — Create / Select Format for Editing (in Program Mode).
+  static void writeCreateFormat(PrinterByteWriter writer, int formatNumber) {
+    if (formatNumber < 0) {
+      throw InvalidConfigError(
+        'IPL format number must be non-negative, got: $formatNumber',
+      );
+    }
+    writer.writeByte(stx);
+    writer.writeAscii('F$formatNumber');
+    writer.writeByte(etx);
+  }
+
+  /// Emits `<STX>R<ETX>` — Exit Program Mode / Return to Print Mode.
+  static void writeExitProgramMode(PrinterByteWriter writer) {
+    writer.writeByte(stx);
+    writer.writeAscii('R');
+    writer.writeByte(etx);
+  }
+
+  /// Emits `<STX><ESC>E<formatNumber><ETX>` — Select Format for Printing/Data Entry.
+  static void writeSelectFormat(PrinterByteWriter writer, int formatNumber) {
+    if (formatNumber < 0) {
+      throw InvalidConfigError(
+        'IPL format number must be non-negative, got: $formatNumber',
+      );
+    }
+    writer.writeByte(stx);
+    writer.writeByte(esc);
+    writer.writeAscii('E$formatNumber');
+    writer.writeByte(etx);
+  }
+
+  /// Emits `<STX><US><batch>;<RS><quantity><ETB><ETX>` — Print Execution.
+  static void writePrint(
+    PrinterByteWriter writer, {
+    int batchCount = 1,
+    int quantity = 1,
+  }) {
+    if (batchCount <= 0 || quantity <= 0) {
+      throw InvalidConfigError(
+        'IPL print batch count and quantity must be positive, got batch: $batchCount, quantity: $quantity',
+      );
+    }
+    writer.writeByte(stx);
+    writer.writeByte(us);
+    writer.writeAscii('$batchCount;');
+    writer.writeByte(rs);
+    writer.writeAscii('$quantity');
+    writer.writeByte(etb);
+    writer.writeByte(etx);
+  }
+
+  /// Legacy helper for universal compiler: emits `<STX><ESC>C<formatNumber><ETX>`.
+  static void writeLegacyCreateFormat(
+    PrinterByteWriter writer, [
+    int formatNumber = 1,
+  ]) {
+    writer.writeByte(stx);
+    writer.writeByte(esc);
+    writer.writeAscii('C$formatNumber');
+    writer.writeByte(etx);
+  }
+
+  /// Legacy helper for universal compiler: emits `<STX><ESC>E<formatNumber><ETX>`.
+  static void writeLegacyEndFormat(
+    PrinterByteWriter writer, [
+    int formatNumber = 1,
+  ]) {
+    writer.writeByte(stx);
+    writer.writeByte(esc);
+    writer.writeAscii('E$formatNumber');
+    writer.writeByte(etx);
+  }
+
+  /// Legacy helper for universal compiler: emits `<STX>R<ETX>`.
+  static void writeLegacyPrint(PrinterByteWriter writer) {
+    writer.writeByte(stx);
+    writer.writeAscii('R');
     writer.writeByte(etx);
   }
 
@@ -310,26 +401,6 @@ class IplCommandWriter {
     writer.writeAscii(content);
     writer.writeByte(etx);
     writer.writeAscii('\n');
-  }
-
-  /// Emits `<STX><ESC>E<formatNumber><ETX>` — End Format.
-  static void writeEndFormat(PrinterByteWriter writer, [int formatNumber = 1]) {
-    if (formatNumber < 1) {
-      throw InvalidConfigError(
-        'IPL format number must be positive, got: $formatNumber',
-      );
-    }
-    writer.writeByte(stx);
-    writer.writeByte(esc);
-    writer.writeAscii('E$formatNumber');
-    writer.writeByte(etx);
-  }
-
-  /// Emits `<STX>R<ETX>` — Print / Execute Format.
-  static void writePrint(PrinterByteWriter writer) {
-    writer.writeByte(stx);
-    writer.writeAscii('R');
-    writer.writeByte(etx);
   }
 
   /// Emits raw binary bytes directly.

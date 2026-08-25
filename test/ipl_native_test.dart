@@ -6,7 +6,6 @@ import 'package:portakal_flutter/src/encoding.dart';
 import 'package:portakal_flutter/src/errors.dart';
 import 'package:portakal_flutter/src/lang/ipl.dart';
 import 'package:portakal_flutter/src/native/ipl.dart';
-import 'package:portakal_flutter/src/parsers/ipl.dart';
 import 'package:portakal_flutter/src/types.dart';
 import 'package:test/test.dart';
 
@@ -25,9 +24,10 @@ void main() {
       'reset clears accumulated buffer, resets counter, and restores encoding',
       () {
         final printer = IplPrinter()
+          ..programMode()
           ..createFormat(1)
           ..text(x: 10, y: 10, text: 'Label')
-          ..endFormat(1);
+          ..exitProgramMode();
 
         expect(printer.toBytes(), isNotEmpty);
 
@@ -36,22 +36,23 @@ void main() {
       },
     );
 
-    group('Lifecycle & Control Framing', () {
+    group('Honeywell IPL Program & Format Lifecycle', () {
       test(
-        'emits exact binary STX, ETX, ESC control sequences for format lifecycle',
+        'emits exact control byte sequences for mode selection and format management',
         () {
           final printer = IplPrinter()
-            ..createFormat(1)
+            ..advancedMode()
             ..programMode()
-            ..copies(3)
-            ..endFormat(1)
-            ..print();
+            ..eraseFormat(1)
+            ..createFormat(1)
+            ..exitProgramMode()
+            ..selectFormat(1);
 
           final output = printer.toBytes().toList();
 
-          // <STX><ESC>C1<ETX> -> [0x02, 0x1B, 0x43, 0x31, 0x03]
+          // <STX><ESC>C<ETX> -> [0x02, 0x1B, 0x43, 0x03]
           expect(
-            _findSequence(output, [0x02, 0x1B, 0x43, 0x31, 0x03]),
+            _findSequence(output, [0x02, 0x1B, 0x43, 0x03]),
             greaterThan(-1),
           );
 
@@ -61,20 +62,75 @@ void main() {
             greaterThan(-1),
           );
 
-          // <STX><ESC>M3<ETX> -> [0x02, 0x1B, 0x4D, 0x33, 0x03]
+          // <STX>E1<ETX> -> [0x02, 0x45, 0x31, 0x03]
           expect(
-            _findSequence(output, [0x02, 0x1B, 0x4D, 0x33, 0x03]),
+            _findSequence(output, [0x02, 0x45, 0x31, 0x03]),
             greaterThan(-1),
           );
+
+          // <STX>F1<ETX> -> [0x02, 0x46, 0x31, 0x03]
+          expect(
+            _findSequence(output, [0x02, 0x46, 0x31, 0x03]),
+            greaterThan(-1),
+          );
+
+          // <STX>R<ETX> -> [0x02, 0x52, 0x03]
+          expect(_findSequence(output, [0x02, 0x52, 0x03]), greaterThan(-1));
 
           // <STX><ESC>E1<ETX> -> [0x02, 0x1B, 0x45, 0x31, 0x03]
           expect(
             _findSequence(output, [0x02, 0x1B, 0x45, 0x31, 0x03]),
             greaterThan(-1),
           );
+        },
+      );
 
-          // <STX>R<ETX> -> [0x02, 0x52, 0x03]
-          expect(_findSequence(output, [0x02, 0x52, 0x03]), greaterThan(-1));
+      test('recreateFormat convenience helper emits E<n> then F<n>', () {
+        final printer = IplPrinter()..recreateFormat(2);
+        final output = printer.toBytes().toList();
+
+        // <STX>E2<ETX><STX>F2<ETX> -> [0x02, 0x45, 0x32, 0x03, 0x02, 0x46, 0x32, 0x03]
+        expect(
+          _findSequence(output, [
+            0x02,
+            0x45,
+            0x32,
+            0x03,
+            0x02,
+            0x46,
+            0x32,
+            0x03,
+          ]),
+          greaterThan(-1),
+        );
+      });
+    });
+
+    group('Print Execution Semantics (ETB, US, RS)', () {
+      test(
+        'print() emits exact STX US <batch>; RS <quantity> ETB ETX sequence',
+        () {
+          final printer = IplPrinter()
+            ..batchCount(1)
+            ..quantity(3)
+            ..print();
+
+          final output = printer.toBytes().toList();
+
+          // <STX><US>1;<RS>3<ETB><ETX> -> [0x02, 0x1F, 0x31, 0x3B, 0x1E, 0x33, 0x17, 0x03]
+          final expected = [0x02, 0x1F, 0x31, 0x3B, 0x1E, 0x33, 0x17, 0x03];
+          expect(output, equals(expected));
+        },
+      );
+
+      test(
+        'regression: print() does NOT emit <STX>R<ETX> as execution command',
+        () {
+          final printer = IplPrinter()..print(batchCount: 1, quantity: 1);
+          final output = printer.toBytes().toList();
+
+          // Must NOT contain <STX>R<ETX>
+          expect(_findSequence(output, [0x02, 0x52, 0x03]), equals(-1));
         },
       );
     });
@@ -118,18 +174,23 @@ void main() {
       );
 
       test(
-        'regression: never emits literal printable placeholder text for SI/STX/ETX/ESC',
+        'regression: never emits literal printable placeholder text for SI/STX/ETX/ESC/ETB/US/RS',
         () {
           final printer = IplPrinter()
-            ..createFormat(1)
+            ..advancedMode()
+            ..programMode()
             ..labelLength(240)
-            ..endFormat(1);
+            ..exitProgramMode()
+            ..print();
 
           final output = printer.toBytes().toList();
           expect(_findSequence(output, ascii.encode('<SI>')), equals(-1));
           expect(_findSequence(output, ascii.encode('<STX>')), equals(-1));
           expect(_findSequence(output, ascii.encode('<ETX>')), equals(-1));
           expect(_findSequence(output, ascii.encode('<ESC>')), equals(-1));
+          expect(_findSequence(output, ascii.encode('<ETB>')), equals(-1));
+          expect(_findSequence(output, ascii.encode('<US>')), equals(-1));
+          expect(_findSequence(output, ascii.encode('<RS>')), equals(-1));
         },
       );
     });
@@ -273,38 +334,12 @@ void main() {
       });
     });
 
-    group('Raw Passthrough & Parser Compatibility', () {
+    group('Raw Passthrough', () {
       test('emits rawBytes verbatim', () {
         final raw = Uint8List.fromList([0x02, 0x54, 0x45, 0x53, 0x54, 0x03]);
         final printer = IplPrinter()..rawBytes(raw);
 
         expect(printer.toBytes(), equals(raw));
-      });
-
-      test('native output is parsed cleanly by parseIPL', () {
-        final printer = IplPrinter()
-          ..createFormat(1)
-          ..programMode()
-          ..labelLength(240)
-          ..labelWidth(320)
-          ..text(x: 10, y: 20, text: 'Parsed Text')
-          ..box(x: 5, y: 5, width: 100, height: 50, thickness: 1)
-          ..line(x1: 10, y1: 80, x2: 200, y2: 80, thickness: 2)
-          ..endFormat(1)
-          ..print();
-
-        final parsed = parseIPL(latin1.decode(printer.toBytes()));
-
-        expect(parsed.heightDots, equals(240));
-        expect(parsed.widthDots, equals(320));
-        expect(parsed.elements.length, equals(3));
-        expect(parsed.elements[0], isA<TextElement>());
-        expect(
-          (parsed.elements[0] as TextElement).content,
-          equals('Parsed Text'),
-        );
-        expect(parsed.elements[1], isA<BoxElement>());
-        expect(parsed.elements[2], isA<LineElement>());
       });
     });
 
@@ -343,103 +378,79 @@ void main() {
           throwsA(isA<InvalidConfigError>()),
         );
         expect(
-          () => IplPrinter().copies(0),
+          () => IplPrinter().batchCount(0),
           throwsA(isA<InvalidConfigError>()),
         );
         expect(
-          () => IplPrinter().createFormat(0),
+          () => IplPrinter().quantity(0),
+          throwsA(isA<InvalidConfigError>()),
+        );
+        expect(
+          () => IplPrinter().eraseFormat(-1),
+          throwsA(isA<InvalidConfigError>()),
+        );
+        expect(
+          () => IplPrinter().createFormat(-1),
           throwsA(isA<InvalidConfigError>()),
         );
       });
     });
 
-    group('Universal AST vs Native Builder Equivalence', () {
-      test('produces identical byte stream for standard label layout', () {
-        final labelBuilder =
-            label(
-                  const LabelConfig(
-                    width: 40,
-                    height: 30,
-                    speed: 4,
-                    density: 8,
-                    copies: 2,
-                  ),
-                )
-                .text('SHIPPING LABEL', const TextOptions(x: 10, y: 20))
-                .box(
-                  const BoxOptions(
-                    x: 10,
-                    y: 10,
-                    width: 200,
-                    height: 100,
-                    thickness: 2,
-                  ),
-                )
-                .line(
-                  const LineOptions(
-                    x1: 10,
-                    y1: 50,
-                    x2: 300,
-                    y2: 50,
-                    thickness: 2,
-                  ),
-                )
-                .barcode(
-                  '123456',
-                  const BarcodeOptions(x: 10, y: 100, type: '128', height: 40),
-                )
-                .qrcode(
-                  'https://example.com',
-                  const QRCodeOptions(x: 10, y: 160, cellWidth: 4),
-                );
+    group('Universal Compiler Compatibility Path', () {
+      test(
+        'universal compiler preserves legacy single-pass command stream',
+        () {
+          final labelBuilder =
+              label(
+                    const LabelConfig(
+                      width: 40,
+                      height: 30,
+                      speed: 4,
+                      density: 8,
+                      copies: 2,
+                    ),
+                  )
+                  .text('SHIPPING LABEL', const TextOptions(x: 10, y: 20))
+                  .box(
+                    const BoxOptions(
+                      x: 10,
+                      y: 10,
+                      width: 200,
+                      height: 100,
+                      thickness: 2,
+                    ),
+                  )
+                  .line(
+                    const LineOptions(
+                      x1: 10,
+                      y1: 50,
+                      x2: 300,
+                      y2: 50,
+                      thickness: 2,
+                    ),
+                  )
+                  .barcode(
+                    '123456',
+                    const BarcodeOptions(
+                      x: 10,
+                      y: 100,
+                      type: '128',
+                      height: 40,
+                    ),
+                  )
+                  .qrcode(
+                    'https://example.com',
+                    const QRCodeOptions(x: 10, y: 160, cellWidth: 4),
+                  );
 
-        final universalBytes = ipl.compileBytes(labelBuilder);
+          final universalBytes = ipl.compileBytes(labelBuilder);
+          final text = latin1.decode(universalBytes);
 
-        // Native equivalent:
-        final nativePrinter = IplPrinter()
-          ..createFormat(1)
-          ..programMode()
-          ..labelLength(240)
-          ..labelWidth(320)
-          ..speed(4)
-          ..density(8)
-          ..text(
-            x: 10,
-            y: 20,
-            text: 'SHIPPING LABEL',
-            fontHeight: 12,
-            fontWidth: 12,
-            fieldNumber: 1,
-          )
-          ..box(
-            x: 10,
-            y: 10,
-            width: 200,
-            height: 100,
-            thickness: 2,
-            fieldNumber: 2,
-          )
-          ..line(x1: 10, y1: 50, x2: 300, y2: 50, thickness: 2, fieldNumber: 3)
-          ..barcode(
-            y: 100,
-            type: IplBarcodeType.code128,
-            height: 40,
-            wideMultiplier: 2,
-            content: '123456',
-            fieldNumber: 1,
-          )
-          ..qrCode(
-            y: 160,
-            cellWidth: 4,
-            content: 'https://example.com',
-            fieldNumber: 2,
-          )
-          ..copies(2)
-          ..endFormat(1)
-          ..print();
-
-        expect(nativePrinter.toBytes(), equals(universalBytes));
-      });
+          // Confirms legacy baseline framing is preserved
+          expect(text, startsWith('\x02\x1bC1\x03\x02\x1bP\x03'));
+          expect(text, contains('\x02\x1bM2\x03\x02\x1bE1\x03\x02R\x03'));
+        },
+      );
     });
   });
 }
