@@ -314,6 +314,7 @@ class PreviewBarcodeItem extends PreviewItem {
   final String symbology;
   final String payload;
   final bool readable;
+  final int quietZone;
   final List<PreviewBitmapSpan> bars;
 
   const PreviewBarcodeItem({
@@ -325,6 +326,7 @@ class PreviewBarcodeItem extends PreviewItem {
     required this.symbology,
     required this.payload,
     required this.readable,
+    this.quietZone = 10,
     required this.bars,
   });
 
@@ -342,6 +344,7 @@ class PreviewBarcodeItem extends PreviewItem {
         symbology != other.symbology ||
         payload != other.payload ||
         readable != other.readable ||
+        quietZone != other.quietZone ||
         bars.length != other.bars.length) {
       return false;
     }
@@ -361,6 +364,7 @@ class PreviewBarcodeItem extends PreviewItem {
         symbology,
         payload,
         readable,
+        quietZone,
         Object.hashAll(bars),
       );
 }
@@ -760,7 +764,10 @@ class PreviewScene {
           final barHeight = max(4.0, h - textHeight);
           final bars = <PreviewBitmapSpan>[];
 
-          var currentX = 0.0;
+          final qz = _getBarcodeQuietZone(o.type);
+          final qzOffset = qz * nw;
+          var currentX = qzOffset;
+
           for (var i = 0; i < pattern.moduleWidths.length; i++) {
             final w = pattern.moduleWidths[i] * nw;
             final isBar = (i % 2 == 0);
@@ -780,15 +787,18 @@ class PreviewScene {
             currentX += w;
           }
 
+          final totalWidth = currentX + qzOffset;
+
           return PreviewBarcodeItem(
             x: x,
             y: y,
-            width: currentX,
+            width: totalWidth,
             height: h,
             rotation: rot,
             symbology: o.type,
             payload: el.content,
             readable: isReadable,
+            quietZone: qz,
             bars: List.unmodifiable(bars),
           );
         }
@@ -819,7 +829,8 @@ class PreviewScene {
             QrCodeEncoder.encode(el.content, ecc: o.eccLevel ?? 'M');
         if (qrMatrix != null) {
           final size = qrMatrix.size;
-          const qz = 4; // ISO/IEC 18004 standard 4-module quiet zone on all sides
+          const qz =
+              4; // ISO/IEC 18004 standard 4-module quiet zone on all sides
           final totalDim = (size + qz * 2) * cellW.toDouble();
           final modules = <PreviewBitmapSpan>[];
 
@@ -951,6 +962,13 @@ class PreviewScene {
       }
     }
     return List.unmodifiable(spans);
+  }
+
+  static int _getBarcodeQuietZone(String type) {
+    final norm = type.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    if (norm == 'EAN8') return 7;
+    if (norm == 'EAN13' || norm == 'UPCA') return 9;
+    return 10; // Code 128, Code 39 default 10 modules
   }
 
   @override

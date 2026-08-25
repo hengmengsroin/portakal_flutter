@@ -86,6 +86,9 @@ String _renderItem(PreviewItem item) {
           : '';
       final buf = StringBuffer();
       buf.write('<g$transform>');
+      buf.write(
+        '<rect x="${_fmt(item.x)}" y="${_fmt(item.y)}" width="${_fmt(item.width)}" height="${_fmt(item.height)}" fill="#fff"/>',
+      );
       for (final bar in item.bars) {
         buf.write(
           '<rect x="${_fmt(item.x + bar.targetX)}" y="${_fmt(item.y + bar.targetY)}" width="${_fmt(bar.targetWidth)}" height="${_fmt(bar.targetHeight)}" fill="#000"/>',

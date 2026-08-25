@@ -263,8 +263,7 @@ class _LabelPreviewPainter extends CustomPainter {
     final rect = Rect.fromLTWH(item.x, item.y, item.width, item.height);
 
     if (item.radius > 0) {
-      final rrect =
-          RRect.fromRectAndRadius(rect, Radius.circular(item.radius));
+      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(item.radius));
       if (item.isFilled) {
         canvas.drawRRect(rrect, Paint()..color = color);
       } else {
@@ -348,6 +347,12 @@ class _LabelPreviewPainter extends CustomPainter {
       canvas.translate(item.x, item.y);
       canvas.rotate((item.rotation * math.pi) / 180.0);
     }
+
+    final bgPaint = Paint()..color = Colors.white;
+    final bgRect = isRotated
+        ? Rect.fromLTWH(0, 0, item.width, item.height)
+        : Rect.fromLTWH(item.x, item.y, item.width, item.height);
+    canvas.drawRect(bgRect, bgPaint);
 
     final barPaint = Paint()..color = Colors.black;
     for (final bar in item.bars) {

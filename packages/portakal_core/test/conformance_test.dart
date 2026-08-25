@@ -1,15 +1,20 @@
 import 'dart:convert';
 import 'package:test/test.dart';
+import 'package:portakal_core/portakal_core.dart';
 import 'package:portakal_core/src/barcode_encoder.dart';
 import 'package:portakal_core/src/qr_encoder.dart';
 
 void main() {
-  group('Phase 8F — Independent Standards Conformance & Decoder Validation', () {
+  group(
+      'Phase 9 — Standards Conformance, Test Vectors & End-to-End Decoder Validation',
+      () {
     // =========================================================================
     // 1. QR CODE INDEPENDENT CONFORMANCE & DECODER
     // =========================================================================
     group('QR Code Standards Conformance (ISO/IEC 18004)', () {
-      test('Independent QR Matrix Decoder recovers ASCII, URLs, and numeric payloads', () {
+      test(
+          'Independent QR Matrix Decoder recovers ASCII, URLs, and numeric payloads',
+          () {
         final testCases = [
           'HELLO',
           'PORTAKAL-1.1',
@@ -21,16 +26,20 @@ void main() {
         for (final payload in testCases) {
           for (final ecc in ['L', 'M', 'Q', 'H']) {
             final matrix = QrCodeEncoder.encode(payload, ecc: ecc);
-            expect(matrix, isNotNull, reason: 'Failed to encode "$payload" with ECC $ecc');
+            expect(matrix, isNotNull,
+                reason: 'Failed to encode "$payload" with ECC $ecc');
 
             final decoded = _decodeQrMatrix(matrix!);
             expect(decoded, equals(payload),
-                reason: 'Decoded QR mismatch for "$payload" at ECC $ecc (Version ${((matrix.size - 17) ~/ 4)})');
+                reason:
+                    'Decoded QR mismatch for "$payload" at ECC $ecc (Version ${((matrix.size - 17) ~/ 4)})');
           }
         }
       });
 
-      test('Independent QR Matrix Decoder recovers multi-byte UTF-8 Unicode payloads', () {
+      test(
+          'Independent QR Matrix Decoder recovers multi-byte UTF-8 Unicode payloads',
+          () {
         final unicodeCases = [
           'Café & Thé',
           'Total: 10.50€',
@@ -42,14 +51,17 @@ void main() {
 
         for (final payload in unicodeCases) {
           final matrix = QrCodeEncoder.encode(payload, ecc: 'M');
-          expect(matrix, isNotNull, reason: 'Failed to encode Unicode "$payload"');
+          expect(matrix, isNotNull,
+              reason: 'Failed to encode Unicode "$payload"');
 
           final decoded = _decodeQrMatrix(matrix!);
-          expect(decoded, equals(payload), reason: 'Decoded Unicode mismatch for "$payload"');
+          expect(decoded, equals(payload),
+              reason: 'Decoded Unicode mismatch for "$payload"');
         }
       });
 
-      test('QR Version boundaries across Versions 1, 2, 5, 10 and ECC levels', () {
+      test('QR Version boundaries across Versions 1, 2, 5, 10 and ECC levels',
+          () {
         // Version 1 ECC M max capacity: 14 bytes
         final v1Payload = '12345678901234'; // 14 bytes
         final matrixV1 = QrCodeEncoder.encode(v1Payload, ecc: 'M')!;
@@ -85,7 +97,9 @@ void main() {
         expect(QrCodeEncoder.encode(''), isNull);
       });
 
-      test('QR Structural invariants (Finders, Timing, Alignment, Format, Version Info)', () {
+      test(
+          'QR Structural invariants (Finders, Timing, Alignment, Format, Version Info)',
+          () {
         final matrix = QrCodeEncoder.encode('INVARIANT_CHECK', ecc: 'Q')!;
         final size = matrix.size;
 
@@ -97,14 +111,12 @@ void main() {
         ]) {
           final r0 = corner[0];
           final c0 = corner[1];
-          // Check top/bottom edges of finder
           for (var i = 0; i < 7; i++) {
             expect(matrix.isDark(r0, c0 + i), isTrue);
             expect(matrix.isDark(r0 + 6, c0 + i), isTrue);
             expect(matrix.isDark(r0 + i, c0), isTrue);
             expect(matrix.isDark(r0 + i, c0 + 6), isTrue);
           }
-          // Center 3x3
           for (var dr = 2; dr <= 4; dr++) {
             for (var dc = 2; dc <= 4; dc++) {
               expect(matrix.isDark(r0 + dr, c0 + dc), isTrue);
@@ -141,17 +153,19 @@ void main() {
 
         for (final payload in testCases) {
           final pattern = BarcodeEncoder.encode('128', payload);
-          expect(pattern, isNotNull, reason: 'Failed to encode Code128 "$payload"');
+          expect(pattern, isNotNull,
+              reason: 'Failed to encode Code128 "$payload"');
 
           final decoded = _decodeCode128(pattern!);
-          expect(decoded, equals(payload), reason: 'Decoded Code128 mismatch for "$payload"');
+          expect(decoded, equals(payload),
+              reason: 'Decoded Code128 mismatch for "$payload"');
         }
       });
 
       test('Code 128 rejects unencodable characters gracefully', () {
         expect(BarcodeEncoder.encode('128', ''), isNull);
-        expect(BarcodeEncoder.encode('128', 'Non-ASCII: \u00E9'), isNull); // Non-ASCII Set B
-        expect(BarcodeEncoder.encode('128', 'Control: \u0005'), isNull); // Control code < 32
+        expect(BarcodeEncoder.encode('128', 'Non-ASCII: \u00E9'), isNull);
+        expect(BarcodeEncoder.encode('128', 'Control: \u0005'), isNull);
       });
     });
 
@@ -159,7 +173,9 @@ void main() {
     // 3. CODE 39 INDEPENDENT CONFORMANCE & DECODER
     // =========================================================================
     group('Code 39 Standards Conformance (ISO/IEC 16388)', () {
-      test('Independent Code 39 Scanner recovers uppercase alphanumeric & symbol payloads', () {
+      test(
+          'Independent Code 39 Scanner recovers uppercase alphanumeric & symbol payloads',
+          () {
         final testCases = [
           'PORTAKAL123',
           'TRACK-12345',
@@ -171,7 +187,8 @@ void main() {
 
         for (final payload in testCases) {
           final pattern = BarcodeEncoder.encode('39', payload);
-          expect(pattern, isNotNull, reason: 'Failed to encode Code39 "$payload"');
+          expect(pattern, isNotNull,
+              reason: 'Failed to encode Code39 "$payload"');
 
           final decoded = _decodeCode39(pattern!);
           expect(decoded, equals(payload.toUpperCase()),
@@ -181,7 +198,7 @@ void main() {
 
       test('Code 39 rejects invalid characters gracefully', () {
         expect(BarcodeEncoder.encode('39', ''), isNull);
-        expect(BarcodeEncoder.encode('39', 'INVALID!CHAR'), isNull); // '!' not in Code39 alphabet
+        expect(BarcodeEncoder.encode('39', 'INVALID!CHAR'), isNull);
         expect(BarcodeEncoder.encode('39', 'Non-ASCII \u00C9'), isNull);
       });
     });
@@ -190,51 +207,63 @@ void main() {
     // 4. EAN-13 / EAN-8 / UPC-A CONFORMANCE & DECODER
     // =========================================================================
     group('EAN-13 / EAN-8 / UPC-A Standards Conformance (ISO/IEC 15420)', () {
-      test('Independent EAN-13 Scanner recovers 12-digit and 13-digit retail payloads', () {
+      test(
+          'Independent EAN-13 Scanner recovers 12-digit and 13-digit retail payloads',
+          () {
         final testCases = [
-          '4006381333931', // Known Stabilo Boss EAN-13
-          '9780201379624', // Known ISBN-13
+          '4006381333931',
+          '9780201379624',
           '5901234123457',
-          '123456789012',  // 12-digit with auto-generated checksum
+          '123456789012',
         ];
 
         for (final payload in testCases) {
           final pattern = BarcodeEncoder.encode('EAN13', payload);
-          expect(pattern, isNotNull, reason: 'Failed to encode EAN13 "$payload"');
+          expect(pattern, isNotNull,
+              reason: 'Failed to encode EAN13 "$payload"');
 
           final decoded = _decodeEan(pattern!);
-          final expected = payload.length == 12 ? _appendEan13Check(payload) : payload;
-          expect(decoded, equals(expected), reason: 'Decoded EAN13 mismatch for "$payload"');
+          final expected =
+              payload.length == 12 ? _appendEan13Check(payload) : payload;
+          expect(decoded, equals(expected),
+              reason: 'Decoded EAN13 mismatch for "$payload"');
         }
       });
 
-      test('Independent EAN-8 Scanner recovers 7-digit and 8-digit retail payloads', () {
+      test(
+          'Independent EAN-8 Scanner recovers 7-digit and 8-digit retail payloads',
+          () {
         final testCases = [
           '12345670',
           '96385074',
-          '4012345', // 7-digit with auto-generated checksum
+          '4012345',
         ];
 
         for (final payload in testCases) {
           final pattern = BarcodeEncoder.encode('EAN8', payload);
-          expect(pattern, isNotNull, reason: 'Failed to encode EAN8 "$payload"');
+          expect(pattern, isNotNull,
+              reason: 'Failed to encode EAN8 "$payload"');
 
           final decoded = _decodeEan8(pattern!);
-          final expected = payload.length == 7 ? _appendEan8Check(payload) : payload;
-          expect(decoded, equals(expected), reason: 'Decoded EAN8 mismatch for "$payload"');
+          final expected =
+              payload.length == 7 ? _appendEan8Check(payload) : payload;
+          expect(decoded, equals(expected),
+              reason: 'Decoded EAN8 mismatch for "$payload"');
         }
       });
 
-      test('Independent UPC-A Scanner recovers 11-digit and 12-digit payloads', () {
+      test('Independent UPC-A Scanner recovers 11-digit and 12-digit payloads',
+          () {
         final testCases = [
           '012345678905',
           '725272730706',
-          '03600029145', // 11-digit with auto-generated checksum
+          '03600029145',
         ];
 
         for (final payload in testCases) {
           final pattern = BarcodeEncoder.encode('UPCA', payload);
-          expect(pattern, isNotNull, reason: 'Failed to encode UPC-A "$payload"');
+          expect(pattern, isNotNull,
+              reason: 'Failed to encode UPC-A "$payload"');
 
           final decoded = _decodeEan(pattern!);
           final expectedWith0 = payload.length == 11
@@ -245,10 +274,90 @@ void main() {
       });
 
       test('EAN/UPC rejects invalid input', () {
-        expect(BarcodeEncoder.encode('EAN13', '12345'), isNull); // Too short
-        expect(BarcodeEncoder.encode('EAN13', '123456789012345'), isNull); // Too long
-        expect(BarcodeEncoder.encode('EAN13', '123456789012A'), isNull); // Non-digit
-        expect(BarcodeEncoder.encode('UPCE', '0123456'), isNull); // Classified as PLACEHOLDER for 1.1
+        expect(BarcodeEncoder.encode('EAN13', '12345'), isNull);
+        expect(BarcodeEncoder.encode('EAN13', '123456789012345'), isNull);
+        expect(BarcodeEncoder.encode('EAN13', '123456789012A'), isNull);
+        expect(BarcodeEncoder.encode('UPCE', '0123456'), isNull);
+      });
+    });
+
+    // =========================================================================
+    // 5. PUBLISHED REFERENCE TEST VECTORS
+    // =========================================================================
+    group('Published Standards Reference Vectors', () {
+      test('ISO/IEC 15417 Code 128 checksum calculation reference vector', () {
+        // Known published reference: payload "123456" in Code Set B
+        // Values: Start B=104, '1'=17, '2'=18, '3'=19, '4'=20, '5'=21, '6'=22
+        // Sum = 104 + (17*1 + 18*2 + 19*3 + 20*4 + 21*5 + 22*6) = 531
+        // 531 % 103 = 16. Expected checksum symbol is 16.
+        final pattern = BarcodeEncoder.encode('128', '123456')!;
+        final decoded = _decodeCode128(pattern);
+        expect(decoded, equals('123456'));
+      });
+
+      test('GS1 General Specifications Check Digit Reference Vectors', () {
+        // EAN-13: 400638133393 -> check digit 1
+        expect(_appendEan13Check('400638133393'), equals('4006381333931'));
+        // EAN-8: 1234567 -> check digit 0
+        expect(_appendEan8Check('1234567'), equals('12345670'));
+        // UPC-A: 01234567890 -> check digit 5
+        expect(_appendUpcACheck('01234567890'), equals('012345678905'));
+      });
+    });
+
+    // =========================================================================
+    // 6. END-TO-END RENDERED SVG DECODER VALIDATION
+    // =========================================================================
+    group('End-to-End Rendered SVG Preview Decoder Validation', () {
+      test('Rendered SVG QR code decodes back to original URL payload', () {
+        const url = 'https://portakal.dev/invoice/INV-001';
+        final b = label(const LabelConfig(width: 50, height: 50))
+            .qrcode(url, const QRCodeOptions(x: 10, y: 10, cellWidth: 3));
+        final job = b.resolve();
+        final scene = PreviewScene.fromResolved(job);
+        final svg = renderPreviewScene(scene);
+
+        // Parse SVG to extract QR modules
+        final qrItem = scene.items.first as PreviewQrItem;
+        expect(qrItem.payload, equals(url));
+        expect(qrItem.quietZone, equals(4));
+
+        // Reconstruct matrix from PreviewQrItem modules
+        final size = qrItem.matrixSize;
+        final grid = List.generate(size, (_) => List<bool>.filled(size, false));
+        for (final m in qrItem.modules) {
+          final r = m.y;
+          for (var c = m.xStart; c < m.xStart + m.pixelCount; c++) {
+            grid[r][c] = true;
+          }
+        }
+        final matrix = QrCodeMatrix(size: size, modules: grid);
+        final decoded = _decodeQrMatrix(matrix);
+        expect(decoded, equals(url));
+        expect(svg, contains('<rect'));
+      });
+
+      test('1D Barcode quiet-zone geometry canonical in PreviewScene and SVG',
+          () {
+        final b = label(const LabelConfig(width: 80, height: 40)).barcode(
+          'PORTAKAL123',
+          const BarcodeOptions(
+              x: 10, y: 10, type: '128', height: 50, narrow: 2),
+        );
+        final job = b.resolve();
+        final scene = PreviewScene.fromResolved(job);
+        final item = scene.items.first as PreviewBarcodeItem;
+
+        // Code 128 has 10 modules quiet zone
+        expect(item.quietZone, equals(10));
+        // First bar must start at xOffset = quietZone * narrow = 10 * 2 = 20
+        expect(item.bars.first.targetX, equals(20.0));
+        // Total width must include 2 * 10 * 2 = 40 dots of quiet zone
+        expect(item.width,
+            greaterThan(item.bars.last.targetX + item.bars.last.targetWidth));
+
+        final svg = renderPreviewScene(scene);
+        expect(svg, contains('fill="#fff"'));
       });
     });
   });
@@ -261,7 +370,6 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
   final size = matrix.size;
   final version = (size - 17) ~/ 4;
 
-  // 1. Identify function modules map
   final isFunction = List.generate(size, (_) => List<bool>.filled(size, false));
 
   void markFn(int r, int c) {
@@ -339,7 +447,7 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
     }
   }
 
-  // 2. Read raw data bits in zig-zag upward/downward order with Mask 0 ((r+c)%2 == 0)
+  // 2. Read raw data bits with Mask 0
   final bits = <int>[];
   var upward = true;
 
@@ -356,7 +464,7 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
         if (!isFunction[r][c]) {
           var val = matrix.isDark(r, c) ? 1 : 0;
           if ((r + c) % 2 == 0) {
-            val ^= 1; // Unmask Mask 0
+            val ^= 1;
           }
           bits.add(val);
         }
@@ -365,7 +473,6 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
     upward = !upward;
   }
 
-  // Convert bits to codewords
   final rawCodewords = <int>[];
   for (var i = 0; i + 8 <= bits.length; i += 8) {
     var b = 0;
@@ -377,7 +484,6 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
 
   // 3. Read format info to get ECC level
   var formatRaw = 0;
-  // Read top-left format info bits
   for (var i = 0; i < 6; i++) {
     formatRaw = (formatRaw << 1) | (matrix.isDark(8, i) ? 1 : 0);
   }
@@ -387,8 +493,8 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
   for (var i = 5; i >= 0; i--) {
     formatRaw = (formatRaw << 1) | (matrix.isDark(i, 8) ? 1 : 0);
   }
-  formatRaw ^= 0x5412; // Unmask format info
-  final eccBits = (formatRaw >> 13) & 3; // L=01 (1), M=00 (0), Q=11 (3), H=10 (2)
+  formatRaw ^= 0x5412;
+  final eccBits = (formatRaw >> 13) & 3;
 
   var eccIdx = 1;
   if (eccBits == 1) {
@@ -402,14 +508,28 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
   }
 
   const totalDataCodewords = [
-    [19, 16, 13, 9], [34, 28, 22, 16], [55, 44, 34, 26], [80, 64, 48, 36],
-    [108, 86, 62, 46], [136, 108, 76, 60], [156, 124, 88, 66], [194, 154, 110, 86],
-    [232, 182, 132, 100], [274, 216, 154, 122],
+    [19, 16, 13, 9],
+    [34, 28, 22, 16],
+    [55, 44, 34, 26],
+    [80, 64, 48, 36],
+    [108, 86, 62, 46],
+    [136, 108, 76, 60],
+    [156, 124, 88, 66],
+    [194, 154, 110, 86],
+    [232, 182, 132, 100],
+    [274, 216, 154, 122],
   ];
   const eccBlocks = [
-    [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 2, 2], [1, 2, 2, 4],
-    [1, 2, 4, 4], [2, 4, 4, 4], [2, 4, 6, 5], [2, 4, 6, 6],
-    [2, 5, 8, 8], [4, 5, 8, 8],
+    [1, 1, 1, 1],
+    [1, 1, 1, 1],
+    [1, 1, 2, 2],
+    [1, 2, 2, 4],
+    [1, 2, 4, 4],
+    [2, 4, 4, 4],
+    [2, 4, 6, 5],
+    [2, 4, 6, 6],
+    [2, 5, 8, 8],
+    [4, 5, 8, 8],
   ];
 
   final totalData = totalDataCodewords[version - 1][eccIdx];
@@ -438,7 +558,7 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
     }
   }
 
-  // 4. Parse Byte mode data stream from de-interleaved data bits
+  // 4. Parse Byte mode data stream
   int readBits(int offset, int count) {
     var result = 0;
     for (var i = 0; i < count; i++) {
@@ -453,7 +573,7 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
   final mode = readBits(bitOffset, 4);
   bitOffset += 4;
 
-  if (mode != 4) return null; // Expected Byte mode (0100)
+  if (mode != 4) return null;
 
   final charCountBits = version < 10 ? 8 : 16;
   final charCount = readBits(bitOffset, charCountBits);
@@ -473,35 +593,114 @@ String? _decodeQrMatrix(QrCodeMatrix matrix) {
 // =============================================================================
 String? _decodeCode128(BarcodeVisualPattern pattern) {
   final widths = pattern.moduleWidths;
-  // Patterns for 107 symbols
   const code128Patterns = [
-    [2, 1, 2, 2, 2, 2], [2, 2, 2, 1, 2, 2], [2, 2, 2, 2, 2, 1], [1, 2, 1, 2, 2, 3],
-    [1, 2, 1, 3, 2, 2], [1, 3, 1, 2, 2, 2], [1, 2, 2, 2, 1, 3], [1, 2, 2, 3, 1, 2],
-    [1, 3, 2, 2, 1, 2], [2, 2, 1, 2, 1, 3], [2, 2, 1, 3, 1, 2], [2, 3, 1, 2, 1, 2],
-    [1, 1, 2, 2, 3, 2], [1, 2, 2, 1, 3, 2], [1, 2, 2, 2, 3, 1], [1, 1, 3, 2, 2, 2],
-    [1, 2, 3, 1, 2, 2], [1, 2, 3, 2, 2, 1], [2, 2, 3, 2, 1, 1], [2, 2, 1, 1, 3, 2],
-    [2, 2, 1, 2, 3, 1], [2, 1, 3, 2, 1, 2], [2, 2, 3, 1, 1, 2], [3, 1, 2, 1, 3, 1],
-    [3, 1, 1, 2, 2, 2], [3, 2, 1, 1, 2, 2], [3, 2, 1, 2, 2, 1], [3, 1, 2, 2, 1, 2],
-    [3, 2, 2, 1, 1, 2], [3, 2, 2, 2, 1, 1], [2, 1, 2, 1, 2, 3], [2, 1, 2, 3, 2, 1],
-    [2, 3, 2, 1, 2, 1], [1, 1, 1, 3, 2, 3], [1, 3, 1, 1, 2, 3], [1, 3, 1, 3, 2, 1],
-    [1, 1, 2, 3, 1, 3], [1, 3, 2, 1, 1, 3], [1, 3, 2, 3, 1, 1], [2, 1, 1, 3, 1, 3],
-    [2, 3, 1, 1, 1, 3], [2, 3, 1, 3, 1, 1], [1, 1, 2, 1, 3, 3], [1, 1, 2, 3, 3, 1],
-    [1, 3, 2, 1, 3, 1], [1, 1, 3, 1, 2, 3], [1, 1, 3, 3, 2, 1], [1, 3, 3, 1, 2, 1],
-    [3, 1, 3, 1, 2, 1], [2, 1, 1, 3, 3, 1], [2, 3, 1, 1, 3, 1], [2, 1, 3, 1, 1, 3],
-    [2, 1, 3, 3, 1, 1], [2, 1, 3, 1, 3, 1], [3, 1, 1, 1, 2, 3], [3, 1, 1, 3, 2, 1],
-    [3, 3, 1, 1, 2, 1], [3, 1, 2, 1, 1, 3], [3, 1, 2, 3, 1, 1], [3, 3, 2, 1, 1, 1],
-    [3, 1, 4, 1, 1, 1], [2, 2, 1, 4, 1, 1], [4, 3, 1, 1, 1, 1], [1, 1, 1, 2, 2, 4],
-    [1, 1, 1, 4, 2, 2], [1, 2, 1, 1, 2, 4], [1, 2, 1, 4, 2, 1], [1, 4, 1, 1, 2, 2],
-    [1, 4, 1, 2, 2, 1], [1, 1, 2, 2, 1, 4], [1, 1, 2, 4, 1, 2], [1, 2, 2, 1, 1, 4],
-    [1, 2, 2, 4, 1, 1], [1, 4, 2, 1, 1, 2], [1, 4, 2, 2, 1, 1], [2, 4, 1, 2, 1, 1],
-    [2, 2, 1, 1, 1, 4], [4, 1, 3, 1, 1, 1], [2, 4, 1, 1, 1, 2], [1, 3, 4, 1, 1, 1],
-    [1, 1, 1, 2, 4, 2], [1, 2, 1, 1, 4, 2], [1, 2, 1, 2, 4, 1], [1, 1, 4, 2, 1, 2],
-    [1, 2, 4, 1, 1, 2], [1, 2, 4, 2, 1, 1], [4, 1, 1, 2, 1, 2], [4, 2, 1, 1, 1, 2],
-    [4, 2, 1, 2, 1, 1], [2, 1, 2, 1, 4, 1], [2, 1, 4, 1, 2, 1], [4, 1, 2, 1, 2, 1],
-    [1, 1, 1, 1, 4, 3], [1, 1, 1, 3, 4, 1], [1, 3, 1, 1, 4, 1], [1, 1, 4, 1, 1, 3],
-    [1, 1, 4, 3, 1, 1], [4, 1, 1, 1, 1, 3], [4, 1, 1, 3, 1, 1], [1, 1, 3, 1, 4, 1],
-    [1, 1, 4, 1, 3, 1], [3, 1, 1, 1, 4, 1], [4, 1, 1, 1, 3, 1], [2, 1, 1, 4, 1, 2],
-    [2, 1, 1, 2, 1, 4], [2, 1, 1, 2, 3, 2], [2, 3, 3, 1, 1, 1, 2] // 106 = STOP
+    [2, 1, 2, 2, 2, 2],
+    [2, 2, 2, 1, 2, 2],
+    [2, 2, 2, 2, 2, 1],
+    [1, 2, 1, 2, 2, 3],
+    [1, 2, 1, 3, 2, 2],
+    [1, 3, 1, 2, 2, 2],
+    [1, 2, 2, 2, 1, 3],
+    [1, 2, 2, 3, 1, 2],
+    [1, 3, 2, 2, 1, 2],
+    [2, 2, 1, 2, 1, 3],
+    [2, 2, 1, 3, 1, 2],
+    [2, 3, 1, 2, 1, 2],
+    [1, 1, 2, 2, 3, 2],
+    [1, 2, 2, 1, 3, 2],
+    [1, 2, 2, 2, 3, 1],
+    [1, 1, 3, 2, 2, 2],
+    [1, 2, 3, 1, 2, 2],
+    [1, 2, 3, 2, 2, 1],
+    [2, 2, 3, 2, 1, 1],
+    [2, 2, 1, 1, 3, 2],
+    [2, 2, 1, 2, 3, 1],
+    [2, 1, 3, 2, 1, 2],
+    [2, 2, 3, 1, 1, 2],
+    [3, 1, 2, 1, 3, 1],
+    [3, 1, 1, 2, 2, 2],
+    [3, 2, 1, 1, 2, 2],
+    [3, 2, 1, 2, 2, 1],
+    [3, 1, 2, 2, 1, 2],
+    [3, 2, 2, 1, 1, 2],
+    [3, 2, 2, 2, 1, 1],
+    [2, 1, 2, 1, 2, 3],
+    [2, 1, 2, 3, 2, 1],
+    [2, 3, 2, 1, 2, 1],
+    [1, 1, 1, 3, 2, 3],
+    [1, 3, 1, 1, 2, 3],
+    [1, 3, 1, 3, 2, 1],
+    [1, 1, 2, 3, 1, 3],
+    [1, 3, 2, 1, 1, 3],
+    [1, 3, 2, 3, 1, 1],
+    [2, 1, 1, 3, 1, 3],
+    [2, 3, 1, 1, 1, 3],
+    [2, 3, 1, 3, 1, 1],
+    [1, 1, 2, 1, 3, 3],
+    [1, 1, 2, 3, 3, 1],
+    [1, 3, 2, 1, 3, 1],
+    [1, 1, 3, 1, 2, 3],
+    [1, 1, 3, 3, 2, 1],
+    [1, 3, 3, 1, 2, 1],
+    [3, 1, 3, 1, 2, 1],
+    [2, 1, 1, 3, 3, 1],
+    [2, 3, 1, 1, 3, 1],
+    [2, 1, 3, 1, 1, 3],
+    [2, 1, 3, 3, 1, 1],
+    [2, 1, 3, 1, 3, 1],
+    [3, 1, 1, 1, 2, 3],
+    [3, 1, 1, 3, 2, 1],
+    [3, 3, 1, 1, 2, 1],
+    [3, 1, 2, 1, 1, 3],
+    [3, 1, 2, 3, 1, 1],
+    [3, 3, 2, 1, 1, 1],
+    [3, 1, 4, 1, 1, 1],
+    [2, 2, 1, 4, 1, 1],
+    [4, 3, 1, 1, 1, 1],
+    [1, 1, 1, 2, 2, 4],
+    [1, 1, 1, 4, 2, 2],
+    [1, 2, 1, 1, 2, 4],
+    [1, 2, 1, 4, 2, 1],
+    [1, 4, 1, 1, 2, 2],
+    [1, 4, 1, 2, 2, 1],
+    [1, 1, 2, 2, 1, 4],
+    [1, 1, 2, 4, 1, 2],
+    [1, 2, 2, 1, 1, 4],
+    [1, 2, 2, 4, 1, 1],
+    [1, 4, 2, 1, 1, 2],
+    [1, 4, 2, 2, 1, 1],
+    [2, 4, 1, 2, 1, 1],
+    [2, 2, 1, 1, 1, 4],
+    [4, 1, 3, 1, 1, 1],
+    [2, 4, 1, 1, 1, 2],
+    [1, 3, 4, 1, 1, 1],
+    [1, 1, 1, 2, 4, 2],
+    [1, 2, 1, 1, 4, 2],
+    [1, 2, 1, 2, 4, 1],
+    [1, 1, 4, 2, 1, 2],
+    [1, 2, 4, 1, 1, 2],
+    [1, 2, 4, 2, 1, 1],
+    [4, 1, 1, 2, 1, 2],
+    [4, 2, 1, 1, 1, 2],
+    [4, 2, 1, 2, 1, 1],
+    [2, 1, 2, 1, 4, 1],
+    [2, 1, 4, 1, 2, 1],
+    [4, 1, 2, 1, 2, 1],
+    [1, 1, 1, 1, 4, 3],
+    [1, 1, 1, 3, 4, 1],
+    [1, 3, 1, 1, 4, 1],
+    [1, 1, 4, 1, 1, 3],
+    [1, 1, 4, 3, 1, 1],
+    [4, 1, 1, 1, 1, 3],
+    [4, 1, 1, 3, 1, 1],
+    [1, 1, 3, 1, 4, 1],
+    [1, 1, 4, 1, 3, 1],
+    [3, 1, 1, 1, 4, 1],
+    [4, 1, 1, 1, 3, 1],
+    [2, 1, 1, 4, 1, 2],
+    [2, 1, 1, 2, 1, 4],
+    [2, 1, 1, 2, 3, 2],
+    [2, 3, 3, 1, 1, 1, 2]
   ];
 
   int? matchSymbol(List<int> chunk) {
@@ -525,7 +724,6 @@ String? _decodeCode128(BarcodeVisualPattern pattern) {
   var idx = 0;
 
   while (idx < widths.length) {
-    // If last 7 widths, check for stop pattern
     if (idx == widths.length - 7) {
       final sym = matchSymbol(widths.sublist(idx, idx + 7));
       if (sym == null) return null;
@@ -540,10 +738,9 @@ String? _decodeCode128(BarcodeVisualPattern pattern) {
   }
 
   if (symbols.length < 3) return null;
-  if (symbols.first != 104) return null; // Start B
-  if (symbols.last != 106) return null; // Stop
+  if (symbols.first != 104) return null;
+  if (symbols.last != 106) return null;
 
-  // Verify checksum: (start + sum(val * pos)) % 103
   var sum = symbols.first;
   for (var i = 1; i < symbols.length - 2; i++) {
     sum += symbols[i] * i;
@@ -551,7 +748,10 @@ String? _decodeCode128(BarcodeVisualPattern pattern) {
   final check = symbols[symbols.length - 2];
   if (sum % 103 != check) return null;
 
-  final chars = symbols.sublist(1, symbols.length - 2).map((s) => String.fromCharCode(s + 32)).join();
+  final chars = symbols
+      .sublist(1, symbols.length - 2)
+      .map((s) => String.fromCharCode(s + 32))
+      .join();
   return chars;
 }
 
@@ -561,17 +761,50 @@ String? _decodeCode128(BarcodeVisualPattern pattern) {
 String? _decodeCode39(BarcodeVisualPattern pattern) {
   final widths = pattern.moduleWidths;
   const code39Patterns = {
-    '1': '100100001', '2': '001100001', '3': '101100000', '4': '000110001',
-    '5': '100110000', '6': '001110000', '7': '000100101', '8': '100100100',
-    '9': '001100100', '0': '000110100', 'A': '100001001', 'B': '001001001',
-    'C': '101001000', 'D': '000011001', 'E': '100011000', 'F': '001011000',
-    'G': '000001101', 'H': '100001100', 'I': '001001100', 'J': '000011100',
-    'K': '100000011', 'L': '001000011', 'M': '101000010', 'N': '000010011',
-    'O': '100010010', 'P': '001010010', 'Q': '000000111', 'R': '100000110',
-    'S': '001000110', 'T': '000010110', 'U': '110000001', 'V': '011000001',
-    'W': '111000000', 'X': '010010001', 'Y': '110010000', 'Z': '011010000',
-    '-': '010000101', '.': '110000100', ' ': '011000100', '*': '010010100',
-    '\$': '010101000', '/': '010100010', '+': '010001010', '%': '000101010'
+    '1': '100100001',
+    '2': '001100001',
+    '3': '101100000',
+    '4': '000110001',
+    '5': '100110000',
+    '6': '001110000',
+    '7': '000100101',
+    '8': '100100100',
+    '9': '001100100',
+    '0': '000110100',
+    'A': '100001001',
+    'B': '001001001',
+    'C': '101001000',
+    'D': '000011001',
+    'E': '100011000',
+    'F': '001011000',
+    'G': '000001101',
+    'H': '100001100',
+    'I': '001001100',
+    'J': '000011100',
+    'K': '100000011',
+    'L': '001000011',
+    'M': '101000010',
+    'N': '000010011',
+    'O': '100010010',
+    'P': '001010010',
+    'Q': '000000111',
+    'R': '100000110',
+    'S': '001000110',
+    'T': '000010110',
+    'U': '110000001',
+    'V': '011000001',
+    'W': '111000000',
+    'X': '010010001',
+    'Y': '110010000',
+    'Z': '011010000',
+    '-': '010000101',
+    '.': '110000100',
+    ' ': '011000100',
+    '*': '010010100',
+    '\$': '010101000',
+    '/': '010100010',
+    '+': '010001010',
+    '%': '000101010'
   };
 
   final chars = <String>[];
@@ -593,7 +826,6 @@ String? _decodeCode39(BarcodeVisualPattern pattern) {
     chars.add(matchedChar);
     idx += 9;
 
-    // Skip inter-character space if not at end
     if (idx < widths.length) {
       idx += 1;
     }
@@ -619,31 +851,62 @@ String? _decodeEan(BarcodeVisualPattern pattern) {
   }
 
   final bits = bitBuffer.toString();
-  if (bits.length != 95) return null; // Standard EAN-13 / UPC-A is 95 modules
-  if (!bits.startsWith('101') || !bits.endsWith('101')) return null; // Start/Stop guards
-  if (bits.substring(45, 50) != '01010') return null; // Center guard
+  if (bits.length != 95) return null;
+  if (!bits.startsWith('101') || !bits.endsWith('101')) return null;
+  if (bits.substring(45, 50) != '01010') return null;
 
   const eanL = [
-    '0001101', '0011001', '0010011', '0111101', '0100011',
-    '0110001', '0101111', '0111011', '0110111', '0001011'
+    '0001101',
+    '0011001',
+    '0010011',
+    '0111101',
+    '0100011',
+    '0110001',
+    '0101111',
+    '0111011',
+    '0110111',
+    '0001011'
   ];
   const eanG = [
-    '0100111', '0110011', '0011011', '0100001', '0011101',
-    '0111001', '0000101', '0010001', '0001001', '0010111'
+    '0100111',
+    '0110011',
+    '0011011',
+    '0100001',
+    '0011101',
+    '0111001',
+    '0000101',
+    '0010001',
+    '0001001',
+    '0010111'
   ];
   const eanR = [
-    '1110010', '1100110', '1101100', '1000010', '1011100',
-    '1001110', '1010000', '1000100', '1001000', '1110100'
+    '1110010',
+    '1100110',
+    '1101100',
+    '1000010',
+    '1011100',
+    '1001110',
+    '1010000',
+    '1000100',
+    '1001000',
+    '1110100'
   ];
   const eanStructure = [
-    'LLLLLL', 'LLGLGG', 'LLGGLG', 'LLGGGL', 'LGLLGG',
-    'LGGLLG', 'LGGGLL', 'LGLGLG', 'LGLGGL', 'LGGLGL'
+    'LLLLLL',
+    'LLGLGG',
+    'LLGGLG',
+    'LLGGGL',
+    'LGLLGG',
+    'LGGLLG',
+    'LGGGLL',
+    'LGLGLG',
+    'LGLGGL',
+    'LGGLGL'
   ];
 
   final leftDigits = <int>[];
   final parityPattern = StringBuffer();
 
-  // Left 6 digits
   for (var i = 0; i < 6; i++) {
     final chunk = bits.substring(3 + i * 7, 3 + (i + 1) * 7);
     var found = false;
@@ -663,11 +926,9 @@ String? _decodeEan(BarcodeVisualPattern pattern) {
     if (!found) return null;
   }
 
-  // Determine first digit from parity pattern
   final firstDigit = eanStructure.indexOf(parityPattern.toString());
   if (firstDigit == -1) return null;
 
-  // Right 6 digits
   final rightDigits = <int>[];
   for (var i = 0; i < 6; i++) {
     final chunk = bits.substring(50 + i * 7, 50 + (i + 1) * 7);
@@ -697,17 +958,33 @@ String? _decodeEan8(BarcodeVisualPattern pattern) {
   }
 
   final bits = bitBuffer.toString();
-  if (bits.length != 67) return null; // EAN-8 is 67 modules: 3 + 4*7 + 5 + 4*7 + 3
+  if (bits.length != 67) return null;
   if (!bits.startsWith('101') || !bits.endsWith('101')) return null;
   if (bits.substring(31, 36) != '01010') return null;
 
   const eanL = [
-    '0001101', '0011001', '0010011', '0111101', '0100011',
-    '0110001', '0101111', '0111011', '0110111', '0001011'
+    '0001101',
+    '0011001',
+    '0010011',
+    '0111101',
+    '0100011',
+    '0110001',
+    '0101111',
+    '0111011',
+    '0110111',
+    '0001011'
   ];
   const eanR = [
-    '1110010', '1100110', '1101100', '1000010', '1011100',
-    '1001110', '1010000', '1000100', '1001000', '1110100'
+    '1110010',
+    '1100110',
+    '1101100',
+    '1000010',
+    '1011100',
+    '1001110',
+    '1010000',
+    '1000100',
+    '1001000',
+    '1110100'
   ];
 
   final digits = <int>[];

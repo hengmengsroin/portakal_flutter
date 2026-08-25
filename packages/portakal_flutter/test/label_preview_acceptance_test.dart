@@ -8,10 +8,16 @@ void main() {
     testWidgets('V01 — Invoice fixture visual acceptance and semantics', (
       WidgetTester tester,
     ) async {
-      final invoice = label(const LabelConfig(width: 80, height: 100, copies: 2))
-          .text('INVOICE #001', const TextOptions(x: 20, y: 20, size: 2, bold: true))
-          .barcode('INV100', const BarcodeOptions(x: 20, y: 60, type: '128', height: 50, readable: 1))
-          .qrcode('https://inv.example.com/100', const QRCodeOptions(x: 300, y: 60, cellWidth: 4));
+      final invoice =
+          label(const LabelConfig(width: 80, height: 100, copies: 2))
+              .text('INVOICE #001',
+                  const TextOptions(x: 20, y: 20, size: 2, bold: true))
+              .barcode(
+                  'INV100',
+                  const BarcodeOptions(
+                      x: 20, y: 60, type: '128', height: 50, readable: 1))
+              .qrcode('https://inv.example.com/100',
+                  const QRCodeOptions(x: 300, y: 60, cellWidth: 4));
 
       final job = invoice.resolve();
 
@@ -43,8 +49,10 @@ void main() {
       WidgetTester tester,
     ) async {
       final shipping = label(const LabelConfig(width: 100, height: 150))
-          .text('PRIORITY MAIL', const TextOptions(x: 20, y: 20, size: 2, bold: true))
-          .barcode('TRACK123', const BarcodeOptions(x: 20, y: 80, type: '39', height: 60));
+          .text('PRIORITY MAIL',
+              const TextOptions(x: 20, y: 20, size: 2, bold: true))
+          .barcode('TRACK123',
+              const BarcodeOptions(x: 20, y: 80, type: '39', height: 60));
 
       await tester.pumpWidget(
         MaterialApp(
@@ -70,7 +78,8 @@ void main() {
       final product = label(const LabelConfig(width: 50, height: 30))
           .text('ORGANIC TEA', const TextOptions(x: 10, y: 10, bold: true))
           .text('\$12.50', const TextOptions(x: 10, y: 30, size: 2))
-          .barcode('4006381333931', const BarcodeOptions(x: 10, y: 60, type: 'EAN13', height: 40));
+          .barcode('4006381333931',
+              const BarcodeOptions(x: 10, y: 60, type: 'EAN13', height: 40));
 
       await tester.pumpWidget(
         MaterialApp(
@@ -119,8 +128,12 @@ void main() {
       WidgetTester tester,
     ) async {
       final codeLabel = label(const LabelConfig(width: 60, height: 40))
-          .barcode('CODE128PAYLOAD', const BarcodeOptions(x: 10, y: 10, type: '128', height: 40, readable: 1))
-          .qrcode('https://portakal.dev/qr', const QRCodeOptions(x: 200, y: 10, cellWidth: 3));
+          .barcode(
+              'CODE128PAYLOAD',
+              const BarcodeOptions(
+                  x: 10, y: 10, type: '128', height: 40, readable: 1))
+          .qrcode('https://portakal.dev/qr',
+              const QRCodeOptions(x: 200, y: 10, cellWidth: 3));
 
       await tester.pumpWidget(
         MaterialApp(

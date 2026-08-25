@@ -40,7 +40,7 @@ dependencies:
       url: https://github.com/hengmengsroin/flutter_thermal_printer.git
       ref: main
 
-  portakal_flutter: ^1.0.0
+  portakal_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:

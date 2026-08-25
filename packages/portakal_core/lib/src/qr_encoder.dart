@@ -35,64 +35,69 @@ class QrCodeEncoder {
   // Capacity table for Byte mode (data bytes capacity) for Versions 1 to 10
   // Index 0: L, 1: M, 2: Q, 3: H
   static const List<List<int>> _byteCapacity = [
-    [17, 14, 11, 7],     // V1 (21x21)
-    [32, 26, 20, 14],    // V2 (25x25)
-    [53, 42, 32, 24],    // V3 (29x29)
-    [78, 62, 46, 34],    // V4 (33x33)
-    [106, 84, 60, 44],   // V5 (37x37)
-    [134, 106, 74, 58],  // V6 (41x41)
-    [154, 122, 86, 64],  // V7 (45x45)
+    [17, 14, 11, 7], // V1 (21x21)
+    [32, 26, 20, 14], // V2 (25x25)
+    [53, 42, 32, 24], // V3 (29x29)
+    [78, 62, 46, 34], // V4 (33x33)
+    [106, 84, 60, 44], // V5 (37x37)
+    [134, 106, 74, 58], // V6 (41x41)
+    [154, 122, 86, 64], // V7 (45x45)
     [192, 152, 108, 84], // V8 (49x49)
     [230, 180, 130, 98], // V9 (53x53)
-    [271, 213, 151, 119],// V10 (57x57)
+    [271, 213, 151, 119], // V10 (57x57)
   ];
 
   static const List<List<int>> _totalDataCodewords = [
-    [19, 16, 13, 9],     // V1
-    [34, 28, 22, 16],    // V2
-    [55, 44, 34, 26],    // V3
-    [80, 64, 48, 36],    // V4
-    [108, 86, 62, 46],   // V5
-    [136, 108, 76, 60],  // V6
-    [156, 124, 88, 66],  // V7
+    [19, 16, 13, 9], // V1
+    [34, 28, 22, 16], // V2
+    [55, 44, 34, 26], // V3
+    [80, 64, 48, 36], // V4
+    [108, 86, 62, 46], // V5
+    [136, 108, 76, 60], // V6
+    [156, 124, 88, 66], // V7
     [194, 154, 110, 86], // V8
-    [232, 182, 132, 100],// V9
-    [274, 216, 154, 122],// V10
+    [232, 182, 132, 100], // V9
+    [274, 216, 154, 122], // V10
   ];
 
   static const List<List<int>> _eccCodewordsPerBlock = [
-    [7, 10, 13, 17],     // V1
-    [10, 16, 22, 28],    // V2
-    [15, 26, 18, 22],    // V3
-    [20, 18, 26, 16],    // V4
-    [26, 24, 18, 22],    // V5
-    [18, 16, 24, 28],    // V6
-    [20, 18, 18, 26],    // V7
-    [24, 22, 22, 26],    // V8
-    [30, 22, 20, 24],    // V9
-    [18, 26, 24, 28],    // V10
+    [7, 10, 13, 17], // V1
+    [10, 16, 22, 28], // V2
+    [15, 26, 18, 22], // V3
+    [20, 18, 26, 16], // V4
+    [26, 24, 18, 22], // V5
+    [18, 16, 24, 28], // V6
+    [20, 18, 18, 26], // V7
+    [24, 22, 22, 26], // V8
+    [30, 22, 20, 24], // V9
+    [18, 26, 24, 28], // V10
   ];
 
   static const List<List<int>> _eccBlocks = [
-    [1, 1, 1, 1],        // V1
-    [1, 1, 1, 1],        // V2
-    [1, 1, 2, 2],        // V3
-    [1, 2, 2, 4],        // V4
-    [1, 2, 4, 4],        // V5
-    [2, 4, 4, 4],        // V6
-    [2, 4, 6, 5],        // V7
-    [2, 4, 6, 6],        // V8
-    [2, 5, 8, 8],        // V9
-    [4, 5, 8, 8],        // V10
+    [1, 1, 1, 1], // V1
+    [1, 1, 1, 1], // V2
+    [1, 1, 2, 2], // V3
+    [1, 2, 2, 4], // V4
+    [1, 2, 4, 4], // V5
+    [2, 4, 4, 4], // V6
+    [2, 4, 6, 5], // V7
+    [2, 4, 6, 6], // V8
+    [2, 5, 8, 8], // V9
+    [4, 5, 8, 8], // V10
   ];
 
   static int _eccIndex(String ecc) {
     switch (ecc) {
-      case 'L': return 0;
-      case 'M': return 1;
-      case 'Q': return 2;
-      case 'H': return 3;
-      default: return 1;
+      case 'L':
+        return 0;
+      case 'M':
+        return 1;
+      case 'Q':
+        return 2;
+      case 'H':
+        return 3;
+      default:
+        return 1;
     }
   }
 
@@ -156,7 +161,8 @@ class QrCodeEncoder {
     for (final b in data) {
       final factor = b ^ remainder[0];
       for (var i = 0; i < eccCount - 1; i++) {
-        remainder[i] = remainder[i + 1] ^ _gfMul(generator[eccCount - 1 - i], factor);
+        remainder[i] =
+            remainder[i + 1] ^ _gfMul(generator[eccCount - 1 - i], factor);
       }
       remainder[eccCount - 1] = _gfMul(generator[0], factor);
     }
@@ -254,7 +260,8 @@ class QrCodeEncoder {
     // Place into matrix
     final size = 17 + version * 4;
     final matrix = List.generate(size, (_) => List<bool>.filled(size, false));
-    final isFunction = List.generate(size, (_) => List<bool>.filled(size, false));
+    final isFunction =
+        List.generate(size, (_) => List<bool>.filled(size, false));
 
     void setModule(int r, int c, bool val, {bool fn = true}) {
       if (r >= 0 && r < size && c >= 0 && c < size) {
@@ -415,15 +422,15 @@ class QrCodeEncoder {
   ];
 
   static const List<List<int>> _alignmentPositions = [
-    [],                       // V1
-    [6, 18],                  // V2
-    [6, 22],                  // V3
-    [6, 26],                  // V4
-    [6, 30],                  // V5
-    [6, 34],                  // V6
-    [6, 22, 38],              // V7
-    [6, 24, 42],              // V8
-    [6, 26, 46],              // V9
-    [6, 28, 50],              // V10
+    [], // V1
+    [6, 18], // V2
+    [6, 22], // V3
+    [6, 26], // V4
+    [6, 30], // V5
+    [6, 34], // V6
+    [6, 22, 38], // V7
+    [6, 24, 42], // V8
+    [6, 26, 46], // V9
+    [6, 28, 50], // V10
   ];
 }

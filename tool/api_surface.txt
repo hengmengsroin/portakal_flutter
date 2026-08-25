@@ -6,7 +6,7 @@
 ## PACKAGE: portakal_core
 Entrypoint: packages/portakal_core/lib/portakal_core.dart
 
-Total Public Declarations: 715
+Total Public Declarations: 716
 
     member BarcodeElement.content (in /packages/portakal_core/lib/src/types.dart)
     member BarcodeElement.options (in /packages/portakal_core/lib/src/types.dart)
@@ -189,6 +189,7 @@ Total Public Declarations: 715
     member PreviewBarcodeItem.bars (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.payload (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.quietZone (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.readable (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.rotation (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.symbology (in /packages/portakal_core/lib/src/preview_scene.dart)
@@ -729,7 +730,7 @@ Total Public Declarations: 715
 ## PACKAGE: portakal_flutter
 Entrypoint: packages/portakal_flutter/lib/portakal_flutter.dart
 
-Total Public Declarations: 722
+Total Public Declarations: 723
 
     member BarcodeElement.content (in /packages/portakal_core/lib/src/types.dart)
     member BarcodeElement.options (in /packages/portakal_core/lib/src/types.dart)
@@ -918,6 +919,7 @@ Total Public Declarations: 722
     member PreviewBarcodeItem.bars (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.height (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.payload (in /packages/portakal_core/lib/src/preview_scene.dart)
+    member PreviewBarcodeItem.quietZone (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.readable (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.rotation (in /packages/portakal_core/lib/src/preview_scene.dart)
     member PreviewBarcodeItem.symbology (in /packages/portakal_core/lib/src/preview_scene.dart)

@@ -75,22 +75,33 @@ void main() {
 }
 ```
 
-### 3. Flutter Preview Widget (`portakal_flutter`)
+### 3. Flutter Preview-Before-Print (`portakal_flutter`)
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:portakal_flutter/portakal_flutter.dart';
 
 class PreviewScreen extends StatelessWidget {
-  final LabelBuilder shippingLabel;
-  const PreviewScreen({super.key, required this.shippingLabel});
+  final LabelBuilder builder;
+  const PreviewScreen({super.key, required this.builder});
 
   @override
   Widget build(BuildContext context) {
+    // 1. Resolve once
+    final ResolvedLabel job = builder.resolve();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Label Preview')),
       body: Center(
-        child: LabelPreview(label: shippingLabel),
+        // 2. Preview the resolved job
+        child: LabelPreview.resolved(job: job),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.print),
+        onPressed: () {
+          // 3. Compile the exact same job for printing
+          final tscBytes = tsc.compileResolved(job);
+        },
       ),
     );
   }
