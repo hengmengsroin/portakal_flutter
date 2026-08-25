@@ -300,6 +300,109 @@ class EplEncoding {
   static const EplEncoding defaultEncoding = EplEncoding.legacy();
 }
 
+/// Explicit CPCL encoding and COUNTRY selection configuration.
+class CpclEncoding {
+  /// The character mapping to use for user text.
+  final PrinterCodePage codePage;
+
+  /// The CPCL `COUNTRY <name>` argument (e.g. 'USA', 'CP850', 'CP1252', 'CP866', 'CP857').
+  /// Set to null if no COUNTRY command should be emitted.
+  final String? country;
+
+  /// Whether to emit `COUNTRY <country>\r\n` in the session preamble.
+  final bool sendCountryCommand;
+
+  /// Whether to replace unencodable characters with `?` (0x3F) instead of throwing.
+  final bool replaceUnsupported;
+
+  const CpclEncoding({
+    required this.codePage,
+    this.country,
+    this.sendCountryCommand = false,
+    this.replaceUnsupported = false,
+  });
+
+  /// Default legacy CPCL mode: CP437 mapping without emitting `COUNTRY` command (historical baseline).
+  const CpclEncoding.legacy({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        country: null,
+        sendCountryCommand: false,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard USA / CP437 mode.
+  const CpclEncoding.usa({
+    bool sendCountryCommand = false,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp437,
+         country: 'USA',
+         sendCountryCommand: sendCountryCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP850 mode.
+  const CpclEncoding.cp850({
+    bool sendCountryCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp850,
+         country: 'CP850',
+         sendCountryCommand: sendCountryCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP1252 (Windows Western) mode.
+  const CpclEncoding.cp1252({
+    bool sendCountryCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp1252,
+         country: 'CP1252',
+         sendCountryCommand: sendCountryCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP866 (Cyrillic) mode.
+  const CpclEncoding.cp866({
+    bool sendCountryCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp866,
+         country: 'CP866',
+         sendCountryCommand: sendCountryCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP857 (Turkish) mode.
+  const CpclEncoding.cp857({
+    bool sendCountryCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp857,
+         country: 'CP857',
+         sendCountryCommand: sendCountryCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Custom CPCL encoding configuration.
+  const CpclEncoding.custom({
+    required PrinterCodePage codePage,
+    String? country,
+    bool sendCountryCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: codePage,
+         country: country,
+         sendCountryCommand: sendCountryCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// The canonical default CPCL encoding (legacy CP437 without COUNTRY command).
+  static const CpclEncoding defaultEncoding = CpclEncoding.legacy();
+}
+
 /// Character encoder for a single [PrinterCodePage].
 class CodePageEncoder {
   final PrinterCodePage codePage;
