@@ -444,7 +444,7 @@ class RawElement extends LabelElement {
     'Use RawElement.bytes or RawElement.ascii instead. Will be removed in 2.0.',
   )
   RawElement({required Object content})
-    : bytes = _convertLegacyContent(content);
+      : bytes = _convertLegacyContent(content);
 
   static Uint8List _validateAndEncodeAscii(String text) {
     final list = <int>[];

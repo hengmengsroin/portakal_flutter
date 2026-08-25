@@ -36,10 +36,10 @@ class UnsupportedCharacterException extends EncodingError {
     required this.codePage,
     String? message,
   }) : super(
-         message ??
-             'Character "$character" (U+${codePoint.toRadixString(16).padLeft(4, '0').toUpperCase()}) '
-                 'cannot be encoded in code page ${codePage.name}.',
-       );
+          message ??
+              'Character "$character" (U+${codePoint.toRadixString(16).padLeft(4, '0').toUpperCase()}) '
+                  'cannot be encoded in code page ${codePage.name}.',
+        );
 
   @override
   String toString() => 'UnsupportedCharacterException: $message';
@@ -79,11 +79,11 @@ class EscPosEncoding {
     bool sendTableSelect = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp437,
-         tableId: tableId,
-         sendTableSelect: sendTableSelect,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp437,
+          tableId: tableId,
+          sendTableSelect: sendTableSelect,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP858 (Western European with Euro €, Table 19 on Epson).
   const EscPosEncoding.cp858({
@@ -91,11 +91,11 @@ class EscPosEncoding {
     bool sendTableSelect = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp858,
-         tableId: tableId,
-         sendTableSelect: sendTableSelect,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp858,
+          tableId: tableId,
+          sendTableSelect: sendTableSelect,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP850 (Multilingual Latin-1, Table 2 on Epson).
   const EscPosEncoding.cp850({
@@ -103,11 +103,11 @@ class EscPosEncoding {
     bool sendTableSelect = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp850,
-         tableId: tableId,
-         sendTableSelect: sendTableSelect,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp850,
+          tableId: tableId,
+          sendTableSelect: sendTableSelect,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard Windows-1252 (Western European, Table 16 on Epson).
   const EscPosEncoding.cp1252({
@@ -115,11 +115,11 @@ class EscPosEncoding {
     bool sendTableSelect = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp1252,
-         tableId: tableId,
-         sendTableSelect: sendTableSelect,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp1252,
+          tableId: tableId,
+          sendTableSelect: sendTableSelect,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP866 (Cyrillic #2, Table 17 on Epson).
   const EscPosEncoding.cp866({
@@ -127,11 +127,11 @@ class EscPosEncoding {
     bool sendTableSelect = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp866,
-         tableId: tableId,
-         sendTableSelect: sendTableSelect,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp866,
+          tableId: tableId,
+          sendTableSelect: sendTableSelect,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP857 (Turkish, Table 13 on Epson).
   const EscPosEncoding.cp857({
@@ -139,11 +139,11 @@ class EscPosEncoding {
     bool sendTableSelect = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp857,
-         tableId: tableId,
-         sendTableSelect: sendTableSelect,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp857,
+          tableId: tableId,
+          sendTableSelect: sendTableSelect,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Custom table assignment (e.g. for non-Epson printers where CP1252 is table 32).
   const EscPosEncoding.custom({
@@ -152,22 +152,22 @@ class EscPosEncoding {
     bool sendTableSelect = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: codePage,
-         tableId: tableId,
-         sendTableSelect: sendTableSelect,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: codePage,
+          tableId: tableId,
+          sendTableSelect: sendTableSelect,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Raw encoding without emitting any `ESC t` table selection command.
   const EscPosEncoding.raw({
     required PrinterCodePage codePage,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: codePage,
-         tableId: null,
-         sendTableSelect: false,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: codePage,
+          tableId: null,
+          sendTableSelect: false,
+          replaceUnsupported: replaceUnsupported,
+        );
 }
 
 /// Text encoding mode for Zebra ZPL II serialization.
@@ -189,12 +189,12 @@ class ZplEncoding {
 
   /// Standard UTF-8 mode with ^CI28 header command (historical and SDK default).
   const ZplEncoding.utf8({this.emitCiCommand = true})
-    : type = ZplTextEncoding.utf8;
+      : type = ZplTextEncoding.utf8;
 
   /// Legacy mode without ^CI28 command (ASCII / Latin-1 baseline).
   const ZplEncoding.legacy()
-    : type = ZplTextEncoding.legacy,
-      emitCiCommand = false;
+      : type = ZplTextEncoding.legacy,
+        emitCiCommand = false;
 
   /// The canonical default ZPL encoding configuration (UTF-8 with ^CI28).
   static const ZplEncoding defaultEncoding = ZplEncoding.utf8();
@@ -224,67 +224,67 @@ class EplEncoding {
 
   /// Default legacy EPL mode: CP437 mapping without emitting `I` command (historical baseline).
   const EplEncoding.legacy({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        countryCode: null,
-        sendSetCharSetCommand: false,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          countryCode: null,
+          sendSetCharSetCommand: false,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP437 (DOS US, country code 0).
   const EplEncoding.cp437({
     bool sendSetCharSetCommand = false,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp437,
-         countryCode: 0,
-         sendSetCharSetCommand: sendSetCharSetCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp437,
+          countryCode: 0,
+          sendSetCharSetCommand: sendSetCharSetCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP850 (Multilingual Latin-1, country code 1).
   const EplEncoding.cp850({
     bool sendSetCharSetCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp850,
-         countryCode: 1,
-         sendSetCharSetCommand: sendSetCharSetCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp850,
+          countryCode: 1,
+          sendSetCharSetCommand: sendSetCharSetCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard Windows CP1252 (Latin-1, country code 13).
   const EplEncoding.cp1252({
     bool sendSetCharSetCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp1252,
-         countryCode: 13,
-         sendSetCharSetCommand: sendSetCharSetCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp1252,
+          countryCode: 13,
+          sendSetCharSetCommand: sendSetCharSetCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP866 (Cyrillic, country code 9).
   const EplEncoding.cp866({
     bool sendSetCharSetCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp866,
-         countryCode: 9,
-         sendSetCharSetCommand: sendSetCharSetCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp866,
+          countryCode: 9,
+          sendSetCharSetCommand: sendSetCharSetCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP857 (Turkish, country code 6).
   const EplEncoding.cp857({
     bool sendSetCharSetCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp857,
-         countryCode: 6,
-         sendSetCharSetCommand: sendSetCharSetCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp857,
+          countryCode: 6,
+          sendSetCharSetCommand: sendSetCharSetCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Custom EPL encoding configuration.
   const EplEncoding.custom({
@@ -293,11 +293,11 @@ class EplEncoding {
     bool sendSetCharSetCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: codePage,
-         countryCode: countryCode,
-         sendSetCharSetCommand: sendSetCharSetCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: codePage,
+          countryCode: countryCode,
+          sendSetCharSetCommand: sendSetCharSetCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// The canonical default EPL encoding (legacy CP437 without `I` command).
   static const EplEncoding defaultEncoding = EplEncoding.legacy();
@@ -327,67 +327,67 @@ class CpclEncoding {
 
   /// Default legacy CPCL mode: CP437 mapping without emitting `COUNTRY` command (historical baseline).
   const CpclEncoding.legacy({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        country: null,
-        sendCountryCommand: false,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          country: null,
+          sendCountryCommand: false,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard USA / CP437 mode.
   const CpclEncoding.usa({
     bool sendCountryCommand = false,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp437,
-         country: 'USA',
-         sendCountryCommand: sendCountryCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp437,
+          country: 'USA',
+          sendCountryCommand: sendCountryCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP850 mode.
   const CpclEncoding.cp850({
     bool sendCountryCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp850,
-         country: 'CP850',
-         sendCountryCommand: sendCountryCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp850,
+          country: 'CP850',
+          sendCountryCommand: sendCountryCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP1252 (Windows Western) mode.
   const CpclEncoding.cp1252({
     bool sendCountryCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp1252,
-         country: 'CP1252',
-         sendCountryCommand: sendCountryCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp1252,
+          country: 'CP1252',
+          sendCountryCommand: sendCountryCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP866 (Cyrillic) mode.
   const CpclEncoding.cp866({
     bool sendCountryCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp866,
-         country: 'CP866',
-         sendCountryCommand: sendCountryCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp866,
+          country: 'CP866',
+          sendCountryCommand: sendCountryCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP857 (Turkish) mode.
   const CpclEncoding.cp857({
     bool sendCountryCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp857,
-         country: 'CP857',
-         sendCountryCommand: sendCountryCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp857,
+          country: 'CP857',
+          sendCountryCommand: sendCountryCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Custom CPCL encoding configuration.
   const CpclEncoding.custom({
@@ -396,11 +396,11 @@ class CpclEncoding {
     bool sendCountryCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: codePage,
-         country: country,
-         sendCountryCommand: sendCountryCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: codePage,
+          country: country,
+          sendCountryCommand: sendCountryCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// The canonical default CPCL encoding (legacy CP437 without COUNTRY command).
   static const CpclEncoding defaultEncoding = CpclEncoding.legacy();
@@ -418,31 +418,31 @@ class DplEncoding {
 
   /// Default legacy DPL mode (CP437 character mapping).
   const DplEncoding.legacy({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP437 mode.
   const DplEncoding.cp437({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP850 mode.
   const DplEncoding.cp850({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp850,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp850,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard Windows CP1252 mode.
   const DplEncoding.cp1252({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp1252,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp1252,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Custom DPL encoding configuration.
   const DplEncoding.custom({
@@ -466,31 +466,31 @@ class IplEncoding {
 
   /// Default legacy IPL mode (CP437 character mapping).
   const IplEncoding.legacy({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP437 mode.
   const IplEncoding.cp437({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP850 mode.
   const IplEncoding.cp850({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp850,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp850,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard Windows CP1252 mode.
   const IplEncoding.cp1252({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp1252,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp1252,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Custom IPL encoding configuration.
   const IplEncoding.custom({
@@ -514,31 +514,31 @@ class SbplEncoding {
 
   /// Default legacy SBPL mode (CP437 character mapping).
   const SbplEncoding.legacy({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP437 mode.
   const SbplEncoding.cp437({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP850 mode.
   const SbplEncoding.cp850({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp850,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp850,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard Windows CP1252 mode.
   const SbplEncoding.cp1252({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp1252,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp1252,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Custom SBPL encoding configuration.
   const SbplEncoding.custom({
@@ -574,56 +574,56 @@ class StarPrntEncoding {
 
   /// Default legacy Star PRNT mode (CP437 mapping without code page command).
   const StarPrntEncoding.legacy({bool replaceUnsupported = false})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        characterTable: null,
-        sendCodePageCommand: false,
-        replaceUnsupported: replaceUnsupported,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          characterTable: null,
+          sendCodePageCommand: false,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP437 mode.
   const StarPrntEncoding.cp437({
     bool sendCodePageCommand = false,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp437,
-         characterTable: 0,
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp437,
+          characterTable: 0,
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP858 (Western European with Euro) mode.
   const StarPrntEncoding.cp858({
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp858,
-         characterTable: 3,
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp858,
+          characterTable: 3,
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP850 (Western European) mode.
   const StarPrntEncoding.cp850({
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp850,
-         characterTable: 1,
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp850,
+          characterTable: 1,
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard Windows CP1252 mode.
   const StarPrntEncoding.cp1252({
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp1252,
-         characterTable: 16,
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp1252,
+          characterTable: 16,
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Custom Star PRNT encoding configuration.
   const StarPrntEncoding.custom({
@@ -632,11 +632,11 @@ class StarPrntEncoding {
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: codePage,
-         characterTable: characterTable,
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: codePage,
+          characterTable: characterTable,
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// The canonical default Star PRNT encoding (legacy CP437).
   static const StarPrntEncoding defaultEncoding = StarPrntEncoding.legacy();
@@ -679,55 +679,55 @@ class TscEncoding {
     bool sendCodePageCommand = false,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp437,
-         tsplCodePage: '437',
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp437,
+          tsplCodePage: '437',
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP850 (Multilingual Latin-1).
   const TscEncoding.cp850({
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp850,
-         tsplCodePage: '850',
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp850,
+          tsplCodePage: '850',
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP857 (Turkish).
   const TscEncoding.cp857({
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp857,
-         tsplCodePage: '857',
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp857,
+          tsplCodePage: '857',
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard CP866 (Cyrillic #2).
   const TscEncoding.cp866({
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp866,
-         tsplCodePage: '866',
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp866,
+          tsplCodePage: '866',
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// Standard Windows-1252 (Western European).
   const TscEncoding.cp1252({
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: PrinterCodePage.cp1252,
-         tsplCodePage: '1252',
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: PrinterCodePage.cp1252,
+          tsplCodePage: '1252',
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// UTF-8 encoding mode.
   ///
@@ -737,12 +737,12 @@ class TscEncoding {
   /// Note: Glyph availability for extended Unicode characters depends on the printer's
   /// installed fonts (e.g. resident scalable font "0" or downloaded TTF fonts).
   const TscEncoding.utf8({bool sendCodePageCommand = true})
-    : this(
-        codePage: PrinterCodePage.cp437,
-        tsplCodePage: 'UTF-8',
-        sendCodePageCommand: sendCodePageCommand,
-        replaceUnsupported: false,
-      );
+      : this(
+          codePage: PrinterCodePage.cp437,
+          tsplCodePage: 'UTF-8',
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: false,
+        );
 
   /// Custom TSC encoding configuration.
   const TscEncoding.custom({
@@ -751,11 +751,11 @@ class TscEncoding {
     bool sendCodePageCommand = true,
     bool replaceUnsupported = false,
   }) : this(
-         codePage: codePage,
-         tsplCodePage: tsplCodePage,
-         sendCodePageCommand: sendCodePageCommand,
-         replaceUnsupported: replaceUnsupported,
-       );
+          codePage: codePage,
+          tsplCodePage: tsplCodePage,
+          sendCodePageCommand: sendCodePageCommand,
+          replaceUnsupported: replaceUnsupported,
+        );
 
   /// The canonical default TSC encoding (CP437 baseline without emitting CODEPAGE command).
   static const TscEncoding defaultEncoding = TscEncoding.cp437();

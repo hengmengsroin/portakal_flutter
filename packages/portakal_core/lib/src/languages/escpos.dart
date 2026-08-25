@@ -116,10 +116,10 @@ Uint8List compileToESCPOS(
         final ecc = o.eccLevel == 'L'
             ? 0x30
             : o.eccLevel == 'Q'
-            ? 0x32
-            : o.eccLevel == 'H'
-            ? 0x33
-            : 0x31;
+                ? 0x32
+                : o.eccLevel == 'H'
+                    ? 0x33
+                    : 0x31;
         EscPosCommandWriter.writeQrCode(
           writer,
           model: 0x32,
@@ -154,4 +154,5 @@ Uint8List compileToESCPOSBytes(
   ResolvedLabel label, {
   EscPosEncoding? encoding,
   UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-}) => compileToESCPOS(label, encoding: encoding, policy: policy);
+}) =>
+    compileToESCPOS(label, encoding: encoding, policy: policy);

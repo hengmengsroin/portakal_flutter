@@ -13,14 +13,16 @@ class TscLang {
   Uint8List compile(
     LabelBuilder builder, {
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compileToTSCBytes(builder.resolve(), policy: policy);
+  }) =>
+      compileToTSCBytes(builder.resolve(), policy: policy);
 
   /// Compile a [LabelBuilder] to TSC/TSPL2 commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
   Uint8List compileBytes(
     LabelBuilder builder, {
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compile(builder, policy: policy);
+  }) =>
+      compile(builder, policy: policy);
 
   TSPLParseResult parse(String code) => parseTSPL(code);
 

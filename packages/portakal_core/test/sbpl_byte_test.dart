@@ -12,35 +12,34 @@ import 'package:test/test.dart';
 void main() {
   group('SBPL Byte-Native Compiler', () {
     test('ASCII output matches byte-for-byte with latin1 string wrapper', () {
-      final builder =
-          label(
-                const LabelConfig(
-                  width: 40,
-                  height: 30,
-                  speed: 4,
-                  density: 8,
-                  copies: 2,
-                ),
-              )
-              .text('Hello SATO', const TextOptions(x: 100, y: 50, size: 2))
-              .box(
-                const BoxOptions(
-                  x: 10,
-                  y: 20,
-                  width: 200,
-                  height: 100,
-                  thickness: 2,
-                ),
-              )
-              .line(
-                const LineOptions(
-                  x1: 10,
-                  y1: 50,
-                  x2: 300,
-                  y2: 50,
-                  thickness: 2,
-                ),
-              );
+      final builder = label(
+        const LabelConfig(
+          width: 40,
+          height: 30,
+          speed: 4,
+          density: 8,
+          copies: 2,
+        ),
+      )
+          .text('Hello SATO', const TextOptions(x: 100, y: 50, size: 2))
+          .box(
+            const BoxOptions(
+              x: 10,
+              y: 20,
+              width: 200,
+              height: 100,
+              thickness: 2,
+            ),
+          )
+          .line(
+            const LineOptions(
+              x1: 10,
+              y1: 50,
+              x2: 300,
+              y2: 50,
+              thickness: 2,
+            ),
+          );
 
       final byteOutput = sbpl.compileBytes(builder);
       final canonicalOutput = sbpl.compile(builder);

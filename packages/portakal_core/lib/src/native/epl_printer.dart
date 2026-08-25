@@ -21,7 +21,7 @@ class EplPrinter {
 
   /// Creates a new [EplPrinter] with the specified default [encoding] (defaults to legacy CP437).
   EplPrinter({EplEncoding encoding = const EplEncoding.legacy()})
-    : _initialEncoding = encoding {
+      : _initialEncoding = encoding {
     _applyEncoding(encoding, emitCommand: encoding.sendSetCharSetCommand);
   }
 

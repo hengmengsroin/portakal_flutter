@@ -28,9 +28,8 @@ class LabelPreview extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final maxWidth = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : 320.0;
+        final maxWidth =
+            constraints.maxWidth.isFinite ? constraints.maxWidth : 320.0;
         final ratio = widthDots / heightDots;
         final height = maxWidth / ratio;
 
@@ -87,8 +86,8 @@ class _LabelPreviewPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final widthDots = label.widthDots.toDouble();
-    final heightDots = (label.heightDots > 0 ? label.heightDots : 400)
-        .toDouble();
+    final heightDots =
+        (label.heightDots > 0 ? label.heightDots : 400).toDouble();
 
     final bgPaint = Paint()..color = backgroundColor;
     final labelPaint = Paint()..color = canvasColor;
@@ -170,9 +169,8 @@ class _LabelPreviewPainter extends CustomPainter {
       color: color,
       fontSize: fs,
       fontWeight: o.bold == true ? FontWeight.bold : FontWeight.normal,
-      decoration: o.underline == true
-          ? TextDecoration.underline
-          : TextDecoration.none,
+      decoration:
+          o.underline == true ? TextDecoration.underline : TextDecoration.none,
       fontFamily: o.font == '0' ? null : 'monospace',
     );
 

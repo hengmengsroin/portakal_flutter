@@ -61,7 +61,8 @@ void main() {
       },
     );
 
-    test('All canonical Hxx cases match their frozen expectedSha256 values', () {
+    test('All canonical Hxx cases match their frozen expectedSha256 values',
+        () {
       final mismatches = <String>[];
       for (final suite in ProtocolRegistry.allSuites) {
         for (final c in suite.cases) {
@@ -154,9 +155,8 @@ void main() {
 
     test('DPL hardware cases use native CR line endings (0x0D)', () {
       final suite = ProtocolRegistry.getSuite(ValidationProtocol.dpl);
-      final d00Bytes = suite.cases
-          .firstWhere((c) => c.id == 'D00-DPL')
-          .generator();
+      final d00Bytes =
+          suite.cases.firstWhere((c) => c.id == 'D00-DPL').generator();
       expect(d00Bytes, contains(0x0D));
       final d00Str = latin1.decode(d00Bytes);
       expect(d00Str.endsWith('\r'), isTrue);

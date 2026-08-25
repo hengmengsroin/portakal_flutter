@@ -16,8 +16,7 @@ void main() {
 
       final bytes = compileToTSCBytes(resolved);
 
-      final expectedString =
-          'SIZE 40 mm,30 mm\r\n'
+      final expectedString = 'SIZE 40 mm,30 mm\r\n'
           'GAP 3 mm,0 mm\r\n'
           'SPEED 4\r\n'
           'DENSITY 8\r\n'
@@ -28,7 +27,8 @@ void main() {
       expect(bytes, equals(Uint8List.fromList(ascii.encode(expectedString))));
     });
 
-    test('preserves exact BITMAP binary bytes across full 0x00..0xFF range', () {
+    test('preserves exact BITMAP binary bytes across full 0x00..0xFF range',
+        () {
       // 7-byte raw payload including 0x00, 0x7F, 0x80, 0xFF
       final rawBitmapData = Uint8List.fromList([
         0x00,

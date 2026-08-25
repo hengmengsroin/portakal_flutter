@@ -100,9 +100,8 @@ void main(List<String> args) {
       'Successfully generated artifacts for [$protocol] case ${targetCase.id} in $outputDir',
     );
   } else if (isAll) {
-    final protocolOutDir = outputDir.endsWith(protocol)
-        ? outputDir
-        : '$outputDir/$protocol';
+    final protocolOutDir =
+        outputDir.endsWith(protocol) ? outputDir : '$outputDir/$protocol';
     final manifestEntries = <Map<String, dynamic>>[];
 
     int generatedCount = 0;
@@ -208,9 +207,8 @@ _GenResult _generateCaseArtifacts({
 }
 
 void _handleList(String? protocol) {
-  final protocolsToList = (protocol != null)
-      ? [protocol]
-      : CaseRegistry.supportedProtocols;
+  final protocolsToList =
+      (protocol != null) ? [protocol] : CaseRegistry.supportedProtocols;
 
   for (final proto in protocolsToList) {
     stdout.writeln(
@@ -232,8 +230,8 @@ void _handleList(String? protocol) {
       final statusStr = c.isSupported
           ? 'SUPPORTED'
           : (c.status == SupportStatus.notSupportedSdk
-                ? 'N/S-SDK'
-                : 'N/S-DEVICE');
+              ? 'N/S-SDK'
+              : 'N/S-DEVICE');
       stdout.writeln(
         '${c.id.padRight(14)} ${c.description.padRight(42)} $statusStr',
       );

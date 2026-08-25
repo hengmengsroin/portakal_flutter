@@ -81,9 +81,8 @@ void _validateTSC(String code, List<ValidationIssue> issues) {
   final cmds = result.commands;
 
   // SIZE should be first non-comment command
-  final firstCmd = cmds
-      .where((c) => c.cmd != 'UNKNOWN' && c.cmd != 'REM')
-      .firstOrNull;
+  final firstCmd =
+      cmds.where((c) => c.cmd != 'UNKNOWN' && c.cmd != 'REM').firstOrNull;
   if (firstCmd != null && firstCmd.cmd != 'SIZE') {
     issues.add(
       const ValidationIssue(

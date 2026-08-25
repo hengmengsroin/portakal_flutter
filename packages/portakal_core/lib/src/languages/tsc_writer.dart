@@ -156,9 +156,8 @@ class TscCommandWriter {
     if (ips <= 0) {
       throw InvalidConfigError('Speed must be positive, got: $ips');
     }
-    final sStr = ips == ips.roundToDouble()
-        ? ips.round().toString()
-        : ips.toString();
+    final sStr =
+        ips == ips.roundToDouble() ? ips.round().toString() : ips.toString();
     writer.writeAscii('SPEED $sStr\r\n');
   }
 

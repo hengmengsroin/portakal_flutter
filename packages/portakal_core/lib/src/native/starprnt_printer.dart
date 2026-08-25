@@ -34,7 +34,7 @@ class StarPrntPrinter {
 
   /// Creates a new [StarPrntPrinter] with the specified default [encoding] (defaults to legacy CP437).
   StarPrntPrinter({StarPrntEncoding encoding = const StarPrntEncoding.legacy()})
-    : _initialEncoding = encoding {
+      : _initialEncoding = encoding {
     _applyEncoding(encoding, emitCommand: true);
   }
 

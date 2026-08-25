@@ -113,10 +113,10 @@ Uint8List compileToStarPRNT(
         final ecc = o.eccLevel == 'L'
             ? 0
             : o.eccLevel == 'Q'
-            ? 2
-            : o.eccLevel == 'H'
-            ? 3
-            : 1;
+                ? 2
+                : o.eccLevel == 'H'
+                    ? 3
+                    : 1;
         StarPrntCommandWriter.writeQrCode(
           writer,
           content: el.content,
@@ -151,4 +151,5 @@ Uint8List compileToStarPRNTBytes(
   ResolvedLabel label, {
   StarPrntEncoding? encoding,
   UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-}) => compileToStarPRNT(label, encoding: encoding, policy: policy);
+}) =>
+    compileToStarPRNT(label, encoding: encoding, policy: policy);

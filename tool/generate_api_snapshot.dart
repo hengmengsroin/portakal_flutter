@@ -5,10 +5,14 @@ class ApiSnapshotGenerator {
     final rootDir = Directory.current.path;
     final sb = StringBuffer();
 
-    sb.writeln('# ==============================================================================');
-    sb.writeln('# PORTAKAL SDK — PUBLIC API SURFACE SNAPSHOT (PHASE 5A / 1.0 FREEZE AUDIT)');
-    sb.writeln('# Generated for 1.0 contract verification & regression tracking');
-    sb.writeln('# ==============================================================================');
+    sb.writeln(
+        '# ==============================================================================');
+    sb.writeln(
+        '# PORTAKAL SDK — PUBLIC API SURFACE SNAPSHOT (PHASE 5A / 1.0 FREEZE AUDIT)');
+    sb.writeln(
+        '# Generated for 1.0 contract verification & regression tracking');
+    sb.writeln(
+        '# ==============================================================================');
     sb.writeln();
 
     for (final pkg in ['portakal_core', 'portakal_flutter']) {
@@ -40,7 +44,8 @@ class ApiSnapshotGenerator {
         sb.writeln('  $sym');
       }
       sb.writeln();
-      sb.writeln('------------------------------------------------------------------------------');
+      sb.writeln(
+          '------------------------------------------------------------------------------');
       sb.writeln();
     }
 
@@ -60,18 +65,23 @@ class ApiSnapshotGenerator {
 
       final lines = file.readAsLinesSync();
       for (final line in lines) {
-        final match = RegExp(r'''^\s*export\s+['"]([^'"]+)['"]''').firstMatch(line);
+        final match =
+            RegExp(r'''^\s*export\s+['"]([^'"]+)['"]''').firstMatch(line);
         if (match != null) {
           final uri = match.group(1)!;
           String target;
           if (uri.startsWith('package:portakal_core/')) {
-            target = '${Directory.current.path}/packages/portakal_core/lib/${uri.substring('package:portakal_core/'.length)}';
+            target =
+                '${Directory.current.path}/packages/portakal_core/lib/${uri.substring('package:portakal_core/'.length)}';
           } else if (uri.startsWith('package:portakal_flutter/')) {
-            target = '${Directory.current.path}/packages/portakal_flutter/lib/${uri.substring('package:portakal_flutter/'.length)}';
+            target =
+                '${Directory.current.path}/packages/portakal_flutter/lib/${uri.substring('package:portakal_flutter/'.length)}';
           } else if (uri.startsWith('package:')) {
             continue;
           } else {
-            target = Uri.file('${file.parent.path}/$uri').normalizePath().toFilePath();
+            target = Uri.file('${file.parent.path}/$uri')
+                .normalizePath()
+                .toFilePath();
           }
           queue.add(target);
         }
@@ -80,7 +90,8 @@ class ApiSnapshotGenerator {
     return visited;
   }
 
-  void _extractPublicSymbols(String relPath, List<String> lines, List<String> output) {
+  void _extractPublicSymbols(
+      String relPath, List<String> lines, List<String> output) {
     String? currentClass;
     bool inClass = false;
 
@@ -88,13 +99,23 @@ class ApiSnapshotGenerator {
       final rawLine = lines[i];
       final line = rawLine.trim();
 
-      if (line.startsWith('//') || line.startsWith('/*') || line.startsWith('*') || line.startsWith('@') || line.startsWith('import ') || line.startsWith('export ') || line.isEmpty) {
+      if (line.startsWith('//') ||
+          line.startsWith('/*') ||
+          line.startsWith('*') ||
+          line.startsWith('@') ||
+          line.startsWith('import ') ||
+          line.startsWith('export ') ||
+          line.isEmpty) {
         continue;
       }
 
       // Detect top-level classes / sealed / abstract
-      final classMatch = RegExp(r'''^(?:abstract\s+|sealed\s+|final\s+)?class\s+([A-Za-z0-9_]+)(?:<[^>]+>)?(?:\s+(?:extends|implements|with)\s+.*)?\s*\{?''').firstMatch(line);
-      if (classMatch != null && !rawLine.startsWith(' ') && !rawLine.startsWith('\t')) {
+      final classMatch = RegExp(
+              r'''^(?:abstract\s+|sealed\s+|final\s+)?class\s+([A-Za-z0-9_]+)(?:<[^>]+>)?(?:\s+(?:extends|implements|with)\s+.*)?\s*\{?''')
+          .firstMatch(line);
+      if (classMatch != null &&
+          !rawLine.startsWith(' ') &&
+          !rawLine.startsWith('\t')) {
         final name = classMatch.group(1)!;
         if (!name.startsWith('_')) {
           output.add('class $name (in $relPath)');
@@ -105,8 +126,11 @@ class ApiSnapshotGenerator {
       }
 
       // Detect enums
-      final enumMatch = RegExp(r'''^enum\s+([A-Za-z0-9_]+)\s*\{?''').firstMatch(line);
-      if (enumMatch != null && !rawLine.startsWith(' ') && !rawLine.startsWith('\t')) {
+      final enumMatch =
+          RegExp(r'''^enum\s+([A-Za-z0-9_]+)\s*\{?''').firstMatch(line);
+      if (enumMatch != null &&
+          !rawLine.startsWith(' ') &&
+          !rawLine.startsWith('\t')) {
         final name = enumMatch.group(1)!;
         if (!name.startsWith('_')) {
           output.add('enum $name (in $relPath)');
@@ -117,8 +141,11 @@ class ApiSnapshotGenerator {
       }
 
       // Detect typedefs
-      final typedefMatch = RegExp(r'''^typedef\s+([A-Za-z0-9_]+)\s*=''').firstMatch(line);
-      if (typedefMatch != null && !rawLine.startsWith(' ') && !rawLine.startsWith('\t')) {
+      final typedefMatch =
+          RegExp(r'''^typedef\s+([A-Za-z0-9_]+)\s*=''').firstMatch(line);
+      if (typedefMatch != null &&
+          !rawLine.startsWith(' ') &&
+          !rawLine.startsWith('\t')) {
         final name = typedefMatch.group(1)!;
         if (!name.startsWith('_')) {
           output.add('typedef $name (in $relPath)');
@@ -127,8 +154,12 @@ class ApiSnapshotGenerator {
       }
 
       // Detect top-level variables / constants / singletons
-      final topVarMatch = RegExp(r'''^(?:const|final)\s+(?:[A-Za-z0-9_<>,?]+\s+)?([a-zA-Z0-9_]+)\s*=''').firstMatch(line);
-      if (topVarMatch != null && !rawLine.startsWith(' ') && !rawLine.startsWith('\t')) {
+      final topVarMatch = RegExp(
+              r'''^(?:const|final)\s+(?:[A-Za-z0-9_<>,?]+\s+)?([a-zA-Z0-9_]+)\s*=''')
+          .firstMatch(line);
+      if (topVarMatch != null &&
+          !rawLine.startsWith(' ') &&
+          !rawLine.startsWith('\t')) {
         final name = topVarMatch.group(1)!;
         if (!name.startsWith('_')) {
           output.add('const/final $name (in $relPath)');
@@ -138,10 +169,24 @@ class ApiSnapshotGenerator {
 
       // Detect top-level functions
       if (!rawLine.startsWith(' ') && !rawLine.startsWith('\t')) {
-        final funcMatch = RegExp(r'''^(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*\([^;{]*\)\s*(?:async\s*)?(?:=>|\{)''').firstMatch(line);
+        final funcMatch = RegExp(
+                r'''^(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*\([^;{]*\)\s*(?:async\s*)?(?:=>|\{)''')
+            .firstMatch(line);
         if (funcMatch != null) {
           final name = funcMatch.group(1)!;
-          if (!name.startsWith('_') && !['if', 'for', 'while', 'switch', 'catch', 'return', 'class', 'enum', 'mixin', 'typedef'].contains(name)) {
+          if (!name.startsWith('_') &&
+              ![
+                'if',
+                'for',
+                'while',
+                'switch',
+                'catch',
+                'return',
+                'class',
+                'enum',
+                'mixin',
+                'typedef'
+              ].contains(name)) {
             output.add('function $name() (in $relPath)');
           }
         }
@@ -158,13 +203,16 @@ class ApiSnapshotGenerator {
         // Public method / getter / setter / constructor in class
         if (rawLine.startsWith('  ') || rawLine.startsWith('\t')) {
           // Constructor
-          final ctorMatch = RegExp(r'''^\s*(?:const\s+)?([A-Za-z0-9_]+)(?:\.([a-zA-Z0-9_]+))?\s*\([^;{]*\)''').firstMatch(rawLine);
+          final ctorMatch = RegExp(
+                  r'''^\s*(?:const\s+)?([A-Za-z0-9_]+)(?:\.([a-zA-Z0-9_]+))?\s*\([^;{]*\)''')
+              .firstMatch(rawLine);
           if (ctorMatch != null) {
             final cName = ctorMatch.group(1)!;
             final namedCtor = ctorMatch.group(2);
             if (cName == currentClass) {
               if (namedCtor == null || !namedCtor.startsWith('_')) {
-                final fullCtor = namedCtor == null ? '$cName()' : '$cName.$namedCtor()';
+                final fullCtor =
+                    namedCtor == null ? '$cName()' : '$cName.$namedCtor()';
                 output.add('  member $currentClass.$fullCtor (in $relPath)');
                 continue;
               }
@@ -172,10 +220,22 @@ class ApiSnapshotGenerator {
           }
 
           // Method or getter
-          final memberMatch = RegExp(r'''^\s*(?:(?:static|final|const|abstract|override)\s+)*(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*(?:\([^;{]*\)|=>|;)''').firstMatch(rawLine);
+          final memberMatch = RegExp(
+                  r'''^\s*(?:(?:static|final|const|abstract|override)\s+)*(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*(?:\([^;{]*\)|=>|;)''')
+              .firstMatch(rawLine);
           if (memberMatch != null) {
             final mName = memberMatch.group(1)!;
-            if (!mName.startsWith('_') && !['if', 'for', 'while', 'switch', 'catch', 'return', 'super', 'this'].contains(mName)) {
+            if (!mName.startsWith('_') &&
+                ![
+                  'if',
+                  'for',
+                  'while',
+                  'switch',
+                  'catch',
+                  'return',
+                  'super',
+                  'this'
+                ].contains(mName)) {
               output.add('  member $currentClass.$mName (in $relPath)');
             }
           }
@@ -188,9 +248,10 @@ class ApiSnapshotGenerator {
 void main() {
   final gen = ApiSnapshotGenerator();
   final snapshot = gen.generate();
-  
+
   final outFile = File('${Directory.current.path}/tool/api_surface.txt');
   outFile.parent.createSync(recursive: true);
   outFile.writeAsStringSync(snapshot);
-  print('API snapshot written to tool/api_surface.txt (${snapshot.length} bytes)');
+  print(
+      'API snapshot written to tool/api_surface.txt (${snapshot.length} bytes)');
 }

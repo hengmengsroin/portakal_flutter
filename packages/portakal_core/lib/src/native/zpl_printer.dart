@@ -22,8 +22,8 @@ class ZplPrinter {
 
   /// Creates a new [ZplPrinter] with the specified default [encoding] (defaults to UTF-8 with ^CI28).
   ZplPrinter({ZplEncoding encoding = const ZplEncoding.utf8()})
-    : _initialEncoding = encoding,
-      _activeEncoding = encoding;
+      : _initialEncoding = encoding,
+        _activeEncoding = encoding;
 
   /// Whether a format block is currently open (between [startFormat] and [endFormat]).
   bool get inFormat => _inFormat;
@@ -218,10 +218,10 @@ class ZplPrinter {
       final a = align == 'center' || align == 'C'
           ? 'C'
           : align == 'right' || align == 'R'
-          ? 'R'
-          : align == 'justified' || align == 'J'
-          ? 'J'
-          : 'L';
+              ? 'R'
+              : align == 'justified' || align == 'J'
+                  ? 'J'
+                  : 'L';
       fieldBlock(width: maxWidth, align: a);
     }
 

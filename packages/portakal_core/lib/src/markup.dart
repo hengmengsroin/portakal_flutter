@@ -32,9 +32,8 @@ LabelBuilder markup(String source) {
         ? _parseUnitValue(labelAttrs['height']!)
         : null,
     unit: Unit.fromString(unit),
-    dpi: labelAttrs.containsKey('dpi')
-        ? int.tryParse(labelAttrs['dpi']!)
-        : null,
+    dpi:
+        labelAttrs.containsKey('dpi') ? int.tryParse(labelAttrs['dpi']!) : null,
     gap: labelAttrs.containsKey('gap')
         ? _parseUnitValue(labelAttrs['gap']!)
         : null,
@@ -80,9 +79,8 @@ LabelBuilder markup(String source) {
             x: attrs.containsKey('x') ? int.tryParse(attrs['x']!) : null,
             y: attrs.containsKey('y') ? int.tryParse(attrs['y']!) : null,
             font: attrs['font'],
-            size: attrs.containsKey('size')
-                ? int.tryParse(attrs['size']!)
-                : null,
+            size:
+                attrs.containsKey('size') ? int.tryParse(attrs['size']!) : null,
             rotation: attrs.containsKey('rotation')
                 ? int.tryParse(attrs['rotation']!)
                 : null,
@@ -93,8 +91,8 @@ LabelBuilder markup(String source) {
             maxWidth: attrs.containsKey('maxwidth')
                 ? int.tryParse(attrs['maxwidth']!)
                 : attrs.containsKey('max-width')
-                ? int.tryParse(attrs['max-width']!)
-                : null,
+                    ? int.tryParse(attrs['max-width']!)
+                    : null,
           ),
         );
       case 'line':
@@ -107,8 +105,8 @@ LabelBuilder markup(String source) {
             thickness: attrs.containsKey('thickness')
                 ? int.tryParse(attrs['thickness']!)
                 : attrs.containsKey('border')
-                ? int.tryParse(attrs['border']!)
-                : null,
+                    ? int.tryParse(attrs['border']!)
+                    : null,
           ),
         );
       case 'box':
@@ -121,8 +119,8 @@ LabelBuilder markup(String source) {
             thickness: attrs.containsKey('thickness')
                 ? int.tryParse(attrs['thickness']!)
                 : attrs.containsKey('border')
-                ? int.tryParse(attrs['border']!)
-                : null,
+                    ? int.tryParse(attrs['border']!)
+                    : null,
             radius: attrs.containsKey('radius')
                 ? int.tryParse(attrs['radius']!)
                 : null,

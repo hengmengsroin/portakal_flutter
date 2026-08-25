@@ -24,7 +24,8 @@ class DplLang {
     LabelBuilder builder, {
     DplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compile(builder, encoding: encoding, policy: policy);
+  }) =>
+      compile(builder, encoding: encoding, policy: policy);
 
   DPLParseResult parse(String code) => parseDPL(code);
 

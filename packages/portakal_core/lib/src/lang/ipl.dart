@@ -24,7 +24,8 @@ class IplLang {
     LabelBuilder builder, {
     IplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compile(builder, encoding: encoding, policy: policy);
+  }) =>
+      compile(builder, encoding: encoding, policy: policy);
 
   IPLParseResult parse(String code) => parseIPL(code);
 

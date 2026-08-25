@@ -13,35 +13,34 @@ void main() {
     test(
       'Output matches byte-for-byte with latin1 string wrapper and uses binary control bytes',
       () {
-        final builder =
-            label(
-                  const LabelConfig(
-                    width: 40,
-                    height: 30,
-                    speed: 4,
-                    density: 8,
-                    copies: 2,
-                  ),
-                )
-                .text('Hello IPL', const TextOptions(x: 50, y: 30))
-                .box(
-                  const BoxOptions(
-                    x: 10,
-                    y: 10,
-                    width: 200,
-                    height: 100,
-                    thickness: 2,
-                  ),
-                )
-                .line(
-                  const LineOptions(
-                    x1: 10,
-                    y1: 50,
-                    x2: 300,
-                    y2: 50,
-                    thickness: 2,
-                  ),
-                );
+        final builder = label(
+          const LabelConfig(
+            width: 40,
+            height: 30,
+            speed: 4,
+            density: 8,
+            copies: 2,
+          ),
+        )
+            .text('Hello IPL', const TextOptions(x: 50, y: 30))
+            .box(
+              const BoxOptions(
+                x: 10,
+                y: 10,
+                width: 200,
+                height: 100,
+                thickness: 2,
+              ),
+            )
+            .line(
+              const LineOptions(
+                x1: 10,
+                y1: 50,
+                x2: 300,
+                y2: 50,
+                thickness: 2,
+              ),
+            );
 
         final byteOutput = ipl.compileBytes(builder);
         final canonicalOutput = ipl.compile(builder);

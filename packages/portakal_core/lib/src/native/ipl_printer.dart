@@ -31,7 +31,7 @@ class IplPrinter {
 
   /// Creates a new [IplPrinter] with the specified default [encoding] (defaults to legacy CP437).
   IplPrinter({IplEncoding encoding = const IplEncoding.legacy()})
-    : _initialEncoding = encoding {
+      : _initialEncoding = encoding {
     _applyEncoding(encoding);
   }
 

@@ -40,8 +40,8 @@ Uint8List compileToCPCLBytes(
     final tone = label.density > 8
         ? 2
         : label.density > 4
-        ? 1
-        : 0;
+            ? 1
+            : 0;
     CpclCommandWriter.writeTone(writer, tone);
   }
   if (label.speed > 0) {

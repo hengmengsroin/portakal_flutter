@@ -116,10 +116,10 @@ Uint8List compileToDPLBytes(
         final rot = o.rotation == 90
             ? '2'
             : o.rotation == 180
-            ? '3'
-            : o.rotation == 270
-            ? '4'
-            : '1';
+                ? '3'
+                : o.rotation == 270
+                    ? '4'
+                    : '1';
         final type = o.type == '39' ? 'A' : 'E'; // E=Code128
         final w = o.wide ?? 2;
         DplCommandWriter.writeBarcode(

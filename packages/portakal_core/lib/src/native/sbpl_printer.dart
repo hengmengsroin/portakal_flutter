@@ -34,7 +34,7 @@ class SbplPrinter {
 
   /// Creates a new [SbplPrinter] with the specified default [encoding] (defaults to legacy CP437).
   SbplPrinter({SbplEncoding encoding = const SbplEncoding.legacy()})
-    : _initialEncoding = encoding {
+      : _initialEncoding = encoding {
     _applyEncoding(encoding);
   }
 

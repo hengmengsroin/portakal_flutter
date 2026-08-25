@@ -400,48 +400,47 @@ void main() {
       test(
         'universal compiler preserves legacy single-pass command stream',
         () {
-          final labelBuilder =
-              label(
-                    const LabelConfig(
-                      width: 40,
-                      height: 30,
-                      speed: 4,
-                      density: 8,
-                      copies: 2,
-                    ),
-                  )
-                  .text('SHIPPING LABEL', const TextOptions(x: 10, y: 20))
-                  .box(
-                    const BoxOptions(
-                      x: 10,
-                      y: 10,
-                      width: 200,
-                      height: 100,
-                      thickness: 2,
-                    ),
-                  )
-                  .line(
-                    const LineOptions(
-                      x1: 10,
-                      y1: 50,
-                      x2: 300,
-                      y2: 50,
-                      thickness: 2,
-                    ),
-                  )
-                  .barcode(
-                    '123456',
-                    const BarcodeOptions(
-                      x: 10,
-                      y: 100,
-                      type: '128',
-                      height: 40,
-                    ),
-                  )
-                  .qrcode(
-                    'https://example.com',
-                    const QRCodeOptions(x: 10, y: 160, cellWidth: 4),
-                  );
+          final labelBuilder = label(
+            const LabelConfig(
+              width: 40,
+              height: 30,
+              speed: 4,
+              density: 8,
+              copies: 2,
+            ),
+          )
+              .text('SHIPPING LABEL', const TextOptions(x: 10, y: 20))
+              .box(
+                const BoxOptions(
+                  x: 10,
+                  y: 10,
+                  width: 200,
+                  height: 100,
+                  thickness: 2,
+                ),
+              )
+              .line(
+                const LineOptions(
+                  x1: 10,
+                  y1: 50,
+                  x2: 300,
+                  y2: 50,
+                  thickness: 2,
+                ),
+              )
+              .barcode(
+                '123456',
+                const BarcodeOptions(
+                  x: 10,
+                  y: 100,
+                  type: '128',
+                  height: 40,
+                ),
+              )
+              .qrcode(
+                'https://example.com',
+                const QRCodeOptions(x: 10, y: 160, cellWidth: 4),
+              );
 
           final universalBytes = ipl.compileBytes(labelBuilder);
           final text = latin1.decode(universalBytes);

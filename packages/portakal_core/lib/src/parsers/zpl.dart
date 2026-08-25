@@ -47,12 +47,10 @@ ZPLParseResult parseZPL(String code) {
 
     switch (cmd.code) {
       case '^PW':
-        widthDots =
-            int.tryParse(cmd.params.isNotEmpty ? cmd.params[0] : '') ??
+        widthDots = int.tryParse(cmd.params.isNotEmpty ? cmd.params[0] : '') ??
             widthDots;
       case '^LL':
-        heightDots =
-            int.tryParse(cmd.params.isNotEmpty ? cmd.params[0] : '') ??
+        heightDots = int.tryParse(cmd.params.isNotEmpty ? cmd.params[0] : '') ??
             heightDots;
       case '^FO':
         curX = int.tryParse(cmd.params.isNotEmpty ? cmd.params[0] : '') ?? 0;

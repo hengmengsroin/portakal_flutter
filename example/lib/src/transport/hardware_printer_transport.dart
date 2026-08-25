@@ -224,9 +224,8 @@ class FlutterThermalPrinterTransport implements HardwarePrinterTransport {
           CharacteristicProperty.write,
         );
         final requestedMtu = Platform.isMacOS ? 150 : 500;
-        final mtu = Platform.isWindows
-            ? 50
-            : await raw.requestMtu(requestedMtu);
+        final mtu =
+            Platform.isWindows ? 50 : await raw.requestMtu(requestedMtu);
         final maxChunkSize = (mtu > 3) ? (mtu - 3) : 20;
 
         for (var i = 0; i < bytes.length; i += maxChunkSize) {
@@ -395,8 +394,7 @@ class MockHardwarePrinterTransport implements HardwarePrinterTransport {
         duration: const Duration(milliseconds: 5),
         isSuccess: false,
         exceptionType: 'SocketException',
-        exceptionMessage:
-            failureErrorMessage ??
+        exceptionMessage: failureErrorMessage ??
             'Simulated BLE write timeout / characteristic not found',
       );
     }

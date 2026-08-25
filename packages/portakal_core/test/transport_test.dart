@@ -13,8 +13,8 @@ class MockTransport implements PrinterTransport {
   int _failsRemaining;
 
   MockTransport({int failCount = 0})
-    : state = ConnectionState.connected,
-      _failsRemaining = failCount;
+      : state = ConnectionState.connected,
+        _failsRemaining = failCount;
 
   @override
   Future<void> connect() async {

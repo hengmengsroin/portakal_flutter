@@ -117,8 +117,7 @@ String calculateSha256(Uint8List data) {
       w[t] = byteData.getUint32(chunk + (t * 4), Endian.big);
     }
     for (int t = 16; t < 64; t++) {
-      w[t] =
-          (gamma1(w[t - 2]) + w[t - 7] + gamma0(w[t - 15]) + w[t - 16]) &
+      w[t] = (gamma1(w[t - 2]) + w[t - 7] + gamma0(w[t - 15]) + w[t - 16]) &
           0xFFFFFFFF;
     }
 

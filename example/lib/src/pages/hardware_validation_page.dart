@@ -401,12 +401,10 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
   @override
   Widget build(BuildContext context) {
     final isConnected = _selectedPrinter?.isConnected ?? false;
-    final diagnosticCases = _currentSuite.cases
-        .where((c) => c.isDiagnostic)
-        .toList();
-    final protocolCases = _currentSuite.cases
-        .where((c) => !c.isDiagnostic)
-        .toList();
+    final diagnosticCases =
+        _currentSuite.cases.where((c) => c.isDiagnostic).toList();
+    final protocolCases =
+        _currentSuite.cases.where((c) => !c.isDiagnostic).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -533,8 +531,8 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                               color: isConnected
                                   ? Colors.green
                                   : _isConnecting
-                                  ? Colors.orange
-                                  : Colors.grey[700],
+                                      ? Colors.orange
+                                      : Colors.grey[700],
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -577,10 +575,10 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                                   color: isSelected
                                       ? Colors.blue.withValues(alpha: 0.1)
                                       : (isTarget
-                                            ? Colors.amber.withValues(
-                                                alpha: 0.15,
-                                              )
-                                            : null),
+                                          ? Colors.amber.withValues(
+                                              alpha: 0.15,
+                                            )
+                                          : null),
                                   margin: const EdgeInsets.symmetric(
                                     vertical: 4,
                                   ),
@@ -776,8 +774,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
       runSpacing: 12,
       children: cases.map((c) {
         final record = _currentRecords[c.id];
-        final status =
-            record?.status ??
+        final status = record?.status ??
             (c.isSupportedInSdk
                 ? CaseResultStatus.notTested
                 : CaseResultStatus.notSupportedSdk);
@@ -831,9 +828,8 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                         : (c.unsupportedSdkReason ?? 'Not supported in SDK'),
                     style: TextStyle(
                       fontSize: 11,
-                      color: c.isSupportedInSdk
-                          ? Colors.grey
-                          : Colors.deepOrange,
+                      color:
+                          c.isSupportedInSdk ? Colors.grey : Colors.deepOrange,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -844,8 +840,8 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                     child: ElevatedButton.icon(
                       onPressed:
                           (isConnected && allowExecution && c.isSupportedInSdk)
-                          ? () => _executeCase(c)
-                          : null,
+                              ? () => _executeCase(c)
+                              : null,
                       icon: const Icon(Icons.print, size: 16),
                       label: Text(
                         c.isSupportedInSdk ? 'Print ${c.id}' : 'N/S-SDK',
@@ -1058,8 +1054,8 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                             ),
                             backgroundColor:
                                 _scanInputController.text == c.expectedPayload
-                                ? Colors.green
-                                : Colors.red,
+                                    ? Colors.green
+                                    : Colors.red,
                           ),
                       ],
                     ),

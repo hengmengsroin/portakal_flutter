@@ -24,7 +24,8 @@ class ZplLang {
     LabelBuilder builder, {
     ZplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compile(builder, encoding: encoding, policy: policy);
+  }) =>
+      compile(builder, encoding: encoding, policy: policy);
 
   ZPLParseResult parse(String code) => parseZPL(code);
 

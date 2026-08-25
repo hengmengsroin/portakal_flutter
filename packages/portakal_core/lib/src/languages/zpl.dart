@@ -61,8 +61,8 @@ Uint8List compileToZPLBytes(
           final align = o.align == 'center'
               ? 'C'
               : o.align == 'right'
-              ? 'R'
-              : 'L';
+                  ? 'R'
+                  : 'L';
           ZplCommandWriter.writeFieldBlock(
             writer,
             width: o.maxWidth!,

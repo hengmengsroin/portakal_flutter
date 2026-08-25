@@ -21,7 +21,7 @@ class CpclPrinter {
 
   /// Creates a new [CpclPrinter] with the specified default [encoding] (defaults to legacy CP437).
   CpclPrinter({CpclEncoding encoding = const CpclEncoding.legacy()})
-    : _initialEncoding = encoding {
+      : _initialEncoding = encoding {
     _applyEncoding(encoding, emitCommand: encoding.sendCountryCommand);
   }
 

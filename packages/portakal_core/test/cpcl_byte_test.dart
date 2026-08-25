@@ -13,39 +13,38 @@ void main() {
     test(
       'ASCII output is byte-for-byte identical to legacy string baseline',
       () {
-        final builder =
-            label(
-                  const LabelConfig(
-                    width: 40,
-                    height: 30,
-                    speed: 4,
-                    density: 8,
-                    copies: 2,
-                  ),
-                )
-                .text('Hello CPCL', const TextOptions(x: 10, y: 20))
-                .box(
-                  const BoxOptions(
-                    x: 5,
-                    y: 5,
-                    width: 310,
-                    height: 230,
-                    thickness: 2,
-                  ),
-                )
-                .line(
-                  const LineOptions(
-                    x1: 10,
-                    y1: 50,
-                    x2: 300,
-                    y2: 50,
-                    thickness: 2,
-                  ),
-                )
-                .barcode(
-                  '123456',
-                  const BarcodeOptions(x: 10, y: 100, type: '128', height: 40),
-                );
+        final builder = label(
+          const LabelConfig(
+            width: 40,
+            height: 30,
+            speed: 4,
+            density: 8,
+            copies: 2,
+          ),
+        )
+            .text('Hello CPCL', const TextOptions(x: 10, y: 20))
+            .box(
+              const BoxOptions(
+                x: 5,
+                y: 5,
+                width: 310,
+                height: 230,
+                thickness: 2,
+              ),
+            )
+            .line(
+              const LineOptions(
+                x1: 10,
+                y1: 50,
+                x2: 300,
+                y2: 50,
+                thickness: 2,
+              ),
+            )
+            .barcode(
+              '123456',
+              const BarcodeOptions(x: 10, y: 100, type: '128', height: 40),
+            );
 
         final byteOutput = cpcl.compileBytes(builder);
         final canonicalOutput = cpcl.compile(builder);

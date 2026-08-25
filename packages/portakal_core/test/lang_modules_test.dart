@@ -8,8 +8,8 @@ import 'package:portakal_core/src/types.dart';
 void main() {
   group('tsc language module', () {
     LabelBuilder b() => label(
-      LabelConfig(width: 40, height: 30),
-    ).text('Hello', TextOptions(x: 10, y: 10, size: 2));
+          LabelConfig(width: 40, height: 30),
+        ).text('Hello', TextOptions(x: 10, y: 10, size: 2));
 
     test('compiles to TSC', () {
       expect(

@@ -4,21 +4,20 @@ import 'dart:convert';
 import 'package:portakal_flutter/portakal_flutter.dart';
 
 void main() {
-  final labelBuilder =
-      label(
-            LabelConfig(
-              width: 40,
-              height: 30,
-              unit: Unit.mm,
-              printer: 'zebra-zd420',
-            ),
-          )
-          .text(
-            'Hello Portakal',
-            TextOptions(x: 16, y: 20, size: 2, bold: true),
-          )
-          .line(LineOptions(x1: 16, y1: 60, x2: 280, y2: 60, thickness: 2))
-          .box(BoxOptions(x: 12, y: 12, width: 296, height: 200, thickness: 2));
+  final labelBuilder = label(
+    LabelConfig(
+      width: 40,
+      height: 30,
+      unit: Unit.mm,
+      printer: 'zebra-zd420',
+    ),
+  )
+      .text(
+        'Hello Portakal',
+        TextOptions(x: 16, y: 20, size: 2, bold: true),
+      )
+      .line(LineOptions(x1: 16, y1: 60, x2: 280, y2: 60, thickness: 2))
+      .box(BoxOptions(x: 12, y: 12, width: 296, height: 200, thickness: 2));
 
   final tscBytes = tsc.compile(labelBuilder);
   final zplBytes = zpl.compile(labelBuilder);

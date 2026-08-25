@@ -24,7 +24,8 @@ class SbplLang {
     LabelBuilder builder, {
     SbplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compile(builder, encoding: encoding, policy: policy);
+  }) =>
+      compile(builder, encoding: encoding, policy: policy);
 
   SBPLParseResult parse(String code) => parseSBPL(code);
 

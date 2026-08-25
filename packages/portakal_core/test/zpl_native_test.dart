@@ -462,36 +462,35 @@ void main() {
 
     group('Universal AST vs Native Equivalence', () {
       test('produces identical output for standard label block', () {
-        final labelBuilder =
-            label(
-                  const LabelConfig(
-                    width: 40,
-                    height: 30,
-                    speed: 4,
-                    density: 15,
-                  ),
-                )
-                .text(
-                  'SHIPPING LABEL',
-                  const TextOptions(x: 10, y: 10, size: 2),
-                )
-                .box(
-                  const BoxOptions(
-                    x: 5,
-                    y: 5,
-                    width: 200,
-                    height: 100,
-                    thickness: 2,
-                  ),
-                )
-                .barcode(
-                  '123456',
-                  const BarcodeOptions(x: 10, y: 50, type: '128', height: 40),
-                )
-                .qrcode(
-                  'https://example.com',
-                  const QRCodeOptions(x: 10, y: 100, cellWidth: 4),
-                );
+        final labelBuilder = label(
+          const LabelConfig(
+            width: 40,
+            height: 30,
+            speed: 4,
+            density: 15,
+          ),
+        )
+            .text(
+              'SHIPPING LABEL',
+              const TextOptions(x: 10, y: 10, size: 2),
+            )
+            .box(
+              const BoxOptions(
+                x: 5,
+                y: 5,
+                width: 200,
+                height: 100,
+                thickness: 2,
+              ),
+            )
+            .barcode(
+              '123456',
+              const BarcodeOptions(x: 10, y: 50, type: '128', height: 40),
+            )
+            .qrcode(
+              'https://example.com',
+              const QRCodeOptions(x: 10, y: 100, cellWidth: 4),
+            );
 
         final universalBytes = zpl.compileBytes(
           labelBuilder,

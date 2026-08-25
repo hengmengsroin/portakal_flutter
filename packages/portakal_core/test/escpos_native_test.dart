@@ -23,12 +23,11 @@ void main() {
     });
 
     test('reset clears accumulated buffer and restores initial encoding', () {
-      final printer =
-          EscPosPrinter(
-              encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-            )
-            ..align(EscPosAlignment.center)
-            ..textLine('Receipt');
+      final printer = EscPosPrinter(
+        encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+      )
+        ..align(EscPosAlignment.center)
+        ..textLine('Receipt');
 
       expect(printer.toBytes(), isNotEmpty);
       printer.reset();
@@ -73,13 +72,12 @@ void main() {
       });
 
       test('switches encoding mid-stream', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..text('CP437: Café') // 'é' in CP437 is 0x82
-              ..encoding(const EscPosEncoding.cp1252()) // emits ESC t 16
-              ..text('CP1252: Café €'); // 'é' in CP1252 is 0xE9, '€' is 0x80
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..text('CP437: Café') // 'é' in CP437 is 0x82
+          ..encoding(const EscPosEncoding.cp1252()) // emits ESC t 16
+          ..text('CP1252: Café €'); // 'é' in CP1252 is 0xE9, '€' is 0x80
 
         final bytes = printer.toBytes();
         expect(bytes, contains(0x82)); // CP437 'é'
@@ -118,12 +116,11 @@ void main() {
 
     group('Text & Feed Commands', () {
       test('text does not append LF, while textLine appends 0x0A', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..text('Subtotal: ')
-              ..textLine(r'$10.00');
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..text('Subtotal: ')
+          ..textLine(r'$10.00');
 
         final expected = [
           ...ascii.encode('Subtotal: '),
@@ -134,12 +131,11 @@ void main() {
       });
 
       test('lineFeed emits single and multiple LFs', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..lineFeed()
-              ..lineFeed(3);
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..lineFeed()
+          ..lineFeed(3);
 
         expect(
           printer.toBytes(),
@@ -169,13 +165,12 @@ void main() {
 
     group('Formatting State Commands', () {
       test('emits ESC a n for alignment', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..align(EscPosAlignment.left)
-              ..align(EscPosAlignment.center)
-              ..align(EscPosAlignment.right);
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..align(EscPosAlignment.left)
+          ..align(EscPosAlignment.center)
+          ..align(EscPosAlignment.right);
 
         expect(
           printer.toBytes(),
@@ -190,12 +185,11 @@ void main() {
       });
 
       test('emits ESC E n for bold', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..bold(true)
-              ..bold(false);
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..bold(true)
+          ..bold(false);
 
         expect(
           printer.toBytes(),
@@ -209,13 +203,12 @@ void main() {
       });
 
       test('emits ESC - n for underline', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..underline(EscPosUnderline.single)
-              ..underline(EscPosUnderline.doubleThickness)
-              ..underline(EscPosUnderline.none);
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..underline(EscPosUnderline.single)
+          ..underline(EscPosUnderline.doubleThickness)
+          ..underline(EscPosUnderline.none);
 
         expect(
           printer.toBytes(),
@@ -230,12 +223,11 @@ void main() {
       });
 
       test('emits GS B n for reverse white-on-black', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..invert(true)
-              ..invert(false);
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..invert(true)
+          ..invert(false);
 
         expect(
           printer.toBytes(),
@@ -249,13 +241,12 @@ void main() {
       });
 
       test('emits ESC M n for font selection', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..font(EscPosFont.fontA)
-              ..font(EscPosFont.fontB)
-              ..font(EscPosFont.fontC);
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..font(EscPosFont.fontA)
+          ..font(EscPosFont.fontB)
+          ..font(EscPosFont.fontC);
 
         expect(
           printer.toBytes(),
@@ -270,13 +261,12 @@ void main() {
       });
 
       test('emits GS ! n with packed width/height multipliers', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..textSize(width: 1, height: 1) // 0x00
-              ..textSize(width: 2, height: 3) // ((2-1)<<4)|(3-1) = 0x12
-              ..textSize(width: 8, height: 8); // ((8-1)<<4)|(8-1) = 0x77
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..textSize(width: 1, height: 1) // 0x00
+          ..textSize(width: 2, height: 3) // ((2-1)<<4)|(3-1) = 0x12
+          ..textSize(width: 8, height: 8); // ((8-1)<<4)|(8-1) = 0x77
 
         expect(
           printer.toBytes(),
@@ -299,17 +289,16 @@ void main() {
 
     group('Barcodes & QR Codes', () {
       test('emits Code128 barcode with height, width, HRI, and font', () {
-        final printer =
-            EscPosPrinter(
-              encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-            )..barcode(
-              content: '123456',
-              type: EscPosBarcodeType.code128,
-              height: 80,
-              width: 3,
-              hri: EscPosBarcodeHri.below,
-              hriFont: EscPosBarcodeFont.fontB,
-            );
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )..barcode(
+            content: '123456',
+            type: EscPosBarcodeType.code128,
+            height: 80,
+            width: 3,
+            hri: EscPosBarcodeHri.below,
+            hriFont: EscPosBarcodeFont.fontB,
+          );
 
         expect(
           printer.toBytes(),
@@ -327,12 +316,11 @@ void main() {
       });
 
       test('emits Code39 and EAN13 barcodes', () {
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..barcode(content: 'CODE39', type: EscPosBarcodeType.code39)
-              ..barcode(content: '123456789012', type: EscPosBarcodeType.ean13);
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..barcode(content: 'CODE39', type: EscPosBarcodeType.code39)
+          ..barcode(content: '123456789012', type: EscPosBarcodeType.ean13);
 
         final bytes = printer.toBytes();
         expect(bytes, contains(69)); // Code39 type byte
@@ -340,15 +328,14 @@ void main() {
       });
 
       test('emits 5-step GS ( k QR code sequence', () {
-        final printer =
-            EscPosPrinter(
-              encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-            )..qrCode(
-              'https://example.com',
-              size: 5,
-              ecc: EscPosQrEcc.h,
-              model: EscPosQrModel.model2,
-            );
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )..qrCode(
+            'https://example.com',
+            size: 5,
+            ecc: EscPosQrEcc.h,
+            model: EscPosQrModel.model2,
+          );
 
         final bytes = printer.toBytes();
         // Model 2: 0x32
@@ -396,15 +383,14 @@ void main() {
           0xFF,
         ]);
 
-        final printer =
-            EscPosPrinter(
-              encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-            )..raster(
-              data: rawData,
-              bytesPerRow: 7,
-              height: 1,
-              mode: EscPosImageMode.normal,
-            );
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )..raster(
+            data: rawData,
+            bytesPerRow: 7,
+            height: 1,
+            mode: EscPosImageMode.normal,
+          );
 
         final expected = [
           0x1D, 0x76, 0x30, 0, // GS v 0 0
@@ -460,14 +446,13 @@ void main() {
       test(
         'emits ESC p for cash drawer pulse with exact millisecond timings',
         () {
-          final printer =
-              EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )..pulseDrawer(
-                pin: EscPosDrawerPin.pin2,
-                onTimeMs: 60,
-                offTimeMs: 120,
-              );
+          final printer = EscPosPrinter(
+            encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+          )..pulseDrawer(
+              pin: EscPosDrawerPin.pin2,
+              onTimeMs: 60,
+              offTimeMs: 120,
+            );
 
           // onTimeMs: 60 ~/ 2 = 30; offTimeMs: 120 ~/ 2 = 60
           expect(
@@ -489,12 +474,11 @@ void main() {
     group('Raw Passthrough', () {
       test('emits rawBytes and rawAscii verbatim', () {
         final raw = Uint8List.fromList([0x1B, 0x33, 24]);
-        final printer =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..rawBytes(raw)
-              ..rawAscii('TEST', appendNewline: true);
+        final printer = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..rawBytes(raw)
+          ..rawAscii('TEST', appendNewline: true);
 
         expect(
           printer.toBytes(),
@@ -610,7 +594,8 @@ void main() {
     });
 
     group('Universal AST vs Native Equivalence', () {
-      test('produces identical output for standard formatted receipt block', () {
+      test('produces identical output for standard formatted receipt block',
+          () {
         final labelBuilder = label(const LabelConfig(width: 80))
             .text(
               'STORE HEADER',
@@ -628,18 +613,17 @@ void main() {
         // 2. align center, bold true, textLine 'STORE HEADER', bold false, align left
         // 3. textLine 'Item 1: $10.00'
         // 4. cut partial (feed 3)
-        final nativePrinter =
-            EscPosPrinter(
-                encoding: const EscPosEncoding.cp437(sendTableSelect: false),
-              )
-              ..initialize()
-              ..align(EscPosAlignment.center)
-              ..bold(true)
-              ..textLine('STORE HEADER')
-              ..bold(false)
-              ..align(EscPosAlignment.left)
-              ..textLine(r'Item 1: $10.00')
-              ..cut(mode: EscPosCutMode.partial, feedLines: 3);
+        final nativePrinter = EscPosPrinter(
+          encoding: const EscPosEncoding.cp437(sendTableSelect: false),
+        )
+          ..initialize()
+          ..align(EscPosAlignment.center)
+          ..bold(true)
+          ..textLine('STORE HEADER')
+          ..bold(false)
+          ..align(EscPosAlignment.left)
+          ..textLine(r'Item 1: $10.00')
+          ..cut(mode: EscPosCutMode.partial, feedLines: 3);
 
         expect(nativePrinter.toBytes(), equals(universalBytes));
       });

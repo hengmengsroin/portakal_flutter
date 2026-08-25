@@ -24,11 +24,12 @@ class StarprntLang {
     LabelBuilder builder, {
     StarPrntEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compileToStarPRNTBytes(
-    builder.resolve(),
-    encoding: encoding,
-    policy: policy,
-  );
+  }) =>
+      compileToStarPRNTBytes(
+        builder.resolve(),
+        encoding: encoding,
+        policy: policy,
+      );
 
   StarPRNTParseResult parse(Uint8List data) => parseStarPRNT(data);
 

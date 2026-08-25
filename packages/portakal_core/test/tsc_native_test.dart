@@ -155,7 +155,8 @@ void main() {
         );
       });
 
-      test('encodes extended characters with CP1252 and emits CODEPAGE 1252', () {
+      test('encodes extended characters with CP1252 and emits CODEPAGE 1252',
+          () {
         final tsc = TscPrinter(encoding: const TscEncoding.cp1252())
           ..text(x: 0, y: 0, text: 'Café €50');
 
@@ -552,8 +553,7 @@ void main() {
           )
           ..print();
 
-        final expected =
-            'SIZE 40 mm,30 mm\r\n'
+        final expected = 'SIZE 40 mm,30 mm\r\n'
             'GAP 3 mm,0 mm\r\n'
             'SPEED 4\r\n'
             'DENSITY 8\r\n'
@@ -572,14 +572,14 @@ void main() {
         // Universal AST compilation
         final universalBytes = tsc.compileBytes(
           label(
-                const LabelConfig(
-                  width: 40,
-                  height: 30,
-                  speed: 4,
-                  density: 8,
-                  direction: 0,
-                ),
-              )
+            const LabelConfig(
+              width: 40,
+              height: 30,
+              speed: 4,
+              density: 8,
+              direction: 0,
+            ),
+          )
               .text(
                 'TEST LABEL',
                 const TextOptions(x: 10, y: 10, font: '2', size: 1),
@@ -604,36 +604,35 @@ void main() {
         );
 
         // Native Builder compilation
-        final nativeBytes =
-            (TscPrinter()
-                  ..sizeMm(widthMm: 40, heightMm: 30)
-                  ..gapMm(distanceMm: 3, offsetMm: 0)
-                  ..speed(4)
-                  ..density(8)
-                  ..direction(TscDirection.normal)
-                  ..clear()
-                  ..text(
-                    x: 10,
-                    y: 10,
-                    font: TscResidentFont.font2,
-                    text: 'TEST LABEL',
-                  )
-                  ..box(x: 5, y: 5, xEnd: 105, yEnd: 55, thickness: 1)
-                  ..barcode(
-                    x: 10,
-                    y: 70,
-                    type: TscBarcodeType.code128,
-                    height: 30,
-                    content: '12345678',
-                  )
-                  ..qrCode(
-                    x: 10,
-                    y: 120,
-                    cellWidth: 4,
-                    content: 'https://example.com',
-                  )
-                  ..print())
-                .toBytes();
+        final nativeBytes = (TscPrinter()
+              ..sizeMm(widthMm: 40, heightMm: 30)
+              ..gapMm(distanceMm: 3, offsetMm: 0)
+              ..speed(4)
+              ..density(8)
+              ..direction(TscDirection.normal)
+              ..clear()
+              ..text(
+                x: 10,
+                y: 10,
+                font: TscResidentFont.font2,
+                text: 'TEST LABEL',
+              )
+              ..box(x: 5, y: 5, xEnd: 105, yEnd: 55, thickness: 1)
+              ..barcode(
+                x: 10,
+                y: 70,
+                type: TscBarcodeType.code128,
+                height: 30,
+                content: '12345678',
+              )
+              ..qrCode(
+                x: 10,
+                y: 120,
+                cellWidth: 4,
+                content: 'https://example.com',
+              )
+              ..print())
+            .toBytes();
 
         expect(nativeBytes, equals(universalBytes));
       });

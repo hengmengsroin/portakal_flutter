@@ -49,8 +49,8 @@ ESCPOSParseResult parseESCPOS(Uint8List data) {
             final align = n == 0
                 ? 'left'
                 : n == 1
-                ? 'center'
-                : 'right';
+                    ? 'center'
+                    : 'right';
             commands.add(
               ESCPOSCommand(name: 'ESC a', params: {'align': align}),
             );

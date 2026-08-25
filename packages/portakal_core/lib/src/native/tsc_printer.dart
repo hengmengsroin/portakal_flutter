@@ -20,8 +20,8 @@ class TscPrinter {
 
   /// Creates a new [TscPrinter] with the specified default [encoding] (defaults to CP437).
   TscPrinter({TscEncoding encoding = const TscEncoding.cp437()})
-    : _initialEncoding = encoding,
-      _encoding = encoding {
+      : _initialEncoding = encoding,
+        _encoding = encoding {
     if (_encoding.sendCodePageCommand && _encoding.tsplCodePage != null) {
       TscCommandWriter.writeCodePage(_writer, _encoding.tsplCodePage!);
     }

@@ -377,43 +377,42 @@ void main() {
 
     group('Universal AST vs Native Builder Equivalence', () {
       test('produces identical byte stream for standard label layout', () {
-        final labelBuilder =
-            label(
-                  const LabelConfig(
-                    width: 40,
-                    height: 30,
-                    speed: 4,
-                    density: 8,
-                    copies: 2,
-                  ),
-                )
-                .text('SHIPPING LABEL', const TextOptions(x: 10, y: 20))
-                .box(
-                  const BoxOptions(
-                    x: 5,
-                    y: 5,
-                    width: 310,
-                    height: 230,
-                    thickness: 2,
-                  ),
-                )
-                .line(
-                  const LineOptions(
-                    x1: 10,
-                    y1: 50,
-                    x2: 300,
-                    y2: 50,
-                    thickness: 2,
-                  ),
-                )
-                .barcode(
-                  '123456',
-                  const BarcodeOptions(x: 10, y: 100, type: '128', height: 40),
-                )
-                .qrcode(
-                  'https://example.com',
-                  const QRCodeOptions(x: 10, y: 160, cellWidth: 4),
-                );
+        final labelBuilder = label(
+          const LabelConfig(
+            width: 40,
+            height: 30,
+            speed: 4,
+            density: 8,
+            copies: 2,
+          ),
+        )
+            .text('SHIPPING LABEL', const TextOptions(x: 10, y: 20))
+            .box(
+              const BoxOptions(
+                x: 5,
+                y: 5,
+                width: 310,
+                height: 230,
+                thickness: 2,
+              ),
+            )
+            .line(
+              const LineOptions(
+                x1: 10,
+                y1: 50,
+                x2: 300,
+                y2: 50,
+                thickness: 2,
+              ),
+            )
+            .barcode(
+              '123456',
+              const BarcodeOptions(x: 10, y: 100, type: '128', height: 40),
+            )
+            .qrcode(
+              'https://example.com',
+              const QRCodeOptions(x: 10, y: 160, cellWidth: 4),
+            );
 
         final universalBytes = cpcl.compileBytes(labelBuilder);
 

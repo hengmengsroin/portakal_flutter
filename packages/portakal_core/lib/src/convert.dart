@@ -39,8 +39,7 @@ class ConvertResult {
   int widthDots,
   int heightDots,
   List<String> warnings,
-})
-_parseSource(String code, String from) {
+}) _parseSource(String code, String from) {
   switch (from) {
     case 'tsc':
       final r = parseTSC(code);

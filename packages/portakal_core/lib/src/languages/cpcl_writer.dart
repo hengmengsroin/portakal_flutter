@@ -117,10 +117,10 @@ class CpclCommandWriter {
     final cmd = rotation == 90
         ? 'TEXT90'
         : rotation == 180
-        ? 'TEXT180'
-        : rotation == 270
-        ? 'TEXT270'
-        : 'TEXT';
+            ? 'TEXT180'
+            : rotation == 270
+                ? 'TEXT270'
+                : 'TEXT';
 
     writer.writeAscii('$cmd $font $size $x $y\r\n');
     final textBytes = encoder.encode(

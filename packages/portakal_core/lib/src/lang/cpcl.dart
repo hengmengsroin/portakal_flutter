@@ -24,7 +24,8 @@ class CpclLang {
     LabelBuilder builder, {
     CpclEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compile(builder, encoding: encoding, policy: policy);
+  }) =>
+      compile(builder, encoding: encoding, policy: policy);
 
   CPCLParseResult parse(String code) => parseCPCL(code);
 

@@ -38,9 +38,8 @@ String formatRow(
   for (int i = 0; i < columns.length; i++) {
     final col = columns[i];
     final value = i < values.length ? values[i] : '';
-    final truncated = value.length > col.width
-        ? value.substring(0, col.width)
-        : value;
+    final truncated =
+        value.length > col.width ? value.substring(0, col.width) : value;
 
     String cell;
     switch (col.align) {

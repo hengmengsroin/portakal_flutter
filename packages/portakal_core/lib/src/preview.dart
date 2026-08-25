@@ -37,9 +37,8 @@ String _renderElement(LabelElement el) {
       final bl = _baselineRatio(o.font);
       final ff = _fontFamily(o.font);
       final weight = (o.bold == true) ? 'bold' : 'normal';
-      final decoration = (o.underline == true)
-          ? ' text-decoration="underline"'
-          : '';
+      final decoration =
+          (o.underline == true) ? ' text-decoration="underline"' : '';
       final transform = (o.rotation != null && o.rotation != 0)
           ? ' transform="rotate(${o.rotation} $x $y)"'
           : '';

@@ -15,7 +15,8 @@ class EscposLang {
     LabelBuilder builder, {
     EscPosEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compileToESCPOS(builder.resolve(), encoding: encoding, policy: policy);
+  }) =>
+      compileToESCPOS(builder.resolve(), encoding: encoding, policy: policy);
 
   /// Compile a [LabelBuilder] to ESC/POS binary commands as [Uint8List].
   @Deprecated('Use compile() instead. compileBytes will be removed in 2.0.')
@@ -23,7 +24,8 @@ class EscposLang {
     LabelBuilder builder, {
     EscPosEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compile(builder, encoding: encoding, policy: policy);
+  }) =>
+      compile(builder, encoding: encoding, policy: policy);
 
   ESCPOSParseResult parse(Uint8List data) => parseESCPOS(data);
 

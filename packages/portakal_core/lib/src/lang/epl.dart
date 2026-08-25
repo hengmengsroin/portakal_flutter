@@ -24,7 +24,8 @@ class EplLang {
     LabelBuilder builder, {
     EplEncoding? encoding,
     UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
-  }) => compile(builder, encoding: encoding, policy: policy);
+  }) =>
+      compile(builder, encoding: encoding, policy: policy);
 
   EPLParseResult parse(String code) => parseEPL(code);
 

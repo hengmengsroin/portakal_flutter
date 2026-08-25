@@ -25,7 +25,7 @@ class EscPosPrinter {
   /// If the configured [encoding] specifies `sendTableSelect: true` and `tableId != null`,
   /// an initial `ESC t <tableId>` command is emitted into the buffer.
   EscPosPrinter({EscPosEncoding encoding = const EscPosEncoding.cp437()})
-    : _initialEncoding = encoding {
+      : _initialEncoding = encoding {
     _applyEncoding(encoding, emitCommand: encoding.sendTableSelect);
   }
 

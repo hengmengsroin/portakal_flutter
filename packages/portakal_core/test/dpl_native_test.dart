@@ -150,13 +150,12 @@ void main() {
       test(
         'replaces unsupported characters when replaceUnsupported is enabled',
         () {
-          final printer =
-              DplPrinter(
-                  encoding: const DplEncoding.legacy(replaceUnsupported: true),
-                )
-                ..startLabel()
-                ..text(x: 0, y: 0, text: 'Hello 你好')
-                ..endLabel();
+          final printer = DplPrinter(
+            encoding: const DplEncoding.legacy(replaceUnsupported: true),
+          )
+            ..startLabel()
+            ..text(x: 0, y: 0, text: 'Hello 你好')
+            ..endLabel();
 
           final text = latin1.decode(printer.toBytes());
           expect(text, contains('Hello ??\r'));
@@ -330,7 +329,8 @@ void main() {
       });
     });
 
-    group('Universal AST vs Native Builder Divergence & Semantic Alignment', () {
+    group('Universal AST vs Native Builder Divergence & Semantic Alignment',
+        () {
       test(
         'confirms universal compiler preserves legacy LF (0x0A) record termination',
         () {
@@ -352,48 +352,47 @@ void main() {
       test(
         'semantically matches universal output when accounting for CR vs LF record termination',
         () {
-          final labelBuilder =
-              label(
-                    const LabelConfig(
-                      width: 40,
-                      height: 30,
-                      speed: 4,
-                      density: 8,
-                      copies: 2,
-                    ),
-                  )
-                  .text('SHIPPING LABEL', const TextOptions(x: 10, y: 20))
-                  .box(
-                    const BoxOptions(
-                      x: 10,
-                      y: 10,
-                      width: 200,
-                      height: 100,
-                      thickness: 2,
-                    ),
-                  )
-                  .line(
-                    const LineOptions(
-                      x1: 10,
-                      y1: 50,
-                      x2: 300,
-                      y2: 50,
-                      thickness: 2,
-                    ),
-                  )
-                  .barcode(
-                    '123456',
-                    const BarcodeOptions(
-                      x: 10,
-                      y: 100,
-                      type: '128',
-                      height: 40,
-                    ),
-                  )
-                  .qrcode(
-                    'https://example.com',
-                    const QRCodeOptions(x: 10, y: 160, cellWidth: 4),
-                  );
+          final labelBuilder = label(
+            const LabelConfig(
+              width: 40,
+              height: 30,
+              speed: 4,
+              density: 8,
+              copies: 2,
+            ),
+          )
+              .text('SHIPPING LABEL', const TextOptions(x: 10, y: 20))
+              .box(
+                const BoxOptions(
+                  x: 10,
+                  y: 10,
+                  width: 200,
+                  height: 100,
+                  thickness: 2,
+                ),
+              )
+              .line(
+                const LineOptions(
+                  x1: 10,
+                  y1: 50,
+                  x2: 300,
+                  y2: 50,
+                  thickness: 2,
+                ),
+              )
+              .barcode(
+                '123456',
+                const BarcodeOptions(
+                  x: 10,
+                  y: 100,
+                  type: '128',
+                  height: 40,
+                ),
+              )
+              .qrcode(
+                'https://example.com',
+                const QRCodeOptions(x: 10, y: 160, cellWidth: 4),
+              );
 
           final universalBytes = dpl.compileBytes(labelBuilder);
 
@@ -437,9 +436,8 @@ void main() {
           expect(nativeBytes.contains(0x0A), isFalse);
 
           // Verify semantic equivalence of records after normalizing line terminators
-          final universalNormalized = ascii
-              .decode(universalBytes)
-              .replaceAll('\n', '\r');
+          final universalNormalized =
+              ascii.decode(universalBytes).replaceAll('\n', '\r');
           final nativeDecoded = ascii.decode(nativeBytes);
           expect(nativeDecoded, equals(universalNormalized));
         },

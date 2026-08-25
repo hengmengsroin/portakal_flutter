@@ -146,9 +146,8 @@ class LabelBuilder {
     }
 
     final widthDots = toDots(_config.width, unit, dpi);
-    final heightDots = _config.height != null
-        ? toDots(_config.height!, unit, dpi)
-        : 0;
+    final heightDots =
+        _config.height != null ? toDots(_config.height!, unit, dpi) : 0;
 
     final effectiveCopies = _copies ?? _config.copies ?? 1;
     if (effectiveCopies < 1) {
