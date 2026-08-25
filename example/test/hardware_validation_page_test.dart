@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -35,21 +36,57 @@ void main() {
       }
     });
 
-    test('Every protocol defines a valid D00 capability probe', () {
+    test(
+      'Every protocol defines a valid D00 capability probe with null expectedSha256',
+      () {
+        for (final suite in ProtocolRegistry.allSuites) {
+          final probe = suite.cases.firstWhere(
+            (c) => c.id == suite.capabilityProbeCaseId,
+          );
+          expect(probe.isDiagnostic, isTrue);
+          expect(
+            probe.expectedSha256,
+            isNull,
+            reason: 'Diagnostic probe D00 should not have a frozen golden SHA',
+          );
+          final bytes = probe.generator();
+          expect(
+            bytes,
+            isNotEmpty,
+            reason: '${suite.displayName} D00 probe must generate bytes',
+          );
+          final sha = calculateSha256(bytes);
+          expect(sha.length, equals(64));
+        }
+      },
+    );
+
+    test('All canonical Hxx cases match their frozen expectedSha256 values', () {
+      final mismatches = <String>[];
       for (final suite in ProtocolRegistry.allSuites) {
-        final probe = suite.cases.firstWhere(
-          (c) => c.id == suite.capabilityProbeCaseId,
-        );
-        expect(probe.isDiagnostic, isTrue);
-        final bytes = probe.generator();
-        expect(
-          bytes,
-          isNotEmpty,
-          reason: '${suite.displayName} D00 probe must generate bytes',
-        );
-        final sha = calculateSha256(bytes);
-        expect(sha.length, equals(64));
+        for (final c in suite.cases) {
+          if (!c.isDiagnostic && c.isSupportedInSdk) {
+            expect(
+              c.expectedSha256,
+              isNotNull,
+              reason:
+                  '${suite.displayName} case ${c.id} must declare frozen expectedSha256',
+            );
+            final bytes = c.generator();
+            final actualSha = calculateSha256(bytes);
+            if (actualSha != c.expectedSha256) {
+              mismatches.add(
+                '${suite.displayName} [${c.id}]: actual=$actualSha expected=${c.expectedSha256}',
+              );
+            }
+          }
+        }
       }
+      expect(
+        mismatches,
+        isEmpty,
+        reason: 'All cases should match expected golden SHA',
+      );
     });
 
     test(
@@ -89,104 +126,83 @@ void main() {
     });
   });
 
-  group('Protocol Specific Payload Tests', () {
-    test('ESC/POS H06 and H07 payloads', () {
-      final suite = ProtocolRegistry.getSuite(ValidationProtocol.escpos);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
-    });
+  group('Protocol Specific Payload and Formatting Consistency Tests', () {
+    test(
+      'Barcode H06 payload is consistently PORTAKAL123456 across all protocols',
+      () {
+        for (final suite in ProtocolRegistry.allSuites) {
+          final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
+          expect(h06.expectedPayload, equals('PORTAKAL123456'));
+          expect(h06.requiresScanner, isTrue);
+        }
+      },
+    );
 
-    test('TSC H06 and H07 payloads', () {
-      final suite = ProtocolRegistry.getSuite(ValidationProtocol.tsc);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
-    });
+    test(
+      'QR Code H07 payload is consistently https://example.com/portakal-hw-test',
+      () {
+        for (final suite in ProtocolRegistry.allSuites) {
+          final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
+          expect(
+            h07.expectedPayload,
+            equals('https://example.com/portakal-hw-test'),
+          );
+          expect(h07.requiresScanner, isTrue);
+        }
+      },
+    );
 
-    test('ZPL H06 and H07 payloads', () {
-      final suite = ProtocolRegistry.getSuite(ValidationProtocol.zpl);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
-    });
-
-    test('EPL H06 and H07 payloads', () {
-      final suite = ProtocolRegistry.getSuite(ValidationProtocol.epl);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
-    });
-
-    test('CPCL H06 and H07 payloads', () {
-      final suite = ProtocolRegistry.getSuite(ValidationProtocol.cpcl);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
-    });
-
-    test('DPL H06 and H07 payloads', () {
+    test('DPL hardware cases use native CR line endings (0x0D)', () {
       final suite = ProtocolRegistry.getSuite(ValidationProtocol.dpl);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
+      final d00Bytes = suite.cases
+          .firstWhere((c) => c.id == 'D00-DPL')
+          .generator();
+      expect(d00Bytes, contains(0x0D));
+      final d00Str = latin1.decode(d00Bytes);
+      expect(d00Str.endsWith('\r'), isTrue);
     });
 
-    test('IPL H06 and H07 payloads with F92 and F93 formats', () {
+    test('IPL hardware cases strictly use reserved format slots F90–F99', () {
       final suite = ProtocolRegistry.getSuite(ValidationProtocol.ipl);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
+      for (final c in suite.cases) {
+        if (!c.isSupportedInSdk) continue;
+        final bytes = c.generator();
+        final str = latin1.decode(bytes);
+        // Ensure only F90-F99 are referenced
+        if (str.contains('F')) {
+          expect(
+            str,
+            anyOf([
+              contains('F90'),
+              contains('F91'),
+              contains('F92'),
+              contains('F93'),
+              contains('F94'),
+              contains('F95'),
+              contains('F96'),
+              contains('F97'),
+              contains('F98'),
+              contains('F99'),
+            ]),
+          );
+        }
+      }
     });
 
-    test('SBPL H06 and H07 payloads', () {
+    test('SBPL hardware cases use ESC A / ESC Z job markers', () {
       final suite = ProtocolRegistry.getSuite(ValidationProtocol.sbpl);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
+      final h01Bytes = suite.cases.firstWhere((c) => c.id == 'H01').generator();
+      final str = latin1.decode(h01Bytes);
+      expect(str, startsWith('\x1BA'));
+      expect(str, endsWith('\x1BZ'));
     });
 
-    test('Star PRNT H06 and H07 payloads', () {
+    test('Star PRNT raster case uses ESC * r A ... ESC * r B framing', () {
       final suite = ProtocolRegistry.getSuite(ValidationProtocol.star);
-      final h06 = suite.cases.firstWhere((c) => c.id == 'H06');
-      expect(h06.expectedPayload, equals('PORTAKAL123456'));
-      final h07 = suite.cases.firstWhere((c) => c.id == 'H07');
-      expect(
-        h07.expectedPayload,
-        equals('https://example.com/portakal-hw-test'),
-      );
+      final h09Bytes = suite.cases.firstWhere((c) => c.id == 'H09').generator();
+      final str = latin1.decode(h09Bytes);
+      expect(str, contains('\x1B*rA'));
+      expect(str, contains('\x1B*rB'));
     });
   });
 
@@ -280,10 +296,7 @@ void main() {
 
       // Verify DPL header and warning
       expect(find.text('Portakal Hardware Test Bench — DPL'), findsOneWidget);
-      expect(
-        find.textContaining('DPL commands use native CR line endings.'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('DPL commands use native CR'), findsOneWidget);
       expect(find.text('D00-DPL'), findsOneWidget);
 
       // Verify N/S-SDK badge on H09

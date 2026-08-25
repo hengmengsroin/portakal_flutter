@@ -1,21 +1,32 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'sha256.dart';
 
 /// Supported printer protocols in the hardware validation test bench.
 enum ValidationProtocol {
-  escpos('escpos', 'ESC/POS', 'Epson ESC/POS thermal receipt protocol'),
-  tsc('tsc', 'TSC / TSPL2', 'TSC / TSPL2 label and receipt printer protocol'),
-  zpl('zpl', 'ZPL II', 'Zebra Programming Language II label protocol'),
-  epl('epl', 'EPL2', 'Eltron Programming Language 2 page-mode protocol'),
-  cpcl('cpcl', 'CPCL', 'Comtec / Zebra Mobile receipt & label protocol'),
-  dpl('dpl', 'DPL', 'Datamax Programming Language protocol'),
-  ipl('ipl', 'IPL', 'Intermec Printer Language protocol (F90-F99 formats)'),
-  sbpl('sbpl', 'SBPL', 'SATO Barcode Printer Language protocol'),
+  escpos('escpos', 'ESC/POS', 'ESC/POS-compatible receipt command set'),
+  tsc(
+    'tsc',
+    'TSC / TSPL2',
+    'TSC / TSPL2-compatible label and receipt command set',
+  ),
+  zpl('zpl', 'ZPL II', 'ZPL II-compatible label command set'),
+  epl('epl', 'EPL2', 'EPL2-compatible page-mode command set'),
+  cpcl('cpcl', 'CPCL', 'CPCL-compatible mobile receipt & label command set'),
+  dpl('dpl', 'DPL', 'DPL-compatible command set (native CR line endings)'),
+  ipl(
+    'ipl',
+    'IPL',
+    'IPL-compatible command set (reserved F90-F99 format slots)',
+  ),
+  sbpl(
+    'sbpl',
+    'SBPL',
+    'SBPL-compatible command set (ESC A / ESC Z job framing)',
+  ),
   star(
     'star',
     'Star Line / PRNT',
-    'Star Micronics Line Mode raster & text protocol',
+    'Star Line Mode / supported Star PRNT subset',
   );
 
   final String id;
@@ -71,6 +82,7 @@ class HardwareValidationCase {
   final bool requiresScanner;
   final String? expectedPayload;
   final ValidationKind validationKind;
+  final String? expectedSha256;
   final Uint8List Function() generator;
 
   const HardwareValidationCase({
@@ -84,12 +96,9 @@ class HardwareValidationCase {
     this.requiresScanner = false,
     this.expectedPayload,
     this.validationKind = ValidationKind.text,
+    this.expectedSha256,
     required this.generator,
   });
-
-  /// Deterministic expected golden SHA-256 computed from [generator].
-  String get goldenSha256 =>
-      isSupportedInSdk ? calculateSha256(generator()) : 'N/A';
 }
 
 /// Contract for a protocol validation suite.

@@ -11,7 +11,7 @@ class IplValidationSuite implements ProtocolValidationSuite {
 
   @override
   String get description =>
-      'Intermec Printer Language protocol (F90-F99 formats)';
+      'IPL-compatible command set (reserved F90-F99 format slots)';
 
   @override
   String? get warning =>
@@ -31,6 +31,7 @@ class IplValidationSuite implements ProtocolValidationSuite {
       isDiagnostic: true,
       expectedPayload: 'PORTAKAL IPL TEST',
       validationKind: ValidationKind.text,
+      expectedSha256: null,
       generator: () =>
           (IplPrinter()
                 ..advancedMode()
@@ -53,6 +54,8 @@ class IplValidationSuite implements ProtocolValidationSuite {
       description: 'Header and body text with Format F90 lifecycle.',
       expectedPayload: 'PORTAKAL 123 ABC xyz',
       validationKind: ValidationKind.text,
+      expectedSha256:
+          '96bf88a7d3ed0f521e23c277fb85f3cb43b2e49220f7c828ca71f7750d5e175d',
       generator: () =>
           (IplPrinter()
                 ..advancedMode()
@@ -80,6 +83,8 @@ class IplValidationSuite implements ProtocolValidationSuite {
       description: 'Code Page 437 Latin characters on Format F91.',
       expectedPayload: 'ä ö ü ß ± °',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          '937adaf12524a6212d1987130a1b8442d61d9ec16c3b2f6c7b509b84798e7405',
       generator: () =>
           (IplPrinter(encoding: const IplEncoding.cp437())
                 ..advancedMode()
@@ -104,6 +109,8 @@ class IplValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'PORTAKAL123456',
       requiresScanner: true,
       validationKind: ValidationKind.barcode,
+      expectedSha256:
+          '03bf77a0a9d3c4313cad776ddc4d994f6ab6f9ed28b7345a86cef00be6afd14e',
       generator: () =>
           (IplPrinter()
                 ..advancedMode()
@@ -133,6 +140,8 @@ class IplValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'https://example.com/portakal-hw-test',
       requiresScanner: true,
       validationKind: ValidationKind.qr,
+      expectedSha256:
+          'beb8bc8639d9fae27969e2fc7aa1893ed7046efbfdb91bd6fea10c50cbbb487a',
       generator: () =>
           (IplPrinter()
                 ..advancedMode()
@@ -159,6 +168,8 @@ class IplValidationSuite implements ProtocolValidationSuite {
       title: 'H08 — Drawing (F94)',
       description: 'Graphic Box and Line primitives on Format F94.',
       validationKind: ValidationKind.drawing,
+      expectedSha256:
+          '4bda93411c62f2e39b2430c0ea206bed268d8d6bb1ba68366c75d5dd87e8defc',
       generator: () =>
           (IplPrinter()
                 ..advancedMode()
@@ -184,6 +195,7 @@ class IplValidationSuite implements ProtocolValidationSuite {
       unsupportedSdkReason:
           'Portakal current IPL builder does not support generic raster graphics.',
       validationKind: ValidationKind.raster,
+      expectedSha256: null,
       generator: () => Uint8List(0),
     ),
 
@@ -193,6 +205,8 @@ class IplValidationSuite implements ProtocolValidationSuite {
       title: 'H10 — Multiple Copies (F95)',
       description: 'Sets batch count to 3 labels on Format F95.',
       validationKind: ValidationKind.copies,
+      expectedSha256:
+          '1ab0054d243fec49f29e8d8e50ad89dc3fa54ae6aaf3a8dae8e39daf7f175f7e',
       generator: () =>
           (IplPrinter()
                 ..advancedMode()
@@ -218,6 +232,8 @@ class IplValidationSuite implements ProtocolValidationSuite {
       title: 'H12 — Lifecycle',
       description: 'Advanced mode and exit program mode.',
       validationKind: ValidationKind.initialize,
+      expectedSha256:
+          'f17a83f47710f0e30efab778ed7f615b9f62b5a79899625daee270d8e974d2eb',
       generator: () =>
           (IplPrinter()
                 ..advancedMode()

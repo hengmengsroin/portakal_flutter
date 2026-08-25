@@ -10,7 +10,7 @@ class EplValidationSuite implements ProtocolValidationSuite {
   String get displayName => 'EPL2';
 
   @override
-  String get description => 'Eltron Programming Language 2 page-mode protocol';
+  String get description => 'EPL2-compatible page-mode command set';
 
   @override
   String? get warning => null;
@@ -28,6 +28,7 @@ class EplValidationSuite implements ProtocolValidationSuite {
       isDiagnostic: true,
       expectedPayload: 'PORTAKAL EPL TEST',
       validationKind: ValidationKind.text,
+      expectedSha256: null,
       generator: () =>
           (EplPrinter()
                 ..clear()
@@ -48,6 +49,8 @@ class EplValidationSuite implements ProtocolValidationSuite {
       description: 'Header and body text with A command.',
       expectedPayload: 'PORTAKAL 123 ABC xyz',
       validationKind: ValidationKind.text,
+      expectedSha256:
+          'b34bc4758a461c9848e1bb882fde809c30567a4c598ea62ada81aec0629757af',
       generator: () =>
           (EplPrinter()
                 ..clear()
@@ -73,6 +76,8 @@ class EplValidationSuite implements ProtocolValidationSuite {
       description: 'Code Page 437 Latin characters (ä, ö, ü, ß, ±, °).',
       expectedPayload: 'ä ö ü ß ± °',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          '03b45233399246aabe4a849b238b2e85e2b80080903f75304f99fa1fd7263ff9',
       generator: () =>
           (EplPrinter(
                   encoding: const EplEncoding.cp437(
@@ -94,6 +99,8 @@ class EplValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'PORTAKAL123456',
       requiresScanner: true,
       validationKind: ValidationKind.barcode,
+      expectedSha256:
+          'cd175036ff1284c309c30e18063e53cea1e66274aae50728f967683fc0033a7e',
       generator: () =>
           (EplPrinter()
                 ..clear()
@@ -118,6 +125,8 @@ class EplValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'https://example.com/portakal-hw-test',
       requiresScanner: true,
       validationKind: ValidationKind.qr,
+      expectedSha256:
+          '2ce2595dd8b4f7793970944b21bc9ec36f61d5a4c1ca6edd2bf58b77724f9552',
       generator: () =>
           (EplPrinter()
                 ..clear()
@@ -139,6 +148,8 @@ class EplValidationSuite implements ProtocolValidationSuite {
       title: 'H08 — Drawing (LO box & line)',
       description: 'Graphic Box and Line primitives via LO.',
       validationKind: ValidationKind.drawing,
+      expectedSha256:
+          'bdf88a948a958673d97b65645aaa1e9db2cdf9935af8be35c74b437dd16fb582',
       generator: () =>
           (EplPrinter()
                 ..clear()
@@ -154,6 +165,8 @@ class EplValidationSuite implements ProtocolValidationSuite {
       title: 'H09 — 64x64 Graphic (GW)',
       description: 'Canonical 1-bit monochrome raster matrix via GW command.',
       validationKind: ValidationKind.raster,
+      expectedSha256:
+          '3bfee68f8be8d093e222c89b5b1a8308c8e118588e30d6819af76ba314d45060',
       generator: () =>
           (EplPrinter()
                 ..clear()
@@ -173,6 +186,8 @@ class EplValidationSuite implements ProtocolValidationSuite {
       title: 'H10 — Multiple Copies (3 Labels)',
       description: 'Emits P3,1 to print 3 copies of the label.',
       validationKind: ValidationKind.copies,
+      expectedSha256:
+          '57ec02e3d464e26ee8dbb8cf3fdc477750c48ca7d49e8e6e09d690560f5a06e9',
       generator: () =>
           (EplPrinter()
                 ..clear()
@@ -187,6 +202,8 @@ class EplValidationSuite implements ProtocolValidationSuite {
       title: 'H12 — Clear (N command)',
       description: 'Emits N command to clear image buffer.',
       validationKind: ValidationKind.initialize,
+      expectedSha256:
+          '28312e346b76a3f91e8283519baab5f103d79547dedff5fb7ccc0dc3c5119bbe',
       generator: () => (EplPrinter()..clear()).toBytes(),
     ),
   ];

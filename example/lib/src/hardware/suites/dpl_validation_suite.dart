@@ -10,10 +10,11 @@ class DplValidationSuite implements ProtocolValidationSuite {
   String get displayName => 'DPL';
 
   @override
-  String get description => 'Datamax Programming Language protocol';
+  String get description =>
+      'DPL-compatible command set (native CR line endings)';
 
   @override
-  String? get warning => 'DPL commands use native CR line endings.';
+  String? get warning => 'DPL commands use native CR (0x0D) line endings.';
 
   @override
   String get capabilityProbeCaseId => 'D00-DPL';
@@ -28,6 +29,7 @@ class DplValidationSuite implements ProtocolValidationSuite {
       isDiagnostic: true,
       expectedPayload: 'PORTAKAL DPL TEST',
       validationKind: ValidationKind.text,
+      expectedSha256: null,
       generator: () =>
           (DplPrinter()
                 ..startLabel()
@@ -43,6 +45,8 @@ class DplValidationSuite implements ProtocolValidationSuite {
       description: 'Header and body text with STX L / E framing.',
       expectedPayload: 'PORTAKAL 123 ABC xyz',
       validationKind: ValidationKind.text,
+      expectedSha256:
+          '3b28a6560a0a5ed495825d6fa7f60129f65bdf491a451dda0dec7f2e03acbd27',
       generator: () =>
           (DplPrinter()
                 ..startLabel()
@@ -63,6 +67,8 @@ class DplValidationSuite implements ProtocolValidationSuite {
       description: 'Code Page 437 European characters (ä, ö, ü, ß, ±, °).',
       expectedPayload: 'ä ö ü ß ± °',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          'b4577781b52ef75c78c974fa1fb3ed18c7472bf0edb202a6dfb2e742a3d27da8',
       generator: () =>
           (DplPrinter(encoding: const DplEncoding.cp437())
                 ..startLabel()
@@ -80,6 +86,8 @@ class DplValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'PORTAKAL123456',
       requiresScanner: true,
       validationKind: ValidationKind.barcode,
+      expectedSha256:
+          'e186697b556ea044ee620fdf78c03918880c5467bf460c91b493739306f62ef3',
       generator: () =>
           (DplPrinter()
                 ..startLabel()
@@ -103,6 +111,8 @@ class DplValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'https://example.com/portakal-hw-test',
       requiresScanner: true,
       validationKind: ValidationKind.qr,
+      expectedSha256:
+          'ec248763a267b9f20c9f740a43772f9d1d05087641d55edbc7b6eb73e35e8b4f',
       generator: () =>
           (DplPrinter()
                 ..startLabel()
@@ -123,6 +133,8 @@ class DplValidationSuite implements ProtocolValidationSuite {
       title: 'H08 — Drawing (Record 9)',
       description: 'Graphic Box and Line primitives via Record 9.',
       validationKind: ValidationKind.drawing,
+      expectedSha256:
+          '7781c082633f09426609ea0a4009662bae5b5dad5f3a2fad7fc394ac68cdb46d',
       generator: () =>
           (DplPrinter()
                 ..startLabel()
@@ -141,6 +153,7 @@ class DplValidationSuite implements ProtocolValidationSuite {
       unsupportedSdkReason:
           'Portakal current DPL builder does not support generic raster graphics.',
       validationKind: ValidationKind.raster,
+      expectedSha256: null,
       generator: () => Uint8List(0),
     ),
 
@@ -150,6 +163,8 @@ class DplValidationSuite implements ProtocolValidationSuite {
       title: 'H10 — Multiple Copies (3 Labels)',
       description: 'Emits DPL copies configuration (3 copies).',
       validationKind: ValidationKind.copies,
+      expectedSha256:
+          'aa96a45b56c020b97c5b8b75afbd08b680ea6a0debb072cb035dee5d00b83d7c',
       generator: () =>
           (DplPrinter()
                 ..startLabel()
@@ -165,6 +180,8 @@ class DplValidationSuite implements ProtocolValidationSuite {
       title: 'H12 — Framing (STX L / E)',
       description: 'Empty label format framing.',
       validationKind: ValidationKind.initialize,
+      expectedSha256:
+          'f68d0d4693abd4609d1c5dd4ab9cdda1ff748042ce3499f5c2680f9e57e235b7',
       generator: () =>
           (DplPrinter()
                 ..startLabel()

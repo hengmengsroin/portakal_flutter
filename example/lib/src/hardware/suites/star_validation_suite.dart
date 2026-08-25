@@ -10,7 +10,7 @@ class StarValidationSuite implements ProtocolValidationSuite {
   String get displayName => 'Star Line / PRNT';
 
   @override
-  String get description => 'Star Micronics Line Mode raster & text protocol';
+  String get description => 'Star Line Mode / supported Star PRNT subset';
 
   @override
   String? get warning => 'Requires Star Line Mode command set support.';
@@ -28,6 +28,7 @@ class StarValidationSuite implements ProtocolValidationSuite {
       isDiagnostic: true,
       expectedPayload: 'PORTAKAL STAR TEST',
       validationKind: ValidationKind.text,
+      expectedSha256: null,
       generator: () =>
           (StarPrntPrinter()
                 ..initialize()
@@ -44,6 +45,8 @@ class StarValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'PORTAKAL 123 ABC xyz',
       requiresCutter: true,
       validationKind: ValidationKind.text,
+      expectedSha256:
+          'c6bdfb68e5d63cb595d834588d18f868eab6df1f77f41b00633064e5115501f2',
       generator: () =>
           (StarPrntPrinter()
                 ..initialize()
@@ -65,6 +68,8 @@ class StarValidationSuite implements ProtocolValidationSuite {
       description: 'Code Page 437 Latin characters (ä, ö, ü, ß, ±, °).',
       expectedPayload: 'ä ö ü ß ± °',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          '2e2083b2b3086272cabe03905153339d03072fe61ff1ec2a963448e8895d2763',
       generator: () =>
           (StarPrntPrinter(
                   encoding: const StarPrntEncoding.cp437(
@@ -84,6 +89,8 @@ class StarValidationSuite implements ProtocolValidationSuite {
       description: 'Code Page 850 Multilingual Latin-1.',
       expectedPayload: 'é à è ù ç ñ Á Í Ó',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          '39ae864987c9f035e635b41da1cd501d242c0094ebbcea710e917d2452b6f5f0',
       generator: () =>
           (StarPrntPrinter(
                   encoding: const StarPrntEncoding.cp850(
@@ -104,6 +111,8 @@ class StarValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'PORTAKAL123456',
       requiresScanner: true,
       validationKind: ValidationKind.barcode,
+      expectedSha256:
+          '55d5925b2e047d0fb07347e7a880150fc9fb5cef2a70a3bd7b5c7d5a9fd6e0ec',
       generator: () =>
           (StarPrntPrinter()
                 ..initialize()
@@ -125,6 +134,8 @@ class StarValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'https://example.com/portakal-hw-test',
       requiresScanner: true,
       validationKind: ValidationKind.qr,
+      expectedSha256:
+          '6b67d3e76eabc4d1e28b54c908ffc20e233c1bf490cda6eb24c9a95af6d2e97f',
       generator: () =>
           (StarPrntPrinter()
                 ..initialize()
@@ -145,6 +156,8 @@ class StarValidationSuite implements ProtocolValidationSuite {
       title: 'H09 — 64x64 Raster (ESC * r A)',
       description: 'Canonical 1-bit monochrome raster matrix.',
       validationKind: ValidationKind.raster,
+      expectedSha256:
+          'c0afd3d9b40eebf4249109be888c4e478db6821b8336089b9f5d2b1f6dae3f42',
       generator: () =>
           (StarPrntPrinter()
                 ..initialize()
@@ -161,6 +174,8 @@ class StarValidationSuite implements ProtocolValidationSuite {
       description: 'Partial paper cut via ESC d 2.',
       requiresCutter: true,
       validationKind: ValidationKind.cut,
+      expectedSha256:
+          '6a7a49d56aaecebc5b9b34fd10a628a04172d860d886f6336e710137588b7d82',
       generator: () =>
           (StarPrntPrinter()
                 ..initialize()
@@ -176,6 +191,8 @@ class StarValidationSuite implements ProtocolValidationSuite {
       title: 'H12 — Initialize (ESC @)',
       description: 'Emits ESC @ to initialize printer.',
       validationKind: ValidationKind.initialize,
+      expectedSha256:
+          '722ca241c5a697ee3602ba79c89c4ea77a64fc4ddbea7fce2bef00d8eb23034d',
       generator: () => (StarPrntPrinter()..initialize()).toBytes(),
     ),
   ];

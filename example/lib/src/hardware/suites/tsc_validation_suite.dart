@@ -10,7 +10,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
   String get displayName => 'TSC / TSPL2';
 
   @override
-  String get description => 'TSC / TSPL2 label and receipt printer protocol';
+  String get description =>
+      'TSC / TSPL2-compatible label and receipt command set';
 
   @override
   String? get warning => null;
@@ -29,6 +30,7 @@ class TscValidationSuite implements ProtocolValidationSuite {
       isDiagnostic: true,
       expectedPayload: 'PORTAKAL TSC TEST',
       validationKind: ValidationKind.text,
+      expectedSha256: null,
       generator: () =>
           (TscPrinter()
                 ..sizeDots(800, 600)
@@ -50,6 +52,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       description: 'SIZE 800,600, CLS, scalable header, 2x body text, PRINT 1.',
       expectedPayload: 'PORTAKAL 123 ABC xyz',
       validationKind: ValidationKind.text,
+      expectedSha256:
+          '8e064319f18a1d446fcfadd0131d20c8ab346f4244ceded5814ef1893629bc24',
       generator: () =>
           (TscPrinter()
                 ..sizeDots(800, 600)
@@ -82,6 +86,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       description: 'Code Page 437 Latin characters (CODEPAGE 437).',
       expectedPayload: 'ä ö ü ß ± °',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          '76334c9bb5822d6a169047bbac044c18ec11d57f1a18192aa1c13d009879c3d6',
       generator: () =>
           (TscPrinter(
                   encoding: const TscEncoding.cp437(sendCodePageCommand: true),
@@ -101,6 +107,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       description: 'Code Page 850 Multilingual Latin-1 (CODEPAGE 850).',
       expectedPayload: 'é à è ù ç ñ Á Í Ó',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          '3062a103dd7b447b4c4a4fe6f671ca9a28f1fbe1b538fb7cde136de3b490c793',
       generator: () =>
           (TscPrinter(
                   encoding: const TscEncoding.cp850(sendCodePageCommand: true),
@@ -120,6 +128,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       description: 'Windows-1252 Western European symbols (CODEPAGE 1252).',
       expectedPayload: 'é à è “ ” ‘ ’ © ®',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          'faebd54a70fb02c6f5b2a8737557f360d45edd5ed954d0f8533404c330c97e28',
       generator: () =>
           (TscPrinter(
                   encoding: const TscEncoding.cp1252(sendCodePageCommand: true),
@@ -138,6 +148,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       title: 'H05 — Font Scaling',
       description: 'Font multipliers 1x, 2x, 4x width/height.',
       validationKind: ValidationKind.text,
+      expectedSha256:
+          '50190d3f0aa7661d7bcdbc6538dca7df88cd8585835367c5cd9b4ca3cef98a4a',
       generator: () =>
           (TscPrinter()
                 ..sizeDots(800, 600)
@@ -178,6 +190,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'PORTAKAL123456',
       requiresScanner: true,
       validationKind: ValidationKind.barcode,
+      expectedSha256:
+          '37756c0da132344e3235fad9ae3b86fad1656c4c8ead1f28bae64ed7085e223e',
       generator: () =>
           (TscPrinter()
                 ..sizeDots(800, 600)
@@ -203,6 +217,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'https://example.com/portakal-hw-test',
       requiresScanner: true,
       validationKind: ValidationKind.qr,
+      expectedSha256:
+          '2c395221311a4886698ab6c0cbdf53232c307446d119464e676c0e57ef34af1a',
       generator: () =>
           (TscPrinter()
                 ..sizeDots(800, 600)
@@ -225,6 +241,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       title: 'H08 — Drawing Primitives',
       description: 'Geometric primitives (BOX, BAR, CIRCLE).',
       validationKind: ValidationKind.drawing,
+      expectedSha256:
+          'cc91a4fc925762ada9c2b7d3a7dae4e238033ec40fe7db6ca2afebc0cd3da756',
       generator: () =>
           (TscPrinter()
                 ..sizeDots(800, 600)
@@ -243,6 +261,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       description:
           'Canonical 1-bit monochrome bitmap via BITMAP binary stream.',
       validationKind: ValidationKind.raster,
+      expectedSha256:
+          '743515de16b76c24747fb9b86b84e9c917ac0f1d3f35fe465ffd487ab26a55dc',
       generator: () =>
           (TscPrinter()
                 ..sizeDots(800, 600)
@@ -265,8 +285,10 @@ class TscValidationSuite implements ProtocolValidationSuite {
     HardwareValidationCase(
       id: 'H10',
       title: 'H10 — Multiple Copies (3 Labels)',
-      description: 'Emits PRINT 1, 3 to print 3 identical labels in one job.',
+      description: 'Emits PRINT 1, 3 to request 3 identical labels in one job.',
       validationKind: ValidationKind.copies,
+      expectedSha256:
+          '131475c43d27e3771500d51429d76dcecebf5f0e54e9c5a60e086589144cf3c8',
       generator: () =>
           (TscPrinter()
                 ..sizeDots(800, 400)
@@ -286,6 +308,8 @@ class TscValidationSuite implements ProtocolValidationSuite {
       title: 'H12 — CLS Buffer Clear',
       description: 'Emits CLS command to reset TSC image buffer.',
       validationKind: ValidationKind.initialize,
+      expectedSha256:
+          'ca51cc9362eb8b34f911287ffc21e078c21f39b54bef2f59bf6ef59a6724d768',
       generator: () => (TscPrinter()..cls()).toBytes(),
     ),
   ];

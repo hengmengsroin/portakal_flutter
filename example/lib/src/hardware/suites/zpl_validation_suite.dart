@@ -10,7 +10,7 @@ class ZplValidationSuite implements ProtocolValidationSuite {
   String get displayName => 'ZPL II';
 
   @override
-  String get description => 'Zebra Programming Language II label protocol';
+  String get description => 'ZPL II-compatible label command set';
 
   @override
   String? get warning =>
@@ -30,6 +30,7 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       isDiagnostic: true,
       expectedPayload: 'PORTAKAL ZPL TEST',
       validationKind: ValidationKind.text,
+      expectedSha256: null,
       generator: () =>
           (ZplPrinter()
                 ..startFormat()
@@ -51,6 +52,8 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       description: '^XA / ^XZ framing with ^FO50,50 and ^FD text fields.',
       expectedPayload: 'PORTAKAL 123 ABC xyz',
       validationKind: ValidationKind.text,
+      expectedSha256:
+          'ec94deef4e48b5e3e7ca4ab1526cdf710729e8c4c6dc2d504d8728fb29ed9de4',
       generator: () =>
           (ZplPrinter()
                 ..startFormat()
@@ -71,6 +74,8 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       description: 'UTF-8 encoded multilingual text using ^CI28.',
       expectedPayload: 'Portakal UTF-8: é à ü ç € Привет ខ្មែរ',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          '83aa2e239b328e44aa4465e1aee3c950f8e58e47da148df795fbb312eeeb8af8',
       generator: () =>
           (ZplPrinter(encoding: const ZplEncoding.utf8(emitCiCommand: true))
                 ..startFormat()
@@ -94,6 +99,8 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       title: 'H05 — Font Sizing (^A0)',
       description: 'Font height & width scaling (24x24, 48x48, 72x72).',
       validationKind: ValidationKind.text,
+      expectedSha256:
+          'e8f3eeacca78ea9c83d4a177fa6f0da1346f4bc8a0411e5e533296ec86cd1b19',
       generator: () =>
           (ZplPrinter()
                 ..startFormat()
@@ -130,6 +137,8 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'PORTAKAL123456',
       requiresScanner: true,
       validationKind: ValidationKind.barcode,
+      expectedSha256:
+          '1732f726096200e83eed885fc844cb6a675a7840209b22244904979d61c1dba6',
       generator: () =>
           (ZplPrinter()
                 ..startFormat()
@@ -158,6 +167,8 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'https://example.com/portakal-hw-test',
       requiresScanner: true,
       validationKind: ValidationKind.qr,
+      expectedSha256:
+          '183d29dbcc99c8a25a947d83a296b3ddffcc9218db5084fda97666ca8132a53b',
       generator: () =>
           (ZplPrinter()
                 ..startFormat()
@@ -179,6 +190,8 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       title: 'H08 — Drawing (^GB Graphic Box)',
       description: 'Graphic Box and Line primitives via ^GB.',
       validationKind: ValidationKind.drawing,
+      expectedSha256:
+          '7a0c1b69ebe0784135c23e360e83c93502955019181175149ca8935f6ea20e39',
       generator: () =>
           (ZplPrinter()
                 ..startFormat()
@@ -194,6 +207,8 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       title: 'H09 — 64x64 Raster Bitmap (^GFA)',
       description: 'Canonical 1-bit monochrome bitmap via ^GFA ASCII Hex.',
       validationKind: ValidationKind.raster,
+      expectedSha256:
+          '1d85f7b29696196ad8aed0aa49df8088e31298312c2086e13ca85c28071c46df',
       generator: () =>
           (ZplPrinter()
                 ..startFormat()
@@ -215,8 +230,10 @@ class ZplValidationSuite implements ProtocolValidationSuite {
     HardwareValidationCase(
       id: 'H10',
       title: 'H10 — Multiple Copies (^PQ)',
-      description: 'Emits ^PQ3 to print 3 identical label copies.',
+      description: 'Emits ^PQ3 to request 3 identical label copies.',
       validationKind: ValidationKind.copies,
+      expectedSha256:
+          '2266e5d9808a78a98c3aecd12cc16979e8510dc5732e5cceb4927636d9cb299a',
       generator: () =>
           (ZplPrinter()
                 ..startFormat()
@@ -236,6 +253,8 @@ class ZplValidationSuite implements ProtocolValidationSuite {
       title: 'H12 — Label Framing (^XA / ^XZ)',
       description: 'Empty label format framing (^XA^XZ).',
       validationKind: ValidationKind.initialize,
+      expectedSha256:
+          '97e1147617acb45f052c53d8744aacc18790c273a68648cfcb551acadf935e7d',
       generator: () =>
           (ZplPrinter()
                 ..startFormat()

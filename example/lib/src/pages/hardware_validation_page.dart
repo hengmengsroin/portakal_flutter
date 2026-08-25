@@ -14,6 +14,8 @@ class CaseExecutionRecord {
   final String? generatedSha256;
   final bool? isGoldenMatch;
   CaseResultStatus status;
+  String? level2;
+  String? level3;
   WriteDiagnosticInfo? diagnosticInfo;
   String? scannedPayload;
   String? notes;
@@ -25,6 +27,8 @@ class CaseExecutionRecord {
     this.generatedSha256,
     this.isGoldenMatch,
     this.status = CaseResultStatus.notTested,
+    this.level2,
+    this.level3,
     this.diagnosticInfo,
     this.scannedPayload,
     this.notes,
@@ -89,6 +93,8 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
           status: c.isSupportedInSdk
               ? CaseResultStatus.notTested
               : CaseResultStatus.notSupportedSdk,
+          level2: c.isSupportedInSdk ? 'N/T' : 'N/S-SDK',
+          level3: c.isSupportedInSdk ? 'N/T' : 'N/S-SDK',
         );
       }
       _records[suite.protocol] = map;
@@ -230,7 +236,9 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     // 1. Generate exact binary command stream from Portakal
     final bytes = c.generator();
     final sha = calculateSha256(bytes);
-    final isMatch = sha.toLowerCase() == c.goldenSha256.toLowerCase();
+    final isMatch = c.expectedSha256 != null
+        ? (sha.toLowerCase() == c.expectedSha256!.toLowerCase())
+        : null;
 
     setState(() {
       _currentRecords[c.id]?.status = CaseResultStatus.sending;
@@ -247,6 +255,8 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
       status: diag.isSuccess
           ? CaseResultStatus.sent
           : CaseResultStatus.transportError,
+      level2: diag.isSuccess ? 'SENT' : 'FAIL',
+      level3: 'N/T',
       diagnosticInfo: diag,
       executedAt: DateTime.now(),
     );
@@ -272,16 +282,58 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
 
   void _updateActiveResult(CaseResultStatus status) {
     if (_lastActiveRecord == null) return;
+    final c = _lastActiveRecord!.testCase;
+
+    String l2 = 'PASS';
+    String l3 = 'PASS';
+
+    switch (status) {
+      case CaseResultStatus.pass:
+        l2 = 'PASS';
+        if (c.requiresScanner) {
+          final isMatch = _scanInputController.text == c.expectedPayload;
+          l3 = isMatch
+              ? 'PASS'
+              : (_scanInputController.text.isEmpty ? 'N/T' : 'FAIL');
+        } else {
+          l3 = 'PASS';
+        }
+        break;
+      case CaseResultStatus.printed:
+        l2 = 'PASS';
+        l3 = 'N/T';
+        break;
+      case CaseResultStatus.partial:
+        l2 = 'PASS';
+        l3 = 'PARTIAL';
+        break;
+      case CaseResultStatus.fail:
+        l2 = 'FAIL';
+        l3 = 'FAIL';
+        break;
+      case CaseResultStatus.notSupportedDevice:
+        l2 = 'N/S-DEVICE';
+        l3 = 'N/S-DEVICE';
+        break;
+      default:
+        l2 = 'N/T';
+        l3 = 'N/T';
+    }
+
     setState(() {
       _lastActiveRecord!.status = status;
+      _lastActiveRecord!.level2 = l2;
+      _lastActiveRecord!.level3 = l3;
       _currentRecords[_lastActiveRecord!.testCase.id] = _lastActiveRecord!;
     });
   }
 
   void _showSessionExportDialog() {
     final sessionMap = {
+      'schema_version': 1,
       'timestamp': DateTime.now().toIso8601String(),
-      'protocol': _activeProtocol.name.toUpperCase(),
+      'portakal_version': '0.3.0',
+      'protocol': _activeProtocol.id,
       'device': {
         'display_name': _selectedPrinter?.name ?? 'Unknown',
         'connection_type':
@@ -296,18 +348,15 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
           'is_supported_in_sdk': r.testCase.isSupportedInSdk,
           'unsupported_sdk_reason': r.testCase.unsupportedSdkReason,
           'byte_count': r.generatedBytes?.length ?? 0,
-          'sha256': r.generatedSha256,
+          'actual_sha256': r.generatedSha256,
+          'expected_sha256': r.testCase.expectedSha256,
           'golden_match': r.isGoldenMatch,
-          'status': r.status.label,
-          'diagnostics': r.diagnosticInfo != null
-              ? {
-                  'is_success': r.diagnosticInfo!.isSuccess,
-                  'duration_ms': r.diagnosticInfo!.duration.inMilliseconds,
-                  'hex_preview': r.diagnosticInfo!.hexPreview,
-                  'exception_type': r.diagnosticInfo!.exceptionType,
-                  'exception_message': r.diagnosticInfo!.exceptionMessage,
-                }
-              : null,
+          'transport_success': r.diagnosticInfo?.isSuccess ?? false,
+          'duration_ms': r.diagnosticInfo?.duration.inMilliseconds,
+          'hex_preview': r.diagnosticInfo?.hexPreview,
+          'operator_status': r.status.label,
+          'level2': r.level2,
+          'level3': r.level3,
           'scanned_payload': r.scannedPayload,
           'notes': r.notes,
         };
@@ -815,7 +864,7 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
   Widget _buildActiveVerificationPanel() {
     final record = _lastActiveRecord!;
     final c = record.testCase;
-    final isGolden = record.isGoldenMatch ?? false;
+    final isMatch = record.isGoldenMatch;
     final diag = record.diagnosticInfo;
 
     return Card(
@@ -850,14 +899,18 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                 ),
                 Chip(
                   label: Text(
-                    isGolden ? 'Golden: MATCH' : 'Golden: DIFFERENT',
+                    isMatch == null
+                        ? 'Golden: N/A'
+                        : (isMatch ? 'Golden: MATCH' : 'Golden: DIFFERENT'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                     ),
                   ),
-                  backgroundColor: isGolden ? Colors.green : Colors.orange,
+                  backgroundColor: isMatch == null
+                      ? Colors.grey[700]
+                      : (isMatch ? Colors.green : Colors.orange),
                 ),
               ],
             ),
@@ -902,12 +955,21 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                     ),
                   ),
                   Text(
-                    '• SHA-256: ${record.generatedSha256 ?? "N/A"}',
+                    '• Actual SHA-256: ${record.generatedSha256 ?? "N/A"}',
                     style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 11,
                     ),
                   ),
+                  if (c.expectedSha256 != null)
+                    Text(
+                      '• Expected Golden SHA: ${c.expectedSha256}',
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        color: Colors.indigo,
+                      ),
+                    ),
                   if (diag != null) ...[
                     Text(
                       '• Write Start: ${diag.startTime.toIso8601String().substring(11, 23)} • Duration: ${diag.duration.inMilliseconds}ms',

@@ -10,7 +10,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
   String get displayName => 'CPCL';
 
   @override
-  String get description => 'Comtec / Zebra Mobile receipt & label protocol';
+  String get description =>
+      'CPCL-compatible mobile receipt & label command set';
 
   @override
   String? get warning => null;
@@ -28,6 +29,7 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       isDiagnostic: true,
       expectedPayload: 'PORTAKAL CPCL TEST',
       validationKind: ValidationKind.text,
+      expectedSha256: null,
       generator: () =>
           (CpclPrinter()
                 ..startPage(heightDots: 300)
@@ -44,6 +46,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       description: 'Header and body text with TEXT command.',
       expectedPayload: 'PORTAKAL 123 ABC xyz',
       validationKind: ValidationKind.text,
+      expectedSha256:
+          'e2daa99d972e17522b5b9e5157dad56ebb3cb647b9949f9330ab3a75d85023bd',
       generator: () =>
           (CpclPrinter()
                 ..startPage(heightDots: 400)
@@ -65,6 +69,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       description: 'Code Page 437 Latin characters (ä, ö, ü, ß, ±, °).',
       expectedPayload: 'ä ö ü ß ± °',
       validationKind: ValidationKind.encoding,
+      expectedSha256:
+          '283209b2113a67dcdeaf9e7ffb484e077ee22e6a49aa786d451f22b48fdcf9c6',
       generator: () =>
           (CpclPrinter(
                   encoding: const CpclEncoding.usa(sendCountryCommand: true),
@@ -85,6 +91,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'PORTAKAL123456',
       requiresScanner: true,
       validationKind: ValidationKind.barcode,
+      expectedSha256:
+          '0de472bb355c16d1cbecf3a491cfe1ea4131d4f78feefa3ea0b90ac14b6ada80',
       generator: () =>
           (CpclPrinter()
                 ..startPage(heightDots: 400)
@@ -109,6 +117,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       expectedPayload: 'https://example.com/portakal-hw-test',
       requiresScanner: true,
       validationKind: ValidationKind.qr,
+      expectedSha256:
+          'b264a1da56f7a8929e6dc4e58e553bcdc76a88a4b592246673fb52f0b83a5469',
       generator: () =>
           (CpclPrinter()
                 ..startPage(heightDots: 400)
@@ -130,6 +140,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       title: 'H08 — Drawing (BOX & LINE)',
       description: 'Graphic Box and Line primitives.',
       validationKind: ValidationKind.drawing,
+      expectedSha256:
+          'dbcea1c0da61c40176a3a03eb9c4afe9dd1b2b1918e476cddfa30f8ef9a00600',
       generator: () =>
           (CpclPrinter()
                 ..startPage(heightDots: 400)
@@ -146,6 +158,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       title: 'H09 — 64x64 Graphic (EG)',
       description: 'Expanded Graphic (EG) 1-bit monochrome raster matrix.',
       validationKind: ValidationKind.raster,
+      expectedSha256:
+          'a8f04b5542435312a34159fcc2280c5afb38b207b4dc77f464fee5b58e0ecb42',
       generator: () =>
           (CpclPrinter()
                 ..startPage(heightDots: 400)
@@ -166,6 +180,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       title: 'H10 — Multiple Copies (3 Labels)',
       description: 'Sets session copies parameter to 3.',
       validationKind: ValidationKind.copies,
+      expectedSha256:
+          'd12bdb9d57ffe449810ff44ce2e3cea165619cd8a5e507b8ae9001d23c0368fe',
       generator: () =>
           (CpclPrinter()
                 ..startPage(heightDots: 300, copies: 3)
@@ -181,6 +197,8 @@ class CpclValidationSuite implements ProtocolValidationSuite {
       title: 'H12 — Form & Feed',
       description: 'Minimal session start and form feed.',
       validationKind: ValidationKind.initialize,
+      expectedSha256:
+          '449a85fed503343939c4d83d97b94137d26da97b0c9a179d96ae6ea01af40b19',
       generator: () =>
           (CpclPrinter()
                 ..startPage(heightDots: 200)
