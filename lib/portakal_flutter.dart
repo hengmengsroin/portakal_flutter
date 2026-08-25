@@ -61,3 +61,4 @@ export 'src/parsers/starprnt.dart';
 
 // Native Protocol Builders (Phase 2)
 export 'src/native/tsc.dart';
+export 'src/native/escpos.dart';

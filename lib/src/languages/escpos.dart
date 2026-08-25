@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import '../byte_writer.dart';
 import '../encoding.dart';
 import '../types.dart';
+import 'escpos_writer.dart';
 
 /// Compile a resolved label to ESC/POS binary commands as [Uint8List].
 ///
@@ -16,11 +17,11 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
   final writer = PrinterByteWriter();
 
   // ESC @ — Initialize printer
-  writer.writeBytes([0x1B, 0x40]);
+  EscPosCommandWriter.writeInitialize(writer);
 
   // If table selection is configured, emit ESC t <tableId>
   if (enc.sendTableSelect && enc.tableId != null) {
-    writer.writeBytes([0x1B, 0x74, enc.tableId!]);
+    EscPosCommandWriter.writeCodePage(writer, enc.tableId!);
   }
 
   for (final el in label.elements) {
@@ -33,19 +34,21 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
           int n = 0;
           if (o.align == 'center') n = 1;
           if (o.align == 'right') n = 2;
-          writer.writeBytes([0x1B, 0x61, n]);
+          EscPosCommandWriter.writeAlign(writer, n);
         }
 
         // Bold: ESC E n
         if (o.bold == true) {
-          writer.writeBytes([0x1B, 0x45, 1]);
+          EscPosCommandWriter.writeBold(writer, true);
         }
 
         // Size: GS ! n — width and height magnification
         if (o.size != null && o.size! > 1) {
-          final s = o.size! - 1;
-          final n = (s << 4) | s;
-          writer.writeBytes([0x1D, 0x21, n]);
+          EscPosCommandWriter.writeTextSize(
+            writer,
+            width: o.size!,
+            height: o.size!,
+          );
         }
 
         // Text content encoded via explicit code page encoder
@@ -54,41 +57,38 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
           replaceUnsupported: enc.replaceUnsupported,
         );
         writer.writeBytes(textBytes);
-        writer.writeByte(0x0A); // LF
+        EscPosCommandWriter.writeLineFeed(writer);
 
         // Reset size
         if (o.size != null && o.size! > 1) {
-          writer.writeBytes([0x1D, 0x21, 0x00]);
+          EscPosCommandWriter.writeTextSize(writer, width: 1, height: 1);
         }
 
         // Reset bold
         if (o.bold == true) {
-          writer.writeBytes([0x1B, 0x45, 0]);
+          EscPosCommandWriter.writeBold(writer, false);
         }
 
         // Reset alignment
         if (o.align != null) {
-          writer.writeBytes([0x1B, 0x61, 0]);
+          EscPosCommandWriter.writeAlign(writer, 0);
         }
 
       case ImageElement():
         final bmp = el.bitmap;
-        // GS v 0 — raster bit image
-        writer.writeBytes([0x1D, 0x76, 0x30, 0x00]);
-        // xL, xH — bytes per row (little-endian)
-        writer.writeBytes([
-          bmp.bytesPerRow & 0xFF,
-          (bmp.bytesPerRow >> 8) & 0xFF,
-        ]);
-        // yL, yH — number of rows (little-endian)
-        writer.writeBytes([bmp.height & 0xFF, (bmp.height >> 8) & 0xFF]);
-        writer.writeBytes(bmp.data);
+        EscPosCommandWriter.writeRaster(
+          writer,
+          mode: 0,
+          bytesPerRow: bmp.bytesPerRow,
+          height: bmp.height,
+          data: bmp.data,
+        );
 
       case RawElement():
         if (el.content is Uint8List) {
-          writer.writeBytes(el.content as Uint8List);
+          EscPosCommandWriter.writeRawBytes(writer, el.content as Uint8List);
         } else if (el.content is List<int>) {
-          writer.writeBytes(el.content as List<int>);
+          EscPosCommandWriter.writeRawBytes(writer, el.content as List<int>);
         } else if (el.content is String) {
           writer.writeBytes(
             encoder.encode(
@@ -100,33 +100,25 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
 
       case BarcodeElement():
         final o = el.options;
-        writer.writeBytes([0x1D, 0x68, (o.height > 255 ? 255 : o.height)]);
-        writer.writeBytes([0x1D, 0x48, o.readable == 1 ? 2 : 0]);
         final typeByte = o.type == '39' ? 69 : 73;
         final barcodeBytes = ascii.encode(el.content);
-        writer.writeBytes([0x1D, 0x6B, typeByte, barcodeBytes.length]);
-        writer.writeBytes(barcodeBytes);
+        final height = o.height > 255 ? 255 : (o.height < 1 ? 1 : o.height);
+        final hri = o.readable == 1 ? 2 : 0;
+        final width = (o.narrow ?? 3).clamp(2, 6);
+        EscPosCommandWriter.writeBarcode(
+          writer,
+          type: typeByte,
+          height: height,
+          width: width,
+          hri: hri,
+          hriFont: 0,
+          content: barcodeBytes,
+        );
 
       case QRCodeElement():
         final o = el.options;
         final contentBytes = utf8.encode(el.content);
-        final len = contentBytes.length + 3;
-        final pL = len & 0xFF;
-        final pH = (len >> 8) & 0xFF;
-
-        writer.writeBytes([
-          0x1D,
-          0x28,
-          0x6B,
-          0x04,
-          0x00,
-          0x31,
-          0x41,
-          0x32,
-          0x00,
-        ]);
-        final cw = o.cellWidth ?? 4;
-        writer.writeBytes([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, cw]);
+        final cw = (o.cellWidth ?? 4).clamp(1, 16);
         final ecc = o.eccLevel == 'L'
             ? 0x30
             : o.eccLevel == 'Q'
@@ -134,10 +126,13 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
             : o.eccLevel == 'H'
             ? 0x33
             : 0x31;
-        writer.writeBytes([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, ecc]);
-        writer.writeBytes([0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30]);
-        writer.writeBytes(contentBytes);
-        writer.writeBytes([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30]);
+        EscPosCommandWriter.writeQrCode(
+          writer,
+          model: 0x32,
+          size: cw,
+          ecc: ecc,
+          content: contentBytes,
+        );
 
       default:
         // ESC/POS doesn't support box, line, circle natively in text mode
@@ -146,7 +141,7 @@ Uint8List compileToESCPOS(ResolvedLabel label, {EscPosEncoding? encoding}) {
   }
 
   // GS V B 3 — Partial cut with 3 lines feed
-  writer.writeBytes([0x1D, 0x56, 0x42, 0x03]);
+  EscPosCommandWriter.writeCut(writer, mode: 0x42, feedLines: 3);
 
   return writer.toBytes();
 }
