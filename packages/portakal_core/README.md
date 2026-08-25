@@ -34,11 +34,23 @@ import 'package:portakal_core/portakal_core.dart';
 
 void main() {
   final printer = TscPrinter()
-    ..sizeDots(width: 800, height: 1200)
+    ..sizeDots(800, 1200)
     ..cls()
-    ..text(x: 50, y: 50, content: 'Order #1042', size: 2, bold: true)
-    ..barcode(x: 50, y: 150, type: TscBarCode.code128, height: 80, content: 'ORD-1042')
-    ..qrcode(x: 50, y: 260, content: 'https://example.com/orders/1042')
+    ..text(
+      x: 50,
+      y: 50,
+      text: 'Order #1042',
+      xMultiplication: 2,
+      yMultiplication: 2,
+    )
+    ..barcode(
+      x: 50,
+      y: 150,
+      type: TscBarcodeType.code128,
+      height: 80,
+      content: 'ORD-1042',
+    )
+    ..qrCode(x: 50, y: 260, content: 'https://example.com/orders/1042')
     ..print();
 
   final Uint8List bytes = printer.toBytes();
