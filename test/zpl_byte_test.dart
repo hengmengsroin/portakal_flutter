@@ -9,32 +9,48 @@ import 'package:portakal_flutter/src/types.dart';
 
 void main() {
   group('ZPL Byte-Native Compiler', () {
-    test('ASCII output is byte-for-byte identical to legacy string encoding', () {
-      final builder = label(const LabelConfig(width: 40, height: 30))
-          .text('HELLO 123', const TextOptions(x: 10, y: 10, size: 2))
-          .box(
-            const BoxOptions(x: 5, y: 5, width: 200, height: 100, thickness: 2),
-          )
-          .barcode(
-            '123456',
-            const BarcodeOptions(x: 10, y: 50, type: '128', height: 40),
-          );
+    test(
+      'Historical default compatibility: implicit default emits ^CI28 and UTF-8',
+      () {
+        final builder = label(const LabelConfig(width: 40, height: 30))
+            .text('HELLO 123', const TextOptions(x: 10, y: 10, size: 2))
+            .box(
+              const BoxOptions(
+                x: 5,
+                y: 5,
+                width: 200,
+                height: 100,
+                thickness: 2,
+              ),
+            )
+            .barcode(
+              '123456',
+              const BarcodeOptions(x: 10, y: 50, type: '128', height: 40),
+            );
 
-      final byteOutput = zpl.compileBytes(builder);
-      final stringOutput = zpl.compile(builder);
+        final byteOutput = zpl.compileBytes(builder);
+        final stringOutput = zpl.compile(builder);
 
-      // Verify that byte output is identical to ascii.encode of the string output
-      expect(
-        byteOutput,
-        equals(Uint8List.fromList(ascii.encode(stringOutput))),
-      );
-    });
+        // Verify that string and byte outputs match exactly
+        expect(
+          byteOutput,
+          equals(Uint8List.fromList(utf8.encode(stringOutput))),
+        );
 
-    test('Default mode omits ^CI28 and uses legacy baseline', () {
+        // Assert historical ^CI28 presence in default output
+        final text = utf8.decode(byteOutput);
+        expect(text, startsWith('^XA\n^CI28\n^PW320\n'));
+      },
+    );
+
+    test('Explicit legacy mode omits ^CI28 header command', () {
       final builder = label(
         const LabelConfig(width: 40, height: 30),
       ).text('Standard Label');
-      final output = zpl.compileBytes(builder);
+      final output = zpl.compileBytes(
+        builder,
+        encoding: const ZplEncoding.legacy(),
+      );
       final text = ascii.decode(output);
 
       expect(text, startsWith('^XA\n^PW320\n'));
@@ -52,6 +68,35 @@ void main() {
       final text = utf8.decode(output);
 
       expect(text, startsWith('^XA\n^CI28\n^PW320\n'));
+    });
+
+    test('Constructor semantics: ZplEncoding has unambiguous default', () {
+      expect(ZplEncoding.defaultEncoding.type, equals(ZplTextEncoding.utf8));
+      expect(ZplEncoding.defaultEncoding.emitCiCommand, isTrue);
+
+      const legacy = ZplEncoding.legacy();
+      expect(legacy.type, equals(ZplTextEncoding.legacy));
+      expect(legacy.emitCiCommand, isFalse);
+    });
+
+    test('String wrapper decodes UTF-8 and legacy modes strictly', () {
+      final builder = label(
+        const LabelConfig(width: 40, height: 30),
+      ).text('Café €');
+
+      // Default UTF-8 string output
+      final utf8Str = zpl.compile(builder);
+      expect(utf8Str, contains('^FDCafé €^FS'));
+
+      // Legacy string output
+      final legacyBuilder = label(
+        const LabelConfig(width: 40, height: 30),
+      ).text('ASCII ONLY');
+      final legacyStr = zpl.compile(
+        legacyBuilder,
+        encoding: const ZplEncoding.legacy(),
+      );
+      expect(legacyStr, contains('^FDASCII ONLY^FS'));
     });
 
     test('Explicit UTF-8 mode encodes Western European: "Café €"', () {
@@ -150,20 +195,65 @@ void main() {
       );
     });
 
-    test(
-      'ZPL field data escapes control characters (^, ~, _) using ^FH hex escape',
-      () {
-        final builder = label(
-          const LabelConfig(width: 40, height: 30),
-        ).text('Model^A~B_C', const TextOptions(x: 10, y: 10));
+    group('^FH Field Hex Escaping Edge Cases', () {
+      test(
+        'Literal underscore without control chars preserves plain ^FD and literal _',
+        () {
+          // "ABC_41" without ^ or ~ must not trigger ^FH
+          final b1 = label(
+            const LabelConfig(width: 40, height: 30),
+          ).text('ABC_41');
+          expect(zpl.compile(b1), contains('^FDABC_41^FS'));
 
-        final output = zpl.compileBytes(builder);
-        final text = ascii.decode(output);
+          // "ABC_" without ^ or ~
+          final b2 = label(
+            const LabelConfig(width: 40, height: 30),
+          ).text('ABC_');
+          expect(zpl.compile(b2), contains('^FDABC_^FS'));
 
-        // Should contain ^FH^FDModel_5EA_7EB_5FC^FS
-        expect(text, contains('^FH^FDModel_5EA_7EB_5FC^FS'));
-      },
-    );
+          // "___" without ^ or ~
+          final b3 = label(
+            const LabelConfig(width: 40, height: 30),
+          ).text('___');
+          expect(zpl.compile(b3), contains('^FD___^FS'));
+        },
+      );
+
+      test(
+        'When control chars are present, literal underscore is escaped to prevent hex collision',
+        () {
+          // "ABC_41^" contains '^', so ^FH is active and '_' must become '_5F' to avoid printer interpreting '_41' as 'A'
+          final b1 = label(
+            const LabelConfig(width: 40, height: 30),
+          ).text('ABC_41^');
+          expect(zpl.compile(b1), contains('^FH^FDABC_5F41_5E^FS'));
+
+          // "ABC_^"
+          final b2 = label(
+            const LabelConfig(width: 40, height: 30),
+          ).text('ABC_^');
+          expect(zpl.compile(b2), contains('^FH^FDABC_5F_5E^FS'));
+
+          // "___^"
+          final b3 = label(
+            const LabelConfig(width: 40, height: 30),
+          ).text('___^');
+          expect(zpl.compile(b3), contains('^FH^FD_5F_5F_5F_5E^FS'));
+
+          // Single control chars
+          final b4 = label(const LabelConfig(width: 40, height: 30)).text('^');
+          expect(zpl.compile(b4), contains('^FH^FD_5E^FS'));
+
+          final b5 = label(const LabelConfig(width: 40, height: 30)).text('~');
+          expect(zpl.compile(b5), contains('^FH^FD_7E^FS'));
+
+          final b6 = label(
+            const LabelConfig(width: 40, height: 30),
+          ).text('_^~');
+          expect(zpl.compile(b6), contains('^FH^FD_5F_5E_7E^FS'));
+        },
+      );
+    });
 
     test('Raster image generates exact ^GFA ASCII hex bytes', () {
       final bitmap = MonochromeBitmap(
@@ -178,7 +268,7 @@ void main() {
       ).image(bitmap, const ImageOptions(x: 10, y: 10));
 
       final output = zpl.compileBytes(builder);
-      final text = ascii.decode(output);
+      final text = utf8.decode(output);
 
       expect(text, contains('^FO10,10^GFA,4,4,2,007F80FF^FS'));
 
@@ -212,7 +302,7 @@ void main() {
             );
 
         final output = zpl.compileBytes(builder);
-        final text = ascii.decode(output);
+        final text = utf8.decode(output);
 
         expect(text, contains('^B3N,50,N,N,N^FDCODE39^FS'));
         expect(text, contains('^BQN,2,5,Q,7^FDQA,https://example.com^FS'));
@@ -225,7 +315,7 @@ void main() {
           .raw(Uint8List.fromList([0x5E, 0x4A, 0x55, 0x53, 0x0A])); // ^JUS\n
 
       final output = zpl.compileBytes(builder);
-      final text = ascii.decode(output);
+      final text = utf8.decode(output);
 
       expect(text, contains('^FX Raw ZPL Comment ~SD25\n'));
       expect(text, contains('^JUS\n'));

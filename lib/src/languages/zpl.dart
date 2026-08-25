@@ -9,6 +9,10 @@ import '../types.dart';
 String _hex(int byte) => byte.toRadixString(16).toUpperCase().padLeft(2, '0');
 
 /// Escapes ZPL command control delimiters (^ and ~) using ZPL ^FH hex escape format.
+///
+/// When ^FH is enabled on a field, literal underscores must also be escaped as
+/// `_5F` to prevent the printer from misinterpreting following hexadecimal characters
+/// (e.g. `_41` becoming `A`).
 String _escapeZplHex(String text) {
   final buf = StringBuffer();
   for (int i = 0; i < text.length; i++) {
@@ -28,11 +32,11 @@ String _escapeZplHex(String text) {
 
 /// Compile a resolved label to ZPL II commands as a byte sequence ([Uint8List]).
 ///
-/// If [encoding] is configured with [ZplTextEncoding.utf8], text fields are encoded
-/// as UTF-8 and `^CI28` is emitted in the header (unless [ZplEncoding.emitCiCommand] is false).
-/// If omitted, defaults to [ZplEncoding.legacy] (ASCII / Latin-1 baseline without `^CI28`).
+/// By default, uses [ZplEncoding.defaultEncoding] ([ZplEncoding.utf8]), which emits
+/// `^CI28` and serializes text as UTF-8 (matching historical Portakal behavior).
+/// For legacy environments without `^CI28`, pass [ZplEncoding.legacy].
 Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
-  final enc = encoding ?? const ZplEncoding.legacy();
+  final enc = encoding ?? ZplEncoding.defaultEncoding;
   final isUtf8 = enc.type == ZplTextEncoding.utf8;
   final writer = PrinterByteWriter();
 
@@ -216,10 +220,16 @@ Uint8List compileToZPLBytes(ResolvedLabel label, {ZplEncoding? encoding}) {
 
 /// Compile a resolved label to ZPL II commands as a [String].
 ///
-/// Note: For binary transport or multi-byte UTF-8, prefer [compileToZPLBytes].
+/// Decodes the underlying byte stream strictly: via [utf8.decode] in UTF-8 mode,
+/// and via [latin1.decode] in legacy 8-bit mode.
 String compileToZPL(ResolvedLabel label, {ZplEncoding? encoding}) {
-  final bytes = compileToZPLBytes(label, encoding: encoding);
-  return utf8.decode(bytes, allowMalformed: true);
+  final enc = encoding ?? ZplEncoding.defaultEncoding;
+  final bytes = compileToZPLBytes(label, encoding: enc);
+  if (enc.type == ZplTextEncoding.utf8) {
+    return utf8.decode(bytes);
+  } else {
+    return latin1.decode(bytes);
+  }
 }
 
 String _zplRotation(int degrees) {

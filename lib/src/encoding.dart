@@ -169,11 +169,11 @@ class EscPosEncoding {
 
 /// Text encoding mode for Zebra ZPL II serialization.
 enum ZplTextEncoding {
-  /// Default ASCII/Latin-1 mode without ^CI switch (legacy ZPL II baseline).
-  legacy,
-
-  /// Full Unicode UTF-8 encoding with ^CI28 header command.
+  /// Full Unicode UTF-8 encoding with ^CI28 header command (SDK default).
   utf8,
+
+  /// Legacy ASCII / Latin-1 baseline without ^CI28 command.
+  legacy,
 }
 
 /// Explicit ZPL II encoding configuration.
@@ -184,19 +184,17 @@ class ZplEncoding {
   /// Whether to emit `^CI28` in the label header when [type] is [ZplTextEncoding.utf8].
   final bool emitCiCommand;
 
-  const ZplEncoding({
-    this.type = ZplTextEncoding.utf8,
-    this.emitCiCommand = true,
-  });
+  /// Standard UTF-8 mode with ^CI28 header command (historical and SDK default).
+  const ZplEncoding.utf8({this.emitCiCommand = true})
+    : type = ZplTextEncoding.utf8;
 
-  /// Default legacy ZPL II mode (no ^CI28 emitted, standard ASCII baseline).
+  /// Legacy mode without ^CI28 command (ASCII / Latin-1 baseline).
   const ZplEncoding.legacy()
     : type = ZplTextEncoding.legacy,
       emitCiCommand = false;
 
-  /// Full UTF-8 mode (emits ^CI28 after ^XA).
-  const ZplEncoding.utf8({this.emitCiCommand = true})
-    : type = ZplTextEncoding.utf8;
+  /// The canonical default ZPL encoding configuration (UTF-8 with ^CI28).
+  static const ZplEncoding defaultEncoding = ZplEncoding.utf8();
 }
 
 /// Character encoder for a single [PrinterCodePage].
