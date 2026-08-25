@@ -1,12 +1,34 @@
+import 'dart:convert';
 import 'dart:typed_data';
+
+import '../byte_writer.dart';
+import '../encoding.dart';
 import '../types.dart';
 
-/// Compile a resolved label to Star PRNT binary commands.
-Uint8List compileToStarPRNT(ResolvedLabel label) {
-  final bytes = <int>[];
+const int _esc = 0x1B;
+const int _gs = 0x1D;
+
+/// Compile a resolved label to Star PRNT binary commands as a [Uint8List].
+///
+/// If [encoding] is supplied, text is encoded using the configured [CodePageEncoder]
+/// and code page table selection (`ESC GS t <characterTable>`) is emitted if requested.
+/// If omitted, defaults to [StarPrntEncoding.defaultEncoding] ([StarPrntEncoding.legacy]).
+Uint8List compileToStarPRNT(ResolvedLabel label, {StarPrntEncoding? encoding}) {
+  final enc = encoding ?? StarPrntEncoding.defaultEncoding;
+  final encoder = getEncoder(enc.codePage);
+  final writer = PrinterByteWriter();
 
   // ESC @ — Initialize
-  bytes.addAll([0x1B, 0x40]);
+  writer.writeByte(_esc);
+  writer.writeAscii('@');
+
+  // If code page selection is requested: ESC GS t <characterTable>
+  if (enc.sendCodePageCommand && enc.characterTable != null) {
+    writer.writeByte(_esc);
+    writer.writeByte(_gs);
+    writer.writeAscii('t');
+    writer.writeByte(enc.characterTable!);
+  }
 
   for (final el in label.elements) {
     switch (el) {
@@ -18,79 +40,104 @@ Uint8List compileToStarPRNT(ResolvedLabel label) {
           int n = 0;
           if (o.align == 'center') n = 1;
           if (o.align == 'right') n = 2;
-          bytes.addAll([0x1B, 0x1D, 0x61, n]);
+          writer.writeByte(_esc);
+          writer.writeByte(_gs);
+          writer.writeAscii('a');
+          writer.writeByte(n);
         }
 
         // Bold: ESC E
         if (o.bold == true) {
-          bytes.addAll([0x1B, 0x45]);
+          writer.writeByte(_esc);
+          writer.writeAscii('E');
         }
 
         // Size: ESC i h w
         if (o.size != null && o.size! > 1) {
-          bytes.addAll([0x1B, 0x69, o.size!, o.size!]);
+          writer.writeByte(_esc);
+          writer.writeAscii('i');
+          writer.writeByte(o.size!);
+          writer.writeByte(o.size!);
         }
 
         // Text content
-        bytes.addAll(el.content.codeUnits);
-        bytes.add(0x0A); // LF
+        final textBytes = encoder.encode(
+          el.content,
+          replaceUnsupported: enc.replaceUnsupported,
+        );
+        writer.writeBytes(textBytes);
+        writer.writeByte(0x0A); // LF
 
         // Reset size
         if (o.size != null && o.size! > 1) {
-          bytes.addAll([0x1B, 0x69, 1, 1]);
+          writer.writeByte(_esc);
+          writer.writeAscii('i');
+          writer.writeByte(1);
+          writer.writeByte(1);
         }
 
         // Bold off: ESC F
         if (o.bold == true) {
-          bytes.addAll([0x1B, 0x46]);
+          writer.writeByte(_esc);
+          writer.writeAscii('F');
         }
 
         // Reset alignment
         if (o.align != null) {
-          bytes.addAll([0x1B, 0x1D, 0x61, 0]);
+          writer.writeByte(_esc);
+          writer.writeByte(_gs);
+          writer.writeAscii('a');
+          writer.writeByte(0);
         }
 
       case ImageElement():
         final bmp = el.bitmap;
         // Enter raster mode: ESC * r A
-        bytes.addAll([0x1B, 0x2A, 0x72, 0x41]);
-        // Send each row
+        writer.writeByte(_esc);
+        writer.writeBytes(const [0x2A, 0x72, 0x41]); // * r A
+
+        // Send each row: 'b' nL nH data...
         for (int y = 0; y < bmp.height; y++) {
           final rowStart = y * bmp.bytesPerRow;
-          // b nL nH data...
-          bytes.add(0x62); // b
-          bytes.addAll([bmp.bytesPerRow & 0xFF, (bmp.bytesPerRow >> 8) & 0xFF]);
+          writer.writeByte(0x62); // 'b'
+          writer.writeByte(bmp.bytesPerRow & 0xFF);
+          writer.writeByte((bmp.bytesPerRow >> 8) & 0xFF);
           for (int i = 0; i < bmp.bytesPerRow; i++) {
-            bytes.add(bmp.data[rowStart + i]);
+            writer.writeByte(bmp.data[rowStart + i]);
           }
         }
         // Exit raster mode: ESC * r B
-        bytes.addAll([0x1B, 0x2A, 0x72, 0x42]);
+        writer.writeByte(_esc);
+        writer.writeBytes(const [0x2A, 0x72, 0x42]); // * r B
 
       case RawElement():
-        if (el.content is String) {
-          bytes.addAll((el.content as String).codeUnits);
-        } else if (el.content is Uint8List) {
-          bytes.addAll(el.content as Uint8List);
+        if (el.content is Uint8List) {
+          writer.writeBytes(el.content as Uint8List);
+        } else if (el.content is List<int>) {
+          writer.writeBytes(el.content as List<int>);
+        } else if (el.content is String) {
+          writer.writeString(el.content as String, encoding: latin1);
         }
 
       case BarcodeElement():
         final o = el.options;
         final typeByte = o.type == '39' ? 1 : 5; // 1=Code39, 5=Code128
-        bytes.addAll([
-          0x1B,
-          0x62,
-          typeByte,
-          o.readable == 1 ? 2 : 1,
-          o.wide ?? 2,
-          o.height > 255 ? 255 : o.height,
-        ]);
-        bytes.addAll(el.content.codeUnits);
-        bytes.add(0x1E);
+        writer.writeByte(_esc);
+        writer.writeByte(0x62); // 'b'
+        writer.writeByte(typeByte);
+        writer.writeByte(o.readable == 1 ? 2 : 1);
+        writer.writeByte(o.wide ?? 2);
+        writer.writeByte(o.height > 255 ? 255 : o.height);
+        writer.writeAscii(el.content);
+        writer.writeByte(0x1E); // RS terminator
 
       case QRCodeElement():
         final o = el.options;
-        bytes.addAll([0x1B, 0x1D, 0x79, 0x53, 0x30, o.cellWidth ?? 4]);
+        // ESC GS y S 0 <cellWidth>
+        writer.writeByte(_esc);
+        writer.writeByte(_gs);
+        writer.writeBytes([0x79, 0x53, 0x30, o.cellWidth ?? 4]);
+
         final ecc = o.eccLevel == 'L'
             ? 0
             : o.eccLevel == 'M'
@@ -98,12 +145,21 @@ Uint8List compileToStarPRNT(ResolvedLabel label) {
             : o.eccLevel == 'Q'
             ? 2
             : 3;
-        bytes.addAll([0x1B, 0x1D, 0x79, 0x53, 0x31, ecc]);
-        bytes.addAll([0x1B, 0x1D, 0x79, 0x53, 0x32, 2]); // model 2
+        // ESC GS y S 1 <ecc>
+        writer.writeByte(_esc);
+        writer.writeByte(_gs);
+        writer.writeBytes([0x79, 0x53, 0x31, ecc]);
+
+        // ESC GS y S 2 2 (model 2)
+        writer.writeByte(_esc);
+        writer.writeByte(_gs);
+        writer.writeBytes(const [0x79, 0x53, 0x32, 2]);
+
         final len = el.content.length;
-        bytes.addAll([
-          0x1B,
-          0x1D,
+        // ESC GS y D 1 0 <nL> <nH> <data>
+        writer.writeByte(_esc);
+        writer.writeByte(_gs);
+        writer.writeBytes([
           0x79,
           0x44,
           0x31,
@@ -111,8 +167,12 @@ Uint8List compileToStarPRNT(ResolvedLabel label) {
           len & 0xFF,
           (len >> 8) & 0xFF,
         ]);
-        bytes.addAll(el.content.codeUnits);
-        bytes.addAll([0x1B, 0x1D, 0x79, 0x50]);
+        writer.writeAscii(el.content);
+
+        // ESC GS y P (print)
+        writer.writeByte(_esc);
+        writer.writeByte(_gs);
+        writer.writeBytes(const [0x79, 0x50]);
 
       default:
         break;
@@ -120,7 +180,15 @@ Uint8List compileToStarPRNT(ResolvedLabel label) {
   }
 
   // ESC d 1 — Partial cut
-  bytes.addAll([0x1B, 0x64, 1]);
+  writer.writeByte(_esc);
+  writer.writeAscii('d');
+  writer.writeByte(1);
 
-  return Uint8List.fromList(bytes);
+  return writer.toBytes();
 }
+
+/// Convenience alias for [compileToStarPRNT] providing naming consistency across protocols.
+Uint8List compileToStarPRNTBytes(
+  ResolvedLabel label, {
+  StarPrntEncoding? encoding,
+}) => compileToStarPRNT(label, encoding: encoding);

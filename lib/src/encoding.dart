@@ -547,6 +547,98 @@ class SbplEncoding {
   static const SbplEncoding defaultEncoding = SbplEncoding.legacy();
 }
 
+/// Explicit Star PRNT character encoding and code page selection configuration.
+class StarPrntEncoding {
+  /// The character mapping to use for user text.
+  final PrinterCodePage codePage;
+
+  /// The Star code page selector table number (e.g. 0 for CP437, 3 for CP858, 16 for CP1252).
+  /// If null or sendCodePageCommand is false, no ESC GS t command is emitted.
+  final int? characterTable;
+
+  /// Whether to emit `ESC GS t <characterTable>` command in preamble.
+  final bool sendCodePageCommand;
+
+  /// Whether to replace unencodable characters with `?` (0x3F) instead of throwing.
+  final bool replaceUnsupported;
+
+  const StarPrntEncoding({
+    required this.codePage,
+    this.characterTable,
+    this.sendCodePageCommand = false,
+    this.replaceUnsupported = false,
+  });
+
+  /// Default legacy Star PRNT mode (CP437 mapping without code page command).
+  const StarPrntEncoding.legacy({bool replaceUnsupported = false})
+    : this(
+        codePage: PrinterCodePage.cp437,
+        characterTable: null,
+        sendCodePageCommand: false,
+        replaceUnsupported: replaceUnsupported,
+      );
+
+  /// Standard CP437 mode.
+  const StarPrntEncoding.cp437({
+    bool sendCodePageCommand = false,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp437,
+         characterTable: 0,
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP858 (Western European with Euro) mode.
+  const StarPrntEncoding.cp858({
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp858,
+         characterTable: 3,
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard CP850 (Western European) mode.
+  const StarPrntEncoding.cp850({
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp850,
+         characterTable: 1,
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Standard Windows CP1252 mode.
+  const StarPrntEncoding.cp1252({
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: PrinterCodePage.cp1252,
+         characterTable: 16,
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// Custom Star PRNT encoding configuration.
+  const StarPrntEncoding.custom({
+    required PrinterCodePage codePage,
+    int? characterTable,
+    bool sendCodePageCommand = true,
+    bool replaceUnsupported = false,
+  }) : this(
+         codePage: codePage,
+         characterTable: characterTable,
+         sendCodePageCommand: sendCodePageCommand,
+         replaceUnsupported: replaceUnsupported,
+       );
+
+  /// The canonical default Star PRNT encoding (legacy CP437).
+  static const StarPrntEncoding defaultEncoding = StarPrntEncoding.legacy();
+}
+
 /// Character encoder for a single [PrinterCodePage].
 class CodePageEncoder {
   final PrinterCodePage codePage;
