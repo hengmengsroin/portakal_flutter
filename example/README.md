@@ -2,53 +2,60 @@
 
 Interactive Flutter developer utility for physical printer testing and Level 2 / Level 3 evidence collection across all 9 Portakal-supported printer protocols.
 
+> [!NOTE]
+> This application is an **interactive test bench and evidence harness** for developers and QA engineers. It is not a runtime dependency for apps integrating `portakal_core` or `portakal_flutter`.
+
 ---
 
-## 1. Purpose
+## 1. Running the Validation Bench
 
-The Portakal Hardware Validation Bench provides a clean, transport-decoupled harness to execute deterministic protocol command streams against real thermal and label printers.
+Launch the interactive bench on your preferred desktop or mobile target:
 
-### Supported Protocols:
-1. **ESC/POS** (`EscPosPrinter` — Epson standard thermal receipt protocol)
-2. **TSC / TSPL2** (`TscPrinter` — TSC label and receipt printer protocol)
-3. **ZPL II** (`ZplPrinter` — Zebra Programming Language II)
-4. **EPL2** (`EplPrinter` — Eltron Programming Language 2)
-5. **CPCL** (`CpclPrinter` — Comtec / Zebra Mobile receipt & label protocol)
-6. **DPL** (`DplPrinter` — Datamax Programming Language with CR endings)
-7. **IPL** (`IplPrinter` — Intermec Printer Language with F90–F99 format lifecycle)
-8. **SBPL** (`SbplPrinter` — SATO Barcode Printer Language with ESC A / ESC Z)
-9. **Star Line / PRNT** (`StarPrntPrinter` — Star Micronics Line Mode protocol)
+```bash
+# macOS Desktop
+flutter run -d macos -t example/lib/main.dart
+
+# Windows Desktop
+flutter run -d windows -t example/lib/main.dart
+
+# Android / iOS (requires Bluetooth permissions configured)
+flutter run -d <device-id> -t example/lib/main.dart
+```
 
 ---
 
 ## 2. Developer Validation Workflow
 
 ```
-1. Select Protocol (Dropdown)
+1. Select Protocol (ESC/POS, TSC, ZPL, EPL, CPCL, DPL, IPL, SBPL, Star)
         ↓
-2. Connect Printer (Bluetooth / BLE / USB Transport)
+2. Connect Printer (Bluetooth Low Energy / USB / Network Transport)
         ↓
 3. Run D00 Capability Probe
         ↓
 4. Evaluate Output (PASS or N/S-DEVICE)
         ↓
-5. Execute Protocol Feature Cases (Text, Encodings, Barcode, QR, Raster, Copies)
+5. Execute Protocol Feature Cases (Text, Code Pages, Barcode, QR, Raster, Copies)
         ↓
-6. Scan & Verify Payloads (Barcode / QR Barcode Reader)
+6. Scan & Verify Payloads (Physical Barcode Reader / Visual Inspection)
         ↓
 7. Export Verified Session JSON (Telemetry, Diagnostics, Golden SHAs)
 ```
 
-### Important Protocol Capability Rule:
+---
+
+## 3. Important Protocol Capability Warning
+
 > [!WARNING]
 > **A successful transport write does NOT automatically prove protocol support.**
-> Low-cost POS or dual-mode printers may accept raw bytes over BLE without throwing a transport error, but will print unparsed command text (e.g. literal `^XA...^XZ` or `! 0 200 200...`) or ignore control sequences if the internal firmware lacks the corresponding command interpreter.
+>
+> Many low-cost POS or dual-mode label printers accept raw bytes over Bluetooth or USB without throwing a transport error, but will print unparsed command text (e.g. literal `^XA...^XZ` or `! 0 200 200...`) or ignore control sequences if the internal firmware lacks that protocol's command interpreter.
 >
 > Always run the **D00 Capability Probe** first and verify physical output before running complex layout cases.
 
 ---
 
-## 3. Architecture & Separation of Concerns
+## 4. Architecture & Decoupling
 
 ```
 Protocol Validation Suite (example)
@@ -57,9 +64,9 @@ Portakal Native Builders (packages/portakal_core)
         ↓
 Uint8List Command Bytes (Exact Binary Stream)
         ↓
-HardwarePrinterTransport (flutter_thermal_printer / Transport Layer)
+HardwarePrinterTransport (Transport Layer)
         ↓
-Physical Hardware (BLE / USB / Network)
+Physical Hardware (BLE / USB / TCP Port 9100)
 ```
 
 - **`packages/portakal_core`**: Responsible solely for protocol command generation and binary semantics.

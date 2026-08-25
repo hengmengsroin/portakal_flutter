@@ -1,56 +1,46 @@
+## 1.0.0
+
+### Added
+- Standardized canonical byte-native `.compile()` API returning `Uint8List` across all 9 language facades (`tsc`, `zpl`, `epl`, `cpcl`, `dpl`, `ipl`, `sbpl`, `escpos`, `starprnt`).
+- Added `LabelBuilder.print([int copies = 1])` with eager positive-integer validation and authoritative resolution precedence.
+- Added `LabelBuilder.rawBytes(Uint8List)` and `LabelBuilder.rawAscii(String)` with full binary gamut safety and ASCII validation.
+- Added `UnsupportedFeaturePolicy` (`throwError`, `ignore`) defaulting to safe error throwing.
+- Added `EncodingError` base class with clean inheritance (`UnsupportedCharacterException` extends `EncodingError` extends `PortakalError`).
+- Added canonical `ReceiptColumn` in `portakal_core` and configured `portakal_flutter` export with `hide Column` to eliminate Flutter widget collisions.
+- Added universal hardware validation bench in `example/` with deterministic test harness and automated golden SHA-256 assertions.
+- Added comprehensive documentation hierarchy under `docs/` covering all 9 protocols, concepts, encodings, and migration.
+
+### Changed
+- Replaced `Column` with `ReceiptColumn` in receipt layout functions (`formatRow`, `formatTable`).
+- Standardized all native protocol builders (`TscPrinter`, `EscPosPrinter`, `ZplPrinter`, etc.) on `.toBytes() -> Uint8List`.
+- Decoupled `portakal_core` (pure Dart, zero UI dependencies) from `portakal_flutter` (Flutter integration).
+
+### Deprecated
+- Deprecated legacy `typedef Column = ReceiptColumn;` (removal in 2.0).
+- Deprecated `.compileBytes()` aliases in favor of `.compile()` (removal in 2.0).
+- Deprecated String serializers (`compileToTSC`, `compileToZPL`, etc.) in favor of byte-native APIs (removal in 2.0).
+- Deprecated untyped `LabelBuilder.raw(Object)` and `RawElement({required Object content})` in favor of `rawBytes` and `rawAscii` (removal in 2.0).
+- Deprecated legacy encoding helpers (`EncodedSegment`, `CodePage`, `isASCII`, `encodeText`, `encodeTextForPrinter`) in favor of `PrinterCodePage` and `CodePageEncoder` (removal in 2.0).
+
+### Physical Hardware Validation
+- Physically validated ESC/POS verified subset on `Printer001-328F` (PASS).
+- Physically validated TSC/TSPL2 verified subset on `Printer001-328F` (PASS).
+- Cataloged ZPL II emulation absence on `Printer001-328F` as `N/S-DEVICE`.
+
 ## 0.1.7
 
 - Added `BarcodeElement` and `QRCodeElement` to the `LabelBuilder` API (`.barcode()` and `.qrcode()`).
-- Implemented Barcode and QRCode native compilation support across all 9 printer languages (TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT).
-- Added visual placeholder rendering for Barcodes and QRCodes in the Flutter `LabelPreview` widget.
-- Completed language facade methods (`parse`, `preview`, `validate`) for all supported language modules.
-- Updated `example/flutter_preview.dart` to showcase a complete invoice layout.
-- Added comprehensive unit tests for new elements across builder, preview, and compilers.
+- Implemented Barcode and QRCode native compilation support across all 9 printer languages.
+- Added visual placeholder rendering for Barcodes and QRCodes in Flutter `LabelPreview`.
 
 ## 0.1.6
 
-- Fixed analyzer warnings for `avoid_print` in example project.
-- Minor formatting and documentation fixes to prepare for release.
+- Fixed analyzer warnings and minor formatting across packages.
 
 ## 0.1.5
 
-- Prepared release for publish.
-- Updated package version to `0.1.5`.
-- Refreshed changelog for the latest release cycle.
-
-## 0.1.4
-
-- Cleaned up analyzer findings and code style across parser/language modules.
-- Standardized formatting across source and test files for maintainability.
-- Updated parser test accessors to lowerCamelCase (`typeStr`, `endVal`, `labelName`, `codeStr`).
-- Updated internal task tracker milestones to reflect completed phases.
-- Added `.pubignore` to exclude internal workspace files from the published package.
-
-## 0.1.3
-
-- Added Flutter `LabelPreview` widget for in-app label rendering before printing.
-- Added `example/flutter_preview.dart` for a ready-to-run Flutter preview screen.
-- Updated package metadata and README content to document Flutter preview support.
-
-## 0.1.2
-
-- Added `LabelPreview` Flutter widget for in-app label preview before printing.
-- Added runnable package example under `example/main.dart`.
-- Added Flutter UI example under `example/flutter_preview.dart`.
-- Declared support for all pub.dev platforms in package metadata.
-- Improved README with example run instructions and updated installation version.
-
-## 0.1.1
-
-- Migrated package tooling to pure Dart (`dart test`, `dart analyze`) and removed Flutter SDK dependency requirements.
-- Updated README examples to use public package imports (`package:portakal_flutter/portakal_flutter.dart`).
-- Expanded and clarified the Label Elements capability matrix across all supported printer languages.
-- Added and corrected release metadata/doc alignment for publish readiness.
+- Package version bump and preparation for release.
 
 ## 0.1.0
 
-- Initial public release of `portakal_flutter`.
-- Added multi-language printer support for TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, and Star PRNT.
-- Added label builder, markup parser, cross-language conversion, validators, parsers, SVG preview, and printer profile utilities.
-- Added image-to-monochrome utilities with multiple dithering algorithms.
-- Added test coverage for language modules, parsers, builders, image processing, and utilities.
+- Initial public release of Portakal SDK.
