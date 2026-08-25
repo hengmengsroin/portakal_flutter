@@ -20,7 +20,7 @@ version: 1.0.0+1
 resolution: workspace
 
 environment:
-  sdk: ^3.11.4
+  sdk: ^3.6.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -40,8 +40,7 @@ dependencies:
       url: https://github.com/hengmengsroin/flutter_thermal_printer.git
       ref: main
 
-  portakal_flutter:
-    path: ../packages/portakal_flutter
+  portakal_flutter: ^1.0.0-rc.1
 
 dev_dependencies:
   flutter_test:

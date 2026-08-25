@@ -1,20 +1,25 @@
 name: portakal_flutter
 description: "Universal printer SDK for Flutter — Widgets and preview renderers for TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, and Star PRNT."
-version: 0.3.0
+version: 1.0.0-rc.1
 homepage: https://github.com/hengmengsroin/portakal_flutter
 repository: https://github.com/hengmengsroin/portakal_flutter
 issue_tracker: https://github.com/hengmengsroin/portakal_flutter/issues
+topics:
+  - printer
+  - thermal-printer
+  - flutter
+  - label
+  - esc-pos
 resolution: workspace
 
 environment:
-  sdk: ^3.11.4
+  sdk: "^3.6.0"
   flutter: ">=3.24.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  portakal_core:
-    path: ../portakal_core
+  portakal_core: ^1.0.0-rc.1
 
 dev_dependencies:
   flutter_lints: ^6.0.0

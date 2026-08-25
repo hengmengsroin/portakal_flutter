@@ -3,7 +3,7 @@ description: "Monorepo workspace for Portakal universal printer SDK."
 publish_to: "none"
 
 environment:
-  sdk: ^3.11.4
+  sdk: "^3.6.0"
 
 workspace:
   - packages/portakal_core

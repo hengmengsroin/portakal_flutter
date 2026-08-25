@@ -1,13 +1,19 @@
 name: portakal_core
 description: "Universal printer language SDK — Pure-Dart protocol engine for TSC, ZPL, EPL, ESC/POS, CPCL, DPL, IPL, SBPL, Star PRNT."
-version: 0.3.0
+version: 1.0.0-rc.1
 homepage: https://github.com/hengmengsroin/portakal_flutter
 repository: https://github.com/hengmengsroin/portakal_flutter
 issue_tracker: https://github.com/hengmengsroin/portakal_flutter/issues
+topics:
+  - printer
+  - thermal-printer
+  - esc-pos
+  - zpl
+  - tspl
 resolution: workspace
 
 environment:
-  sdk: ^3.11.4
+  sdk: "^3.6.0"
 
 dev_dependencies:
   lints: ^6.0.0
