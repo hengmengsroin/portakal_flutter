@@ -1,11 +1,38 @@
 import 'package:flutter/material.dart';
+import 'src/pages/example_gallery_page.dart';
 import 'src/pages/hardware_validation_page.dart';
 import 'src/transport/hardware_printer_transport.dart';
 
 void main() {
-  runApp(const PortakalHardwareApp());
+  runApp(const PortakalApp());
 }
 
+/// Main Portakal Example Application featuring the 19-use-case gallery.
+class PortakalApp extends StatelessWidget {
+  final HardwarePrinterTransport? transport;
+
+  const PortakalApp({super.key, this.transport});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Portakal Example Gallery',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepOrange,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+      ),
+      home: ExampleGalleryPage(
+        transport: transport ?? FlutterThermalPrinterTransport(),
+      ),
+    );
+  }
+}
+
+/// Dedicated test bench entry widget for physical printer validation.
 class PortakalHardwareApp extends StatelessWidget {
   final HardwarePrinterTransport? transport;
   final String targetDeviceName;

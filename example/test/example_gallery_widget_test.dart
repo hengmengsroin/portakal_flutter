@@ -1,0 +1,146 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:example/main.dart';
+import 'package:example/src/examples/example_catalog.dart';
+import 'package:example/src/pages/example_detail_page.dart';
+import 'package:example/src/pages/example_gallery_page.dart';
+import 'package:example/src/transport/hardware_printer_transport.dart';
+
+void main() {
+  group('Example Gallery & Detail Widget Tests', () {
+    testWidgets('Gallery page renders all category chips, search bar, and example cards', (
+      WidgetTester tester,
+    ) async {
+      final mockTransport = MockHardwarePrinterTransport();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExampleGalleryPage(transport: mockTransport),
+        ),
+      );
+
+      // Verify header & search bar
+      expect(find.text('Portakal Example Gallery'), findsOneWidget);
+      expect(find.byKey(const Key('gallery_search_field')), findsOneWidget);
+
+      // Verify category filter chips
+      expect(find.byKey(const Key('category_all')), findsOneWidget);
+      expect(find.byKey(const Key('category_retail')), findsOneWidget);
+      expect(find.byKey(const Key('category_pharmacy')), findsOneWidget);
+
+      // Verify presence of example cards
+      expect(find.text('Simple Text & Frame'), findsOneWidget);
+      expect(find.text('Retail Product Price Label'), findsOneWidget);
+    });
+
+    testWidgets('Category filtering updates list dynamically', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ExampleGalleryPage(),
+        ),
+      );
+
+      // Tap on 'Retail' chip
+      await tester.tap(find.byKey(const Key('category_retail')));
+      await tester.pumpAndSettle();
+
+      // Retail examples should be present
+      expect(find.text('Retail Product Price Label'), findsOneWidget);
+      expect(find.text('Promotion & Discount Tag'), findsOneWidget);
+
+      // Other category examples should be filtered out
+      expect(find.text('Simple Text & Frame'), findsNothing);
+    });
+
+    testWidgets('Search query filters examples by text', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ExampleGalleryPage(),
+        ),
+      );
+
+      // Enter search query
+      await tester.enterText(find.byKey(const Key('gallery_search_field')), 'Amoxicillin');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Medicine Price & Batch Label'), findsOneWidget);
+      expect(find.text('Simple Text & Frame'), findsNothing);
+    });
+
+    testWidgets('Detail page renders preview, protocol selector, and compiles raw bytes', (
+      WidgetTester tester,
+    ) async {
+      final example = ExampleCatalog.getById('simple_text')!;
+      final mockTransport = MockHardwarePrinterTransport();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExampleDetailPage(
+            exampleCase: example,
+            transport: mockTransport,
+          ),
+        ),
+      );
+
+      // Verify title and metadata
+      expect(find.text('Simple Text & Frame'), findsOneWidget);
+      expect(find.text('Visual Label Preview'), findsOneWidget);
+
+      // Ensure visible and verify raw byte output
+      final rawByteFinder = find.text('Raw Byte Output');
+      await tester.ensureVisible(rawByteFinder);
+      await tester.pumpAndSettle();
+      expect(rawByteFinder, findsOneWidget);
+      expect(find.text('Copy Hex'), findsOneWidget);
+
+      // Ensure print button is visible and tap it
+      final printButton = find.byKey(const Key('print_to_hardware_button'));
+      await tester.ensureVisible(printButton);
+      await tester.pumpAndSettle();
+      await tester.tap(printButton);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Successfully sent'), findsOneWidget);
+    });
+
+    testWidgets('Detail page displays honest error banner on unsupported protocol features', (
+      WidgetTester tester,
+    ) async {
+      // simple_text has boxes & lines which ESC/POS does not support in compileResolved
+      final example = ExampleCatalog.getById('simple_text')!;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExampleDetailPage(
+            exampleCase: example,
+          ),
+        ),
+      );
+
+      // Scroll to dropdown and change protocol to ESC/POS
+      final dropdownFinder = find.byKey(const Key('protocol_dropdown'));
+      await tester.ensureVisible(dropdownFinder);
+      await tester.pumpAndSettle();
+
+      await tester.tap(dropdownFinder);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('ESC/POS').last);
+      await tester.pumpAndSettle();
+
+      // Error banner should be displayed with exact reason
+      expect(find.text('Unsupported Protocol Feature'), findsOneWidget);
+      expect(find.textContaining('ESC/POS receipt compiler does not support geometric'), findsOneWidget);
+    });
+
+    testWidgets('App smoke launch with PortakalApp and PortakalHardwareApp', (
+      WidgetTester tester,
+    ) async {
+      final mockTransport = MockHardwarePrinterTransport();
+      await tester.pumpWidget(PortakalApp(transport: mockTransport));
+      expect(find.text('Portakal Example Gallery'), findsOneWidget);
+
+      await tester.pumpWidget(PortakalHardwareApp(transport: mockTransport));
+      expect(find.text('Portakal Hardware Test Bench — ESC/POS'), findsOneWidget);
+    });
+  });
+}

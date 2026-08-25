@@ -110,6 +110,25 @@ class PreviewScreen extends StatelessWidget {
 
 ---
 
+## 🎨 Practical Example Gallery
+
+The [`example`](example/) application features **19 ready-to-use, copyable printing templates** across real-world domains with live visual preview, 9-protocol compilation, and raw byte inspection:
+
+| Domain | Representative Use Cases | Example Media |
+| :--- | :--- | :--- |
+| **Retail** | Product Price Labels (EAN-13), Promotion & Clearance Tags | 40×30mm, 50×40mm |
+| **Pharmacy** | Prescription Labels, Medicine Batch & Expiry Alert Tags | 50×30mm, 70×50mm |
+| **Restaurant** | Kitchen Order Tickets (KOT), Itemized Customer POS Receipts | 80mm Continuous |
+| **Warehouse** | Location Bin Identifiers (Aisle/Rack), Inventory Lot Tags | 100×50mm, 80×50mm |
+| **Logistics** | Cross-Border Shipping Labels, Compact Courier Routing Tags | 100×150mm, 60×40mm |
+| **Tickets & Badges**| Event Admission Tickets, Queue Number Slips, Visitor Badges | 80×50mm, 60mm Cont. |
+| **Asset Management**| Enterprise IT Equipment Tags with Asset Tracking QR Codes | 50×25mm |
+| **Advanced** | Commercial Invoices, 1-bit Monochrome Logos, Multilingual Text | 80×100mm, 60×40mm |
+
+*Explore all templates in [`example/lib/src/examples`](example/lib/src/examples).*
+
+---
+
 ## The Byte-Native Contract & Transport Boundary
 
 > [!IMPORTANT]
