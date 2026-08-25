@@ -27,7 +27,14 @@
       "dialect": "TSC / TSPL2 verified subset",
       "status": "PASS",
       "evidence_manifest": "hardware_validation/tsc/Printer001_328F/BLE/manifest.json"
+    },
+    {
+      "protocol": "zpl",
+      "dialect": "ZPL II",
+      "status": "N/S-DEVICE",
+      "evidence_manifest": "hardware_validation/zpl/Printer001_328F/BLE/manifest.json",
+      "notes": "ZPL II is not supported by printer firmware; D00-ZPL probe prints literal ASCII '^XA...'"
     }
   ],
-  "validation_notes": "Single physical Bluetooth multi-emulation thermal printer capable of accepting both ESC/POS receipt streams and TSC/TSPL2 label jobs over BLE."
+  "validation_notes": "Single physical Bluetooth multi-emulation thermal printer capable of accepting both ESC/POS receipt streams and TSC/TSPL2 label jobs over BLE. Does not contain ZPL II interpreter."
 }

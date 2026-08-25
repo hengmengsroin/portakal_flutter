@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "protocol": "zpl",
+  "device_ref": "hardware_validation/devices/Printer001_328F/device.json",
+  "device": {
+    "manufacturer": "Unknown / Generic",
+    "model": "Printer001-328F",
+    "firmware": "Unknown",
+    "connection": "BLE",
+    "dpi": 203,
+    "command_mode": "ZPL II (Probe)"
+  },
+  "validation_date": "2026-08-25",
+  "summary": {
+    "total_cases": 1,
+    "level2_pass": 0,
+    "level2_fail": 0,
+    "level3_pass": 0,
+    "level3_na": 0,
+    "level3_fail": 0,
+    "not_supported_device": 1,
+    "status": "N/S-DEVICE",
+    "conclusion": "ZPL II is NOT supported by Printer001-328F. Device is a dual-mode ESC/POS + TSC/TSPL2 printer only."
+  },
+  "cases": [
+    {
+      "case_id": "D00-ZPL",
+      "title": "Minimal ZPL II Capability Probe",
+      "level2": "N/S-DEVICE",
+      "level3": "N/S-DEVICE",
+      "byte_count": 52,
+      "stream_sha256": "4b68494917531ce6ec2f476a5b99e7d9539316d97c768995a6ad58b1b22e1188",
+      "scanned_payload": null,
+      "observation": "Device printed literal ASCII text '^XA^FO50,50^A0N,30,30^FDPORTAKAL ZPL TEST^FS^XZ'. No ZPL command interpreter present in printer firmware.",
+      "classification": "N/S-DEVICE / DIALECT_MODE_UNSUPPORTED"
+    }
+  ]
+}

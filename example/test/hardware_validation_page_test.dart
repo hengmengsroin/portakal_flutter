@@ -7,6 +7,7 @@ import 'package:example/src/hardware/escpos_hardware_cases.dart';
 import 'package:example/src/hardware/raster_fixture.dart';
 import 'package:example/src/hardware/sha256.dart';
 import 'package:example/src/hardware/tsc_hardware_cases.dart';
+import 'package:example/src/hardware/zpl_hardware_cases.dart';
 import 'package:example/src/pages/hardware_validation_page.dart';
 import 'package:example/src/transport/hardware_printer_transport.dart';
 
@@ -211,6 +212,73 @@ void main() {
     });
   });
 
+  group('ZPL Diagnostic Probes & Generator Verification', () {
+    test('D00-ZPL minimal probe generates valid ^XA/^XZ command stream', () {
+      final d00Zpl = ZplHardwareSuite.diagnosticCases.firstWhere(
+        (c) => c.id == 'D00-ZPL',
+      );
+      final bytes = d00Zpl.generator();
+      expect(bytes, isNotEmpty);
+      final str = utf8.decode(bytes);
+      expect(str, contains('^XA'));
+      expect(str, contains('^FO50,50'));
+      expect(str, contains('^A0N,30,30'));
+      expect(str, contains('^FDPORTAKAL ZPL TEST^FS'));
+      expect(str, contains('^XZ'));
+    });
+
+    test('ZPL H01 generates ASCII baseline format', () {
+      final h01 = ZplHardwareSuite.protocolCases.firstWhere(
+        (c) => c.id == 'H01',
+      );
+      final bytes = h01.generator();
+      final str = utf8.decode(bytes);
+      expect(str, contains('^XA'));
+      expect(str, contains('PORTAKAL 123 ABC xyz'));
+      expect(str, contains('^XZ'));
+    });
+
+    test('ZPL H06 Code128 and H07 QR encode exact payloads', () {
+      final h06 = ZplHardwareSuite.protocolCases.firstWhere(
+        (c) => c.id == 'H06',
+      );
+      expect(h06.expectedPayload, equals('PORTAKAL123456'));
+      final h06Str = utf8.decode(h06.generator());
+      expect(h06Str, contains('^BCN,80,Y,N,N'));
+      expect(h06Str, contains('^FDPORTAKAL123456^FS'));
+
+      final h07 = ZplHardwareSuite.protocolCases.firstWhere(
+        (c) => c.id == 'H07',
+      );
+      expect(
+        h07.expectedPayload,
+        equals('https://example.com/portakal-hw-test'),
+      );
+      final h07Str = utf8.decode(h07.generator());
+      expect(h07Str, contains('^BQN,2,5,M,7'));
+      expect(h07Str, contains('^FDQA,https://example.com/portakal-hw-test^FS'));
+    });
+
+    test('ZPL H09 uses canonical raster bitmap fixture via ^GFA', () {
+      final h09 = ZplHardwareSuite.protocolCases.firstWhere(
+        (c) => c.id == 'H09',
+      );
+      final bytes = h09.generator();
+      expect(bytes, isNotEmpty);
+      final str = utf8.decode(bytes);
+      expect(str, contains('^GFA,512,512,8,'));
+    });
+
+    test('ZPL H10 emits ^PQ3 copy command', () {
+      final h10 = ZplHardwareSuite.protocolCases.firstWhere(
+        (c) => c.id == 'H10',
+      );
+      final bytes = h10.generator();
+      final str = utf8.decode(bytes);
+      expect(str, contains('^PQ3\n'));
+    });
+  });
+
   group('HardwareValidationPage Widget Tests', () {
     testWidgets('renders diagnostic probes and protocol case sections', (
       tester,
@@ -289,7 +357,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap TSC segmented button
-      final tscSegment = find.text('TSC / TSPL2');
+      final tscSegment = find.text('TSC');
       expect(tscSegment, findsOneWidget);
       await tester.tap(tscSegment);
       await tester.pumpAndSettle();
@@ -326,6 +394,67 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets(
+      'switches to ZPL protocol, transmits D00-ZPL and marks N/S-DEVICE',
+      (tester) async {
+        tester.view.physicalSize = const Size(1280, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        final mockTransport = MockHardwarePrinterTransport(
+          initialPrinters: [
+            const DiscoveredPrinter(
+              id: 'printer_001',
+              name: 'Printer0001-328F',
+              connectionType: DiscoveredConnectionType.ble,
+              isConnected: true,
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: HardwareValidationPage(
+              transport: mockTransport,
+              targetDeviceName: 'Printer0001-328F',
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Tap ZPL segmented button
+        final zplSegment = find.text('ZPL');
+        expect(zplSegment, findsOneWidget);
+        await tester.tap(zplSegment);
+        await tester.pumpAndSettle();
+
+        // Verify header updated
+        expect(find.text('Hardware Validation — ZPL II'), findsOneWidget);
+        expect(find.text('Step 1: ZPL II Diagnostic Probes'), findsOneWidget);
+        expect(find.text('D00-ZPL'), findsOneWidget);
+
+        // Print D00-ZPL
+        final printD00ZplBtn = find.text('Print D00-ZPL');
+        expect(printD00ZplBtn, findsOneWidget);
+        await tester.tap(printD00ZplBtn);
+        await tester.pumpAndSettle();
+
+        // Verify transmission
+        expect(mockTransport.transmittedBytes.length, equals(1));
+        final zplStream = utf8.decode(mockTransport.transmittedBytes.first);
+        expect(zplStream, contains('^XA'));
+        expect(zplStream, contains('^FDPORTAKAL ZPL TEST^FS'));
+
+        // Operator marks N/S-DEVICE (No ZPL Mode / literal text printed)
+        final nsBtn = find.text('N/S-DEVICE (No ZPL Mode)');
+        expect(nsBtn, findsOneWidget);
+        await tester.tap(nsBtn);
+        await tester.pumpAndSettle();
+
+        expect(find.text('N/S-DEVICE'), findsWidgets);
+      },
+    );
 
     testWidgets('transmits D00 probe and shows diagnostics and SENT state', (
       tester,

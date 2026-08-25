@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../hardware/escpos_hardware_cases.dart';
 import '../hardware/sha256.dart';
 import '../hardware/tsc_hardware_cases.dart';
+import '../hardware/zpl_hardware_cases.dart';
 import '../transport/hardware_printer_transport.dart';
 
 /// Test execution and diagnostic status for each validation case.
@@ -72,6 +73,19 @@ class GenericCaseDefinition {
       generator: c.generator,
     );
   }
+
+  factory GenericCaseDefinition.fromZpl(ZplValidationCase c) {
+    return GenericCaseDefinition(
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      expectedPayload: c.expectedPayload,
+      isDiagnostic: c.isDiagnostic,
+      requiresCutter: false,
+      goldenSha256: c.goldenSha256,
+      generator: c.generator,
+    );
+  }
 }
 
 /// Recorded validation run details for a single test case.
@@ -101,13 +115,14 @@ class CaseExecutionRecord {
 
 enum HardwareProtocol {
   escpos('ESC/POS'),
-  tsc('TSC / TSPL2');
+  tsc('TSC / TSPL2'),
+  zpl('ZPL II');
 
   final String label;
   const HardwareProtocol(this.label);
 }
 
-/// Interactive Hardware Validation Screen supporting ESC/POS and TSC Protocols.
+/// Interactive Hardware Validation Screen supporting ESC/POS, TSC, and ZPL Protocols.
 class HardwareValidationPage extends StatefulWidget {
   final HardwarePrinterTransport transport;
   final String targetDeviceName;
@@ -133,34 +148,53 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
 
   final Map<String, CaseExecutionRecord> _escposRecords = {};
   final Map<String, CaseExecutionRecord> _tscRecords = {};
+  final Map<String, CaseExecutionRecord> _zplRecords = {};
   CaseExecutionRecord? _lastActiveRecord;
 
   final TextEditingController _scanInputController = TextEditingController();
 
-  Map<String, CaseExecutionRecord> get _currentRecords =>
-      _activeProtocol == HardwareProtocol.escpos ? _escposRecords : _tscRecords;
+  Map<String, CaseExecutionRecord> get _currentRecords {
+    switch (_activeProtocol) {
+      case HardwareProtocol.escpos:
+        return _escposRecords;
+      case HardwareProtocol.tsc:
+        return _tscRecords;
+      case HardwareProtocol.zpl:
+        return _zplRecords;
+    }
+  }
 
   List<GenericCaseDefinition> get _currentDiagnosticCases {
-    if (_activeProtocol == HardwareProtocol.escpos) {
-      return EscPosHardwareSuite.diagnosticCases
-          .map(GenericCaseDefinition.fromEscPos)
-          .toList();
-    } else {
-      return TscHardwareSuite.diagnosticCases
-          .map(GenericCaseDefinition.fromTsc)
-          .toList();
+    switch (_activeProtocol) {
+      case HardwareProtocol.escpos:
+        return EscPosHardwareSuite.diagnosticCases
+            .map(GenericCaseDefinition.fromEscPos)
+            .toList();
+      case HardwareProtocol.tsc:
+        return TscHardwareSuite.diagnosticCases
+            .map(GenericCaseDefinition.fromTsc)
+            .toList();
+      case HardwareProtocol.zpl:
+        return ZplHardwareSuite.diagnosticCases
+            .map(GenericCaseDefinition.fromZpl)
+            .toList();
     }
   }
 
   List<GenericCaseDefinition> get _currentProtocolCases {
-    if (_activeProtocol == HardwareProtocol.escpos) {
-      return EscPosHardwareSuite.protocolCases
-          .map(GenericCaseDefinition.fromEscPos)
-          .toList();
-    } else {
-      return TscHardwareSuite.protocolCases
-          .map(GenericCaseDefinition.fromTsc)
-          .toList();
+    switch (_activeProtocol) {
+      case HardwareProtocol.escpos:
+        return EscPosHardwareSuite.protocolCases
+            .map(GenericCaseDefinition.fromEscPos)
+            .toList();
+      case HardwareProtocol.tsc:
+        return TscHardwareSuite.protocolCases
+            .map(GenericCaseDefinition.fromTsc)
+            .toList();
+      case HardwareProtocol.zpl:
+        return ZplHardwareSuite.protocolCases
+            .map(GenericCaseDefinition.fromZpl)
+            .toList();
     }
   }
 
@@ -176,6 +210,10 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
     for (final c in TscHardwareSuite.allCases) {
       final gen = GenericCaseDefinition.fromTsc(c);
       _tscRecords[c.id] = CaseExecutionRecord(testCase: gen);
+    }
+    for (final c in ZplHardwareSuite.allCases) {
+      final gen = GenericCaseDefinition.fromZpl(c);
+      _zplRecords[c.id] = CaseExecutionRecord(testCase: gen);
     }
 
     widget.transport.printersStream.listen((printers) {
@@ -464,7 +502,11 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                         ),
                         ButtonSegment(
                           value: HardwareProtocol.tsc,
-                          label: Text('TSC / TSPL2'),
+                          label: Text('TSC'),
+                        ),
+                        ButtonSegment(
+                          value: HardwareProtocol.zpl,
+                          label: Text('ZPL'),
                         ),
                       ],
                       selected: {_activeProtocol},
@@ -965,6 +1007,15 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                 ),
                 OutlinedButton.icon(
                   onPressed: () =>
+                      _updateActiveResult(CaseResultStatus.notSupportedDevice),
+                  icon: const Icon(Icons.block, size: 16),
+                  label: const Text('N/S-DEVICE (No ZPL Mode)'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.indigo,
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () =>
                       _updateActiveResult(CaseResultStatus.partial),
                   icon: const Icon(Icons.remove, size: 16),
                   label: const Text('PARTIAL'),
@@ -975,20 +1026,9 @@ class _HardwareValidationPageState extends State<HardwareValidationPage> {
                 OutlinedButton.icon(
                   onPressed: () => _updateActiveResult(CaseResultStatus.fail),
                   icon: const Icon(Icons.close, size: 16),
-                  label: const Text('FAIL (Corrupted/Wrong)'),
+                  label: const Text('FAIL (Literal text / error)'),
                   style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                 ),
-                if (c.requiresCutter)
-                  OutlinedButton.icon(
-                    onPressed: () => _updateActiveResult(
-                      CaseResultStatus.notSupportedDevice,
-                    ),
-                    icon: const Icon(Icons.block, size: 16),
-                    label: const Text('N/S-DEVICE (No Cutter)'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.indigo,
-                    ),
-                  ),
               ],
             ),
           ],

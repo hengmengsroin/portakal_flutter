@@ -6,16 +6,18 @@ This document tracks physical hardware validation runs across supported thermal 
 - **PASS**: Physically validated with Level 2 (command acceptance) and Level 3 (media output / barcode scan / visual verification).
 - **PARTIAL**: Physically validated with Level 2 acceptance, but Level 3 exhibits minor dialect or hardware limitations.
 - **FAIL**: Protocol commands rejected or corrupted by physical device.
+- **N/S-DEVICE**: Protocol or feature not supported by the physical printer hardware/firmware.
 - **N/T**: Not tested against physical hardware.
 
 ---
 
 ## Validated Hardware Matrix
 
-| Device ID / Model | Manufacturer | Connection | Supported Protocol | Verified Dialect Scope | Status | Evidence Path |
+| Device ID / Model | Manufacturer | Connection | Tested Protocol | Verified Dialect Scope | Status | Evidence Path |
 | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
 | **`Printer001-328F`** | Unknown / Generic | BLE | **ESC/POS** | **ESC/POS Verified Subset**<br>(Text, CP437, Scaling, Code128, QR, Raster, Partial Cut, Reset) | **PASS** | [`hardware_validation/escpos/Printer001_328F/BLE/manifest.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/escpos/Printer001_328F/BLE/manifest.json) |
 | **`Printer001-328F`** | Unknown / Generic | BLE | **TSC** | **TSC / TSPL2 Verified Subset**<br>(Text, CP437/CP850/CP1252, Scaling, Code128, QR, Primitives, Raster, Copies, CLS) | **PASS** | [`hardware_validation/tsc/Printer001_328F/BLE/manifest.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/tsc/Printer001_328F/BLE/manifest.json) |
+| **`Printer001-328F`** | Unknown / Generic | BLE | **ZPL II** | **ZPL II Emulation**<br>(D00-ZPL Capability Probe: Literal `^XA` printed) | **N/S-DEVICE** | [`hardware_validation/zpl/Printer001_328F/BLE/manifest.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/zpl/Printer001_328F/BLE/manifest.json) |
 
 *Unified Device Profile: [`hardware_validation/devices/Printer001_328F/device.json`](file:///Users/hengmengsroin/Documents/projects/flutter-plugins/portakal_flutter/hardware_validation/devices/Printer001_328F/device.json)*
 
@@ -23,7 +25,7 @@ This document tracks physical hardware validation runs across supported thermal 
 
 ## Detailed Physical Validation Cases for Printer001-328F
 
-### 1. ESC/POS Protocol Mode (Receipt Emulation)
+### 1. ESC/POS Protocol Mode (Receipt Emulation) — PASS
 
 | Case ID | Case Title | Bytes | SHA-256 | Level 2 (Device) | Level 3 (Physical) | Verified Feature Detail |
 | :--- | :--- | :---: | :--- | :---: | :---: | :--- |
@@ -41,7 +43,7 @@ This document tracks physical hardware validation runs across supported thermal 
 
 ---
 
-### 2. TSC / TSPL2 Protocol Mode (Label Emulation)
+### 2. TSC / TSPL2 Protocol Mode (Label Emulation) — PASS
 
 | Case ID | Case Title | Bytes | SHA-256 | Level 2 (Device) | Level 3 (Physical) | Verified Feature Detail |
 | :--- | :--- | :---: | :--- | :---: | :---: | :--- |
@@ -60,5 +62,13 @@ This document tracks physical hardware validation runs across supported thermal 
 
 ---
 
+### 3. ZPL II Protocol Mode (Capability Probe) — N/S-DEVICE
+
+| Case ID | Case Title | Bytes | SHA-256 | Level 2 (Device) | Level 3 (Physical) | Verified Feature Detail |
+| :--- | :--- | :---: | :--- | :---: | :---: | :--- |
+| **D00-ZPL** | Minimal ZPL II Probe | 52 | `4b684949...` | **N/S-DEVICE** | **N/S-DEVICE** | Transmitted `^XA...^XZ` printed as literal text lines. Firmware lacks ZPL emulation. |
+
+---
+
 ## Important Notice on Device Support
-*Validation on `Printer001-328F` confirms dual-mode compatibility (ESC/POS and TSC/TSPL2 subsets) for this specific multi-emulation Bluetooth hardware. It must not be generalized to all generic thermal printers or claimed as genuine TSC / Epson hardware.*
+*Validation on `Printer001-328F` confirms dual-mode compatibility (ESC/POS and TSC/TSPL2 subsets) for this specific multi-emulation Bluetooth hardware. ZPL II emulation is not supported by this printer.*
