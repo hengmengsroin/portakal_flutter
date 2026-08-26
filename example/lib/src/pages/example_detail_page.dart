@@ -3,17 +3,20 @@ import 'package:flutter/services.dart';
 import 'package:portakal_flutter/portakal_flutter.dart';
 
 import '../examples/example_case.dart';
+import '../export/svg_export.dart';
 import '../transport/hardware_printer_transport.dart';
 
 /// Interactive detail and compilation screen for a single Portakal use case.
 class ExampleDetailPage extends StatefulWidget {
   final ExampleCase exampleCase;
   final HardwarePrinterTransport? transport;
+  final SvgFileSaver? fileSaver;
 
   const ExampleDetailPage({
     super.key,
     required this.exampleCase,
     this.transport,
+    this.fileSaver,
   });
 
   @override
@@ -181,6 +184,41 @@ class _ExampleDetailPageState extends State<ExampleDetailPage> {
     return buffer.toString().trim();
   }
 
+  Future<void> _handleDownloadSvg() async {
+    try {
+      final export = SvgExport.fromCase(widget.exampleCase, _resolvedJob);
+      final result = await export.save(customSaver: widget.fileSaver);
+      if (!mounted) return;
+      if (result.isSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('SVG saved: ${result.filename}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else if (result.isCancelled) {
+        // User dismissed the Save As dialog
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save SVG: ${result.errorMessage}'),
+            backgroundColor: Colors.red.shade700,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error generating SVG: $e'),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isTested = widget.exampleCase.testedProtocols.contains(_selectedProtocol);
@@ -191,6 +229,12 @@ class _ExampleDetailPageState extends State<ExampleDetailPage> {
         backgroundColor: Colors.deepOrange.shade700,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            key: const Key('download_svg_button'),
+            icon: const Icon(Icons.download),
+            tooltip: 'Download SVG',
+            onPressed: _handleDownloadSvg,
+          ),
           IconButton(
             icon: const Icon(Icons.copy_all),
             tooltip: 'Copy Source Path',
@@ -285,9 +329,23 @@ class _ExampleDetailPageState extends State<ExampleDetailPage> {
                           'Visual Label Preview',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          '${_resolvedJob.widthDots}×${_resolvedJob.heightDots} dots (${_resolvedJob.dpi} DPI)',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        Row(
+                          children: [
+                            Text(
+                              '${_resolvedJob.widthDots}×${_resolvedJob.heightDots} dots (${_resolvedJob.dpi} DPI)',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                            const SizedBox(width: 6),
+                            IconButton(
+                              key: const Key('preview_download_svg_button'),
+                              icon: const Icon(Icons.download, size: 20),
+                              tooltip: 'Download SVG',
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: _handleDownloadSvg,
+                            ),
+                          ],
                         ),
                       ],
                     ),

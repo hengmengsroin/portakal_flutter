@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:example/main.dart';
 import 'package:example/src/examples/example_catalog.dart';
+import 'package:example/src/export/svg_export.dart';
 import 'package:example/src/pages/example_detail_page.dart';
 import 'package:example/src/pages/example_gallery_page.dart';
 import 'package:example/src/transport/hardware_printer_transport.dart';
@@ -130,6 +131,94 @@ void main() {
       // Error banner should be displayed with exact reason
       expect(find.text('Unsupported Protocol Feature'), findsOneWidget);
       expect(find.textContaining('ESC/POS receipt compiler does not support geometric'), findsOneWidget);
+    });
+
+    testWidgets('Detail page Download SVG action exports canonical SVG and displays feedback', (
+      WidgetTester tester,
+    ) async {
+      final example = ExampleCatalog.getById('simple_text')!;
+      String? savedFile;
+      String? savedData;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExampleDetailPage(
+            exampleCase: example,
+            fileSaver: (filename, content) async {
+              savedFile = filename;
+              savedData = content;
+              return SvgDownloadResult.success(filename: filename);
+            },
+          ),
+        ),
+      );
+
+      // Verify Download SVG buttons exist
+      expect(find.byKey(const Key('download_svg_button')), findsOneWidget);
+      expect(find.byKey(const Key('preview_download_svg_button')), findsOneWidget);
+
+      // Tap the AppBar Download SVG button
+      await tester.tap(find.byKey(const Key('download_svg_button')));
+      await tester.pumpAndSettle();
+
+      // Verify download callback was triggered with proper filename and SVG content
+      expect(savedFile, equals('simple_text.svg'));
+      expect(savedData, contains('<svg'));
+      expect(savedData, contains('</svg>'));
+
+      // Verify success SnackBar
+      expect(find.text('SVG saved: simple_text.svg'), findsOneWidget);
+    });
+
+    testWidgets('Detail page Download SVG handles user cancellation without error', (
+      WidgetTester tester,
+    ) async {
+      final example = ExampleCatalog.getById('simple_text')!;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExampleDetailPage(
+            exampleCase: example,
+            fileSaver: (filename, content) async {
+              return SvgDownloadResult.cancelled(filename: filename);
+            },
+          ),
+        ),
+      );
+
+      // Tap the AppBar Download SVG button
+      await tester.tap(find.byKey(const Key('download_svg_button')));
+      await tester.pumpAndSettle();
+
+      // Verify no error SnackBar is shown on cancellation
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('Detail page Download SVG handles file saver failure with error SnackBar', (
+      WidgetTester tester,
+    ) async {
+      final example = ExampleCatalog.getById('customer_receipt')!;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExampleDetailPage(
+            exampleCase: example,
+            fileSaver: (filename, content) async {
+              return const SvgDownloadResult.failure(
+                filename: 'customer_receipt.svg',
+                errorMessage: 'Permission denied',
+              );
+            },
+          ),
+        ),
+      );
+
+      // Tap preview Download SVG button
+      await tester.tap(find.byKey(const Key('preview_download_svg_button')));
+      await tester.pumpAndSettle();
+
+      // Verify error SnackBar
+      expect(find.text('Failed to save SVG: Permission denied'), findsOneWidget);
     });
 
     testWidgets('App smoke launch with PortakalApp and PortakalHardwareApp', (
