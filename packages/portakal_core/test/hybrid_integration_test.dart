@@ -172,5 +172,41 @@ void main() {
       final lineOverride = utf8.decode(bytesOverride).split('\n').firstWhere((l) => l.contains('Left'));
       expect(lineOverride.length, lessThanOrEqualTo(42));
     });
+
+    test('6. Phase 12C ESC/POS Hardware Case Byte Reproducibility', () {
+      final receipt = sequentialLabel(
+        const LabelConfig(width: 80, height: 80, unit: Unit.mm),
+      )
+        ..text('PORTAKAL 1.2', const TextOptions(bold: true, size: 2))
+        ..divider()
+        ..row('Coffee', r'$5.00')
+        ..row('Tea', r'$2.50')
+        ..divider()
+        ..row('TOTAL', r'$7.50', bold: true)
+        ..text('Thank you')
+        ..space(10)
+        ..rowCells(
+          children: [
+            LabelCell.flex(1, text: 'UNDERLINE', underline: true),
+            LabelCell.flex(1, text: 'RIGHT', align: LabelTextAlign.right),
+          ],
+        )
+        ..barcode(
+          'PKL-12-HW',
+          BarcodeOptions.typed(
+            x: 20,
+            y: 420,
+            symbology: BarcodeSymbology.code128,
+            height: 50,
+            readable: 1,
+          ),
+        );
+
+      final job = receipt.resolve();
+      final bytes = compileToESCPOS(job);
+
+      expect(bytes.length, equals(360));
+      expect(bytes, isNotEmpty);
+    });
   });
 }
