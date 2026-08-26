@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'barcode_encoder.dart';
 import 'builder.dart';
-import 'errors.dart';
 import 'qr_encoder.dart';
 import 'types.dart';
 
@@ -567,9 +566,18 @@ class PreviewScene {
     final items = <PreviewItem>[];
 
     for (final el in label.elements) {
-      final item = _convertElement(el);
-      if (item != null) {
-        items.add(item);
+      if (el is RowElement) {
+        for (final cell in el.cells) {
+          if (cell.text.isEmpty) continue;
+          items.add(_convertRowCell(cell, el.y, el.size));
+        }
+      } else if (el is DividerElement) {
+        items.add(_convertDivider(el));
+      } else {
+        final item = _convertElement(el);
+        if (item != null) {
+          items.add(item);
+        }
       }
     }
 
@@ -912,11 +920,63 @@ class PreviewScene {
         return null;
 
       case RowElement():
+        return null;
+
       case DividerElement():
-        throw UnsupportedFeatureError(
-          'PreviewScene does not support ${el.runtimeType} in Slice 1',
-        );
+        return _convertDivider(el);
     }
+  }
+
+  static PreviewTextItem _convertRowCell(RowCellElement cell, int y, int size) {
+    final x = cell.x.toDouble();
+    final yPos = y.toDouble();
+    final fs = calcFontSize(size, null);
+    final bl = baselineRatio(null);
+    final weightBold = cell.style.bold;
+    final isUnderline = cell.style.underline;
+
+    var anchor = 'start';
+    var textAnchorX = x;
+    if (cell.align == LabelTextAlign.center) {
+      anchor = 'middle';
+      textAnchorX = x + cell.width / 2.0;
+    } else if (cell.align == LabelTextAlign.right) {
+      anchor = 'end';
+      textAnchorX = x + cell.width.toDouble();
+    }
+
+    final svgY = ((yPos + fs * bl) * 100).round() / 100.0;
+
+    return PreviewTextItem(
+      x: x,
+      y: yPos,
+      text: cell.text,
+      fontSize: fs,
+      xScale: 1,
+      yScale: 1,
+      rotation: 0,
+      bold: weightBold,
+      underline: isUnderline,
+      isReverse: false,
+      font: null,
+      align: cell.align.identifier,
+      maxWidth: cell.width,
+      baselineOffset: fs * bl,
+      svgY: svgY,
+      textAnchorX: textAnchorX,
+      svgAnchor: anchor,
+    );
+  }
+
+  static PreviewLineItem _convertDivider(DividerElement el) {
+    return PreviewLineItem(
+      x1: el.startX.toDouble(),
+      y1: el.y.toDouble(),
+      x2: (el.startX + el.width).toDouble(),
+      y2: el.y.toDouble(),
+      thickness: el.thickness.toDouble(),
+      color: PreviewColor.black,
+    );
   }
 
   static List<PreviewBitmapSpan> _extractBitmapSpans(

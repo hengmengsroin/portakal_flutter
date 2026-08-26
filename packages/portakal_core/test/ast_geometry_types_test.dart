@@ -242,37 +242,9 @@ void main() {
       ],
     );
 
-    test('compilers throw UnsupportedFeatureError on unlowered RowElement/DividerElement', () {
-      expect(
-        () => compileToTSCBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
-      expect(
-        () => compileToZPLBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
-      expect(
-        () => compileToEPLBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
+    test('Stream compilers throw UnsupportedFeatureError on unlowered RowElement/DividerElement in Slice 3', () {
       expect(
         () => compileToESCPOSBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
-      expect(
-        () => compileToCPCLBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
-      expect(
-        () => compileToDPLBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
-      expect(
-        () => compileToIPLBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
-      expect(
-        () => compileToSBPLBytes(testResolvedLabel),
         throwsA(isA<UnsupportedFeatureError>()),
       );
       expect(
@@ -281,11 +253,15 @@ void main() {
       );
     });
 
-    test('PreviewScene throws UnsupportedFeatureError on unrendered RowElement/DividerElement in Slice 1', () {
-      expect(
-        () => PreviewScene.fromResolved(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
+    test('Page compilers and PreviewScene successfully process RowElement/DividerElement in Slice 3', () {
+      expect(compileToTSCBytes(testResolvedLabel), isNotEmpty);
+      expect(compileToZPLBytes(testResolvedLabel), isNotEmpty);
+      expect(compileToEPLBytes(testResolvedLabel), isNotEmpty);
+      expect(compileToCPCLBytes(testResolvedLabel), isNotEmpty);
+      expect(compileToDPLBytes(testResolvedLabel), isNotEmpty);
+      expect(compileToIPLBytes(testResolvedLabel), isNotEmpty);
+      expect(compileToSBPLBytes(testResolvedLabel), isNotEmpty);
+      expect(PreviewScene.fromResolved(testResolvedLabel).items, isNotEmpty);
     });
   });
 }

@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../encoding.dart';
-import '../errors.dart';
 import '../types.dart';
 import 'zpl_writer.dart';
 
@@ -43,46 +42,7 @@ Uint8List compileToZPLBytes(
   for (final el in label.elements) {
     switch (el) {
       case TextElement():
-        final o = el.options;
-        final x = o.x ?? 0;
-        final y = o.y ?? 0;
-        final size = o.size ?? 1;
-        final h = size * 30;
-        final w = h;
-        final r = _zplRotation(o.rotation ?? 0);
-        ZplCommandWriter.writeFieldOrigin(writer, x, y);
-        ZplCommandWriter.writeFont(
-          writer,
-          fontCode: '0',
-          rotationCode: r,
-          height: h,
-          width: w,
-        );
-        if (o.maxWidth != null) {
-          final align = o.align == 'center'
-              ? 'C'
-              : o.align == 'right'
-                  ? 'R'
-                  : 'L';
-          ZplCommandWriter.writeFieldBlock(
-            writer,
-            width: o.maxWidth!,
-            maxLines: 1,
-            lineSpacing: 0,
-            align: align,
-            hangingIndent: 0,
-          );
-        }
-        if (o.reverse == true) {
-          ZplCommandWriter.writeFieldReverse(writer);
-        }
-
-        ZplCommandWriter.writeFieldData(
-          writer,
-          text: el.content,
-          isUtf8: isUtf8,
-        );
-        ZplCommandWriter.writeFieldSeparator(writer);
+        _writeText(writer, el.content, el.options, isUtf8: isUtf8);
 
       case ImageElement():
         final o = el.options;
@@ -236,13 +196,36 @@ Uint8List compileToZPLBytes(
         ZplCommandWriter.writeRawBytes(writer, el.bytes);
 
       case RowElement():
-      case DividerElement():
-        if (policy == UnsupportedFeaturePolicy.throwError) {
-          throw UnsupportedFeatureError(
-            'ZPL compiler does not support ${el.runtimeType} in Slice 1',
+        for (final cell in el.cells) {
+          if (cell.text.isEmpty) continue;
+          _writeText(
+            writer,
+            cell.text,
+            TextOptions(
+              x: cell.x,
+              y: el.y,
+              size: el.size,
+              bold: cell.style.bold,
+              underline: cell.style.underline,
+              align: cell.align.identifier,
+              maxWidth: cell.width,
+            ),
+            isUtf8: isUtf8,
           );
         }
-        break;
+
+      case DividerElement():
+        final width = el.width == 0 ? 1 : el.width;
+        ZplCommandWriter.writeBox(
+          writer,
+          x: el.startX,
+          y: el.y,
+          width: width,
+          height: el.thickness,
+          thickness: el.thickness,
+          radius: 0,
+          white: false,
+        );
     }
   }
 
@@ -255,6 +238,53 @@ Uint8List compileToZPLBytes(
   );
   ZplCommandWriter.writeEndFormat(writer);
   return writer.toBytes();
+}
+
+void _writeText(
+  PrinterByteWriter writer,
+  String content,
+  TextOptions o, {
+  required bool isUtf8,
+}) {
+  final x = o.x ?? 0;
+  final y = o.y ?? 0;
+  final size = o.size ?? 1;
+  final h = size * 30;
+  final w = h;
+  final r = _zplRotation(o.rotation ?? 0);
+  ZplCommandWriter.writeFieldOrigin(writer, x, y);
+  ZplCommandWriter.writeFont(
+    writer,
+    fontCode: '0',
+    rotationCode: r,
+    height: h,
+    width: w,
+  );
+  if (o.maxWidth != null) {
+    final align = o.align == 'center'
+        ? 'C'
+        : o.align == 'right'
+            ? 'R'
+            : 'L';
+    ZplCommandWriter.writeFieldBlock(
+      writer,
+      width: o.maxWidth!,
+      maxLines: 1,
+      lineSpacing: 0,
+      align: align,
+      hangingIndent: 0,
+    );
+  }
+  if (o.reverse == true) {
+    ZplCommandWriter.writeFieldReverse(writer);
+  }
+
+  ZplCommandWriter.writeFieldData(
+    writer,
+    text: content,
+    isUtf8: isUtf8,
+  );
+  ZplCommandWriter.writeFieldSeparator(writer);
 }
 
 /// Compile a resolved label to ZPL II commands as a [String] compatibility view.

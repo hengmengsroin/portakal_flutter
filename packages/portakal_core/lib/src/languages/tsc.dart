@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../byte_writer.dart';
-import '../errors.dart';
 import '../types.dart';
 import 'tsc_writer.dart';
 
@@ -42,24 +41,7 @@ Uint8List compileToTSCBytes(
   for (final el in label.elements) {
     switch (el) {
       case TextElement():
-        final o = el.options;
-        final x = o.x ?? 0;
-        final y = o.y ?? 0;
-        final font = o.font ?? '2';
-        final rotation = o.rotation ?? 0;
-        final xMul = o.xScale ?? o.size ?? 1;
-        final yMul = o.yScale ?? o.size ?? 1;
-        final encoded = Uint8List.fromList(latin1.encode(el.content));
-        TscCommandWriter.writeText(
-          writer,
-          x: x,
-          y: y,
-          font: font,
-          rotation: rotation,
-          xMul: xMul,
-          yMul: yMul,
-          encodedContent: encoded,
-        );
+        _writeText(writer, el.content, el.options);
 
       case ImageElement():
         final o = el.options;
@@ -192,18 +174,58 @@ Uint8List compileToTSCBytes(
         TscCommandWriter.writeRawBytes(writer, el.bytes);
 
       case RowElement():
-      case DividerElement():
-        if (policy == UnsupportedFeaturePolicy.throwError) {
-          throw UnsupportedFeatureError(
-            'TSC compiler does not support ${el.runtimeType} in Slice 1',
+        for (final cell in el.cells) {
+          if (cell.text.isEmpty) continue;
+          _writeText(
+            writer,
+            cell.text,
+            TextOptions(
+              x: cell.x,
+              y: el.y,
+              size: el.size,
+              bold: cell.style.bold,
+              underline: cell.style.underline,
+            ),
           );
         }
-        break;
+
+      case DividerElement():
+        TscCommandWriter.writeBar(
+          writer,
+          x: el.startX,
+          y: el.y,
+          width: el.width,
+          height: el.thickness,
+        );
     }
   }
 
   TscCommandWriter.writePrint(writer, sets: label.copies);
   return writer.toBytes();
+}
+
+void _writeText(
+  PrinterByteWriter writer,
+  String content,
+  TextOptions o,
+) {
+  final x = o.x ?? 0;
+  final y = o.y ?? 0;
+  final font = o.font ?? '2';
+  final rotation = o.rotation ?? 0;
+  final xMul = o.xScale ?? o.size ?? 1;
+  final yMul = o.yScale ?? o.size ?? 1;
+  final encoded = Uint8List.fromList(latin1.encode(content));
+  TscCommandWriter.writeText(
+    writer,
+    x: x,
+    y: y,
+    font: font,
+    rotation: rotation,
+    xMul: xMul,
+    yMul: yMul,
+    encodedContent: encoded,
+  );
 }
 
 /// Compile a resolved label to TSC/TSPL2 commands as a Latin-1 [String] compatibility view.

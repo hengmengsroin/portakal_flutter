@@ -45,22 +45,11 @@ Uint8List compileToIPLBytes(
     switch (el) {
       case TextElement():
         fieldNum++;
-        final o = el.options;
-        final x = o.x ?? 0;
-        final y = o.y ?? 0;
-        final rotation = _iplRotation(o.rotation ?? 0);
-        final size = o.size ?? 1;
-
-        IplCommandWriter.writeTextField(
+        _writeText(
           writer,
-          fieldNumber: fieldNum,
-          x: x,
-          y: y,
-          rotation: rotation,
-          fontHeight: size * 12,
-          fontWidth: size * 12,
-          fontCode: 26,
-          text: el.content,
+          fieldNum: fieldNum,
+          content: el.content,
+          o: el.options,
           encoder: encoder,
           replaceUnsupported: enc.replaceUnsupported,
         );
@@ -146,13 +135,36 @@ Uint8List compileToIPLBytes(
         IplCommandWriter.writeRawBytes(writer, el.bytes);
 
       case RowElement():
-      case DividerElement():
-        if (policy == UnsupportedFeaturePolicy.throwError) {
-          throw UnsupportedFeatureError(
-            'IPL compiler does not support ${el.runtimeType} in Slice 1',
+        for (final cell in el.cells) {
+          if (cell.text.isEmpty) continue;
+          fieldNum++;
+          _writeText(
+            writer,
+            fieldNum: fieldNum,
+            content: cell.text,
+            o: TextOptions(
+              x: cell.x,
+              y: el.y,
+              size: el.size,
+              bold: cell.style.bold,
+              underline: cell.style.underline,
+            ),
+            encoder: encoder,
+            replaceUnsupported: enc.replaceUnsupported,
           );
         }
-        break;
+
+      case DividerElement():
+        fieldNum++;
+        IplCommandWriter.writeLineField(
+          writer,
+          fieldNumber: fieldNum,
+          x: el.startX,
+          y: el.y,
+          length: el.width,
+          thickness: el.thickness,
+          isVertical: false,
+        );
     }
   }
 
@@ -167,6 +179,34 @@ Uint8List compileToIPLBytes(
   IplCommandWriter.writeLegacyPrint(writer);
 
   return writer.toBytes();
+}
+
+void _writeText(
+  PrinterByteWriter writer, {
+  required int fieldNum,
+  required String content,
+  required TextOptions o,
+  required CodePageEncoder encoder,
+  required bool replaceUnsupported,
+}) {
+  final x = o.x ?? 0;
+  final y = o.y ?? 0;
+  final rotation = _iplRotation(o.rotation ?? 0);
+  final size = o.size ?? 1;
+
+  IplCommandWriter.writeTextField(
+    writer,
+    fieldNumber: fieldNum,
+    x: x,
+    y: y,
+    rotation: rotation,
+    fontHeight: size * 12,
+    fontWidth: size * 12,
+    fontCode: 26,
+    text: content,
+    encoder: encoder,
+    replaceUnsupported: replaceUnsupported,
+  );
 }
 
 /// Compile a resolved label to IPL commands as a [String] compatibility view.

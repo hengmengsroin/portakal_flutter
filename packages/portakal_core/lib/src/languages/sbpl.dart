@@ -34,22 +34,12 @@ Uint8List compileToSBPLBytes(
   for (final el in label.elements) {
     switch (el) {
       case TextElement():
-        final o = el.options;
-        final x = o.x ?? 0;
-        final y = o.y ?? 0;
-        final size = o.size ?? 1;
-
-        SbplCommandWriter.writeText(
+        _writeText(
           writer,
-          x: x,
-          y: y,
-          text: el.content,
+          el.content,
+          el.options,
           encoder: encoder,
           replaceUnsupported: enc.replaceUnsupported,
-          widthMag: size,
-          heightMag: size,
-          fontCode: 'K9B',
-          rotation: _sbplRotation(o.rotation ?? 0),
         );
 
       case BoxElement():
@@ -115,13 +105,32 @@ Uint8List compileToSBPLBytes(
         SbplCommandWriter.writeRawBytes(writer, el.bytes);
 
       case RowElement():
-      case DividerElement():
-        if (policy == UnsupportedFeaturePolicy.throwError) {
-          throw UnsupportedFeatureError(
-            'SBPL compiler does not support ${el.runtimeType} in Slice 1',
+        for (final cell in el.cells) {
+          if (cell.text.isEmpty) continue;
+          _writeText(
+            writer,
+            cell.text,
+            TextOptions(
+              x: cell.x,
+              y: el.y,
+              size: el.size,
+              bold: cell.style.bold,
+              underline: cell.style.underline,
+            ),
+            encoder: encoder,
+            replaceUnsupported: enc.replaceUnsupported,
           );
         }
-        break;
+
+      case DividerElement():
+        SbplCommandWriter.writeLine(
+          writer,
+          x1: el.startX,
+          y1: el.y,
+          x2: el.startX + el.width,
+          y2: el.y,
+          thickness: el.thickness,
+        );
     }
   }
 
@@ -133,6 +142,31 @@ Uint8List compileToSBPLBytes(
   // ESC Z — End
   SbplCommandWriter.writeEndJob(writer);
   return writer.toBytes();
+}
+
+void _writeText(
+  PrinterByteWriter writer,
+  String content,
+  TextOptions o, {
+  required CodePageEncoder encoder,
+  required bool replaceUnsupported,
+}) {
+  final x = o.x ?? 0;
+  final y = o.y ?? 0;
+  final size = o.size ?? 1;
+
+  SbplCommandWriter.writeText(
+    writer,
+    x: x,
+    y: y,
+    text: content,
+    encoder: encoder,
+    replaceUnsupported: replaceUnsupported,
+    widthMag: size,
+    heightMag: size,
+    fontCode: 'K9B',
+    rotation: _sbplRotation(o.rotation ?? 0),
+  );
 }
 
 /// Compile a resolved label to SBPL commands as a [String] compatibility view.

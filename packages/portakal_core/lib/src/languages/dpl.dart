@@ -51,23 +51,10 @@ Uint8List compileToDPLBytes(
   for (final el in label.elements) {
     switch (el) {
       case TextElement():
-        final o = el.options;
-        final x = o.x ?? 0;
-        final y = o.y ?? 0;
-        final rotation = _dplRotation(o.rotation ?? 0);
-        final font = o.font ?? '0';
-        final xMul = o.xScale ?? o.size ?? 1;
-        final yMul = o.yScale ?? o.size ?? 1;
-
-        DplCommandWriter.writeText(
+        _writeText(
           writer,
-          x: x,
-          y: y,
-          font: font,
-          xMultiplier: xMul,
-          yMultiplier: yMul,
-          rotationCode: rotation,
-          text: el.content,
+          el.content,
+          el.options,
           encoder: encoder,
           replaceUnsupported: enc.replaceUnsupported,
           terminator: term,
@@ -150,19 +137,70 @@ Uint8List compileToDPLBytes(
         DplCommandWriter.writeRawBytes(writer, el.bytes);
 
       case RowElement():
-      case DividerElement():
-        if (policy == UnsupportedFeaturePolicy.throwError) {
-          throw UnsupportedFeatureError(
-            'DPL compiler does not support ${el.runtimeType} in Slice 1',
+        for (final cell in el.cells) {
+          if (cell.text.isEmpty) continue;
+          _writeText(
+            writer,
+            cell.text,
+            TextOptions(
+              x: cell.x,
+              y: el.y,
+              size: el.size,
+              bold: cell.style.bold,
+              underline: cell.style.underline,
+            ),
+            encoder: encoder,
+            replaceUnsupported: enc.replaceUnsupported,
+            terminator: term,
           );
         }
-        break;
+
+      case DividerElement():
+        DplCommandWriter.writeLine(
+          writer,
+          x1: el.startX,
+          y1: el.y,
+          x2: el.startX + el.width,
+          y2: el.y,
+          thickness: el.thickness,
+          terminator: term,
+        );
     }
   }
 
   // E — End label format & print
   DplCommandWriter.writeEndLabel(writer, terminator: term);
   return writer.toBytes();
+}
+
+void _writeText(
+  PrinterByteWriter writer,
+  String content,
+  TextOptions o, {
+  required CodePageEncoder encoder,
+  required bool replaceUnsupported,
+  required String terminator,
+}) {
+  final x = o.x ?? 0;
+  final y = o.y ?? 0;
+  final rotation = _dplRotation(o.rotation ?? 0);
+  final font = o.font ?? '0';
+  final xMul = o.xScale ?? o.size ?? 1;
+  final yMul = o.yScale ?? o.size ?? 1;
+
+  DplCommandWriter.writeText(
+    writer,
+    x: x,
+    y: y,
+    font: font,
+    xMultiplier: xMul,
+    yMultiplier: yMul,
+    rotationCode: rotation,
+    text: content,
+    encoder: encoder,
+    replaceUnsupported: replaceUnsupported,
+    terminator: terminator,
+  );
 }
 
 /// Compile a resolved label to DPL commands as a [String] compatibility view.

@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../encoding.dart';
-import '../errors.dart';
 import '../types.dart';
 import 'epl_writer.dart';
 
@@ -43,25 +42,10 @@ Uint8List compileToEPLBytes(
   for (final el in label.elements) {
     switch (el) {
       case TextElement():
-        final o = el.options;
-        final x = o.x ?? 0;
-        final y = o.y ?? 0;
-        final font = o.font ?? '2';
-        final rotation = _eplRotation(o.rotation ?? 0);
-        final xMul = o.xScale ?? o.size ?? 1;
-        final yMul = o.yScale ?? o.size ?? 1;
-        final reverse = o.reverse == true;
-
-        EplCommandWriter.writeText(
+        _writeText(
           writer,
-          x: x,
-          y: y,
-          rotation: rotation,
-          font: font,
-          xMultiplier: xMul,
-          yMultiplier: yMul,
-          reverse: reverse,
-          text: el.content,
+          el.content,
+          el.options,
           encoder: encoder,
           replaceUnsupported: enc.replaceUnsupported,
         );
@@ -180,18 +164,67 @@ Uint8List compileToEPLBytes(
         EplCommandWriter.writeRawBytes(writer, el.bytes);
 
       case RowElement():
-      case DividerElement():
-        if (policy == UnsupportedFeaturePolicy.throwError) {
-          throw UnsupportedFeatureError(
-            'EPL compiler does not support ${el.runtimeType} in Slice 1',
+        for (final cell in el.cells) {
+          if (cell.text.isEmpty) continue;
+          _writeText(
+            writer,
+            cell.text,
+            TextOptions(
+              x: cell.x,
+              y: el.y,
+              size: el.size,
+              bold: cell.style.bold,
+              underline: cell.style.underline,
+            ),
+            encoder: encoder,
+            replaceUnsupported: enc.replaceUnsupported,
           );
         }
-        break;
+
+      case DividerElement():
+        final width = el.width == 0 ? 1 : el.width;
+        EplCommandWriter.writeLine(
+          writer,
+          x: el.startX,
+          y: el.y,
+          width: width,
+          height: el.thickness,
+        );
     }
   }
 
   EplCommandWriter.writePrint(writer, sets: label.copies, copies: 1);
   return writer.toBytes();
+}
+
+void _writeText(
+  PrinterByteWriter writer,
+  String content,
+  TextOptions o, {
+  required CodePageEncoder encoder,
+  required bool replaceUnsupported,
+}) {
+  final x = o.x ?? 0;
+  final y = o.y ?? 0;
+  final font = o.font ?? '2';
+  final rotation = _eplRotation(o.rotation ?? 0);
+  final xMul = o.xScale ?? o.size ?? 1;
+  final yMul = o.yScale ?? o.size ?? 1;
+  final reverse = o.reverse == true;
+
+  EplCommandWriter.writeText(
+    writer,
+    x: x,
+    y: y,
+    rotation: rotation,
+    font: font,
+    xMultiplier: xMul,
+    yMultiplier: yMul,
+    reverse: reverse,
+    text: content,
+    encoder: encoder,
+    replaceUnsupported: replaceUnsupported,
+  );
 }
 
 /// Compile a resolved label to EPL2 commands as a [String] compatibility view.
