@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'barcode_encoder.dart';
 import 'builder.dart';
+import 'errors.dart';
 import 'qr_encoder.dart';
 import 'types.dart';
 
@@ -912,7 +913,9 @@ class PreviewScene {
 
       case RowElement():
       case DividerElement():
-        return null;
+        throw UnsupportedFeatureError(
+          'PreviewScene does not support ${el.runtimeType} in Slice 1',
+        );
     }
   }
 

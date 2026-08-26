@@ -140,6 +140,11 @@ Uint8List compileToStarPRNT(
 
       case RowElement():
       case DividerElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'Star PRNT compiler does not support ${el.runtimeType} in Slice 1',
+          );
+        }
         break;
     }
   }

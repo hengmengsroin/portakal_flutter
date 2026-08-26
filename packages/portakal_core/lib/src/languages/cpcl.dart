@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import '../byte_writer.dart';
 import '../encoding.dart';
+import '../errors.dart';
 import '../types.dart';
 import 'cpcl_writer.dart';
 
@@ -153,6 +154,11 @@ Uint8List compileToCPCLBytes(
 
       case RowElement():
       case DividerElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'CPCL compiler does not support ${el.runtimeType} in Slice 1',
+          );
+        }
         break;
     }
   }

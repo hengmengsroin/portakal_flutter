@@ -151,6 +151,11 @@ Uint8List compileToDPLBytes(
 
       case RowElement():
       case DividerElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'DPL compiler does not support ${el.runtimeType} in Slice 1',
+          );
+        }
         break;
     }
   }

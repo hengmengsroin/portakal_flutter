@@ -109,9 +109,9 @@ class ApiSnapshotGenerator {
         continue;
       }
 
-      // Detect top-level classes / sealed / abstract
+      // Detect top-level classes / sealed / abstract / interface
       final classMatch = RegExp(
-              r'''^(?:abstract\s+|sealed\s+|final\s+)?class\s+([A-Za-z0-9_]+)(?:<[^>]+>)?(?:\s+(?:extends|implements|with)\s+.*)?\s*\{?''')
+              r'''^(?:(?:abstract|sealed|final|base|interface)\s+)*class\s+([A-Za-z0-9_]+)(?:<[^>]+>)?(?:\s+(?:extends|implements|with)\s+.*)?\s*\{?''')
           .firstMatch(line);
       if (classMatch != null &&
           !rawLine.startsWith(' ') &&
@@ -170,7 +170,7 @@ class ApiSnapshotGenerator {
       // Detect top-level functions
       if (!rawLine.startsWith(' ') && !rawLine.startsWith('\t')) {
         final funcMatch = RegExp(
-                r'''^(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*\([^;{]*\)\s*(?:async\s*)?(?:=>|\{)''')
+                r'''^(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*\(''')
             .firstMatch(line);
         if (funcMatch != null) {
           final name = funcMatch.group(1)!;
@@ -194,7 +194,8 @@ class ApiSnapshotGenerator {
 
       // Class members
       if (inClass && currentClass != null) {
-        if (line.startsWith('}')) {
+        if ((!rawLine.startsWith(' ') && !rawLine.startsWith('\t')) &&
+            line.startsWith('}')) {
           inClass = false;
           currentClass = null;
           continue;
@@ -219,9 +220,18 @@ class ApiSnapshotGenerator {
             }
           }
 
+          // Skip statements inside methods
+          final trimmed = rawLine.trim();
+          if (trimmed.startsWith('throw ') ||
+              trimmed.startsWith('return ') ||
+              trimmed.startsWith('yield ') ||
+              trimmed.startsWith('assert(')) {
+            continue;
+          }
+
           // Method or getter
           final memberMatch = RegExp(
-                  r'''^\s*(?:(?:static|final|const|abstract|override)\s+)*(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*(?:\([^;{]*\)|=>|;)''')
+                  r'''^\s*(?:(?:static|final|const|abstract|override)\s+)*(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*(?:\(|=>|;)''')
               .firstMatch(rawLine);
           if (memberMatch != null) {
             final mName = memberMatch.group(1)!;
@@ -233,6 +243,8 @@ class ApiSnapshotGenerator {
                   'switch',
                   'catch',
                   'return',
+                  'throw',
+                  'rethrow',
                   'super',
                   'this'
                 ].contains(mName)) {

@@ -11,29 +11,17 @@ void main() {
   });
 
   group('LabelTextStyle', () {
-    test('instantiates with defaults and custom properties', () {
+    test('instantiates with defaults (false) and custom boolean flags', () {
       const defaultStyle = LabelTextStyle();
-      expect(defaultStyle.font, isNull);
-      expect(defaultStyle.bold, isNull);
-      expect(defaultStyle.underline, isNull);
-      expect(defaultStyle.reverse, isNull);
+      expect(defaultStyle.bold, isFalse);
+      expect(defaultStyle.underline, isFalse);
 
-      const customStyle = LabelTextStyle(
-        font: '0',
-        xScale: 2,
-        yScale: 2,
-        rotation: 90,
+      const boldUnderline = LabelTextStyle(
         bold: true,
         underline: true,
-        reverse: false,
       );
-      expect(customStyle.font, equals('0'));
-      expect(customStyle.xScale, equals(2));
-      expect(customStyle.yScale, equals(2));
-      expect(customStyle.rotation, equals(90));
-      expect(customStyle.bold, isTrue);
-      expect(customStyle.underline, isTrue);
-      expect(customStyle.reverse, isFalse);
+      expect(boldUnderline.bold, isTrue);
+      expect(boldUnderline.underline, isTrue);
     });
   });
 
@@ -52,11 +40,12 @@ void main() {
       expect(cell.width, equals(400));
       expect(cell.align, equals(LabelTextAlign.center));
       expect(cell.style.bold, isTrue);
+      expect(cell.style.underline, isFalse);
     });
   });
 
   group('RowElement', () {
-    test('preserves row coordinates, width, and cell order', () {
+    test('preserves row coordinates, width, default size, and cell order', () {
       const cell1 = RowCellElement(text: 'Latte', x: 20, width: 400);
       const cell2 = RowCellElement(
         text: r'$2.50',
@@ -65,7 +54,7 @@ void main() {
         align: LabelTextAlign.right,
       );
 
-      const row = RowElement(
+      final row = RowElement(
         y: 100,
         startX: 20,
         width: 560,
@@ -76,9 +65,66 @@ void main() {
       expect(row.y, equals(100));
       expect(row.startX, equals(20));
       expect(row.width, equals(560));
+      expect(row.size, equals(1));
       expect(row.cells.length, equals(2));
       expect(row.cells[0].text, equals('Latte'));
       expect(row.cells[1].text, equals(r'$2.50'));
+    });
+
+    test('preserves explicit row-level size and rejects size < 1', () {
+      final row = RowElement(
+        y: 100,
+        startX: 20,
+        width: 560,
+        size: 2,
+        cells: const [RowCellElement(text: 'Large Header', x: 20, width: 560)],
+      );
+      expect(row.size, equals(2));
+
+      expect(
+        () => RowElement(
+          y: 100,
+          startX: 20,
+          width: 560,
+          size: 0,
+          cells: const [],
+        ),
+        throwsA(isA<InvalidConfigError>()),
+      );
+      expect(
+        () => RowElement(
+          y: 100,
+          startX: 20,
+          width: 560,
+          size: -1,
+          cells: const [],
+        ),
+        throwsA(isA<InvalidConfigError>()),
+      );
+    });
+
+    test('enforces immutability: defends against external list mutations', () {
+      final sourceList = <RowCellElement>[
+        const RowCellElement(text: 'Latte', x: 20, width: 400),
+      ];
+
+      final row = RowElement(
+        y: 100,
+        startX: 20,
+        width: 560,
+        cells: sourceList,
+      );
+
+      sourceList.clear();
+      expect(row.cells.length, equals(1));
+      expect(row.cells[0].text, equals('Latte'));
+
+      expect(
+        () => row.cells.add(
+          const RowCellElement(text: 'Cappuccino', x: 420, width: 100),
+        ),
+        throwsA(isA<UnsupportedError>()),
+      );
     });
   });
 
@@ -99,9 +145,9 @@ void main() {
     });
   });
 
-  group('LabelCell', () {
+  group('LabelCell runtime validation', () {
     test('creates fixed cell correctly', () {
-      const cell = LabelCell.fixed(
+      final cell = LabelCell.fixed(
         120,
         text: 'Qty',
         align: LabelTextAlign.center,
@@ -116,7 +162,7 @@ void main() {
     });
 
     test('creates flex cell correctly', () {
-      const cell = LabelCell.flex(
+      final cell = LabelCell.flex(
         3,
         text: 'Description',
         align: LabelTextAlign.left,
@@ -130,51 +176,115 @@ void main() {
       expect(cell.underline, isTrue);
     });
 
-    test('asserts width > 0 for fixed cell', () {
+    test('throws InvalidConfigError when width <= 0 for fixed cell', () {
       expect(
         () => LabelCell.fixed(0, text: 'Test'),
-        throwsA(isA<AssertionError>()),
+        throwsA(isA<InvalidConfigError>()),
       );
       expect(
         () => LabelCell.fixed(-5, text: 'Test'),
-        throwsA(isA<AssertionError>()),
+        throwsA(isA<InvalidConfigError>()),
       );
     });
 
-    test('asserts flex > 0 for flex cell', () {
+    test('throws InvalidConfigError when flex <= 0 for flex cell', () {
       expect(
         () => LabelCell.flex(0, text: 'Test'),
-        throwsA(isA<AssertionError>()),
+        throwsA(isA<InvalidConfigError>()),
       );
       expect(
         () => LabelCell.flex(-1, text: 'Test'),
-        throwsA(isA<AssertionError>()),
+        throwsA(isA<InvalidConfigError>()),
       );
     });
   });
 
-  group('LabelColumn', () {
+  group('LabelColumn runtime validation', () {
     test('creates fixed column correctly', () {
-      const col = LabelColumn.fixed(100, align: LabelTextAlign.right);
+      final col = LabelColumn.fixed(100, align: LabelTextAlign.right);
       expect(col.align, equals(LabelTextAlign.right));
     });
 
     test('creates flex column correctly', () {
-      const col = LabelColumn.flex(2, align: LabelTextAlign.center);
+      final col = LabelColumn.flex(2, align: LabelTextAlign.center);
       expect(col.align, equals(LabelTextAlign.center));
     });
 
-    test('asserts width > 0 for fixed column', () {
+    test('throws InvalidConfigError when width <= 0 for fixed column', () {
       expect(
         () => LabelColumn.fixed(0),
-        throwsA(isA<AssertionError>()),
+        throwsA(isA<InvalidConfigError>()),
       );
     });
 
-    test('asserts flex > 0 for flex column', () {
+    test('throws InvalidConfigError when flex <= 0 for flex column', () {
       expect(
         () => LabelColumn.flex(0),
-        throwsA(isA<AssertionError>()),
+        throwsA(isA<InvalidConfigError>()),
+      );
+    });
+  });
+
+  group('Intermediate Slice 1 safety stubs across compilers & preview', () {
+    const testResolvedLabel = ResolvedLabel(
+      widthDots: 600,
+      heightDots: 400,
+      dpi: 203,
+      speed: 4,
+      density: 8,
+      direction: 0,
+      copies: 1,
+      gap: 0,
+      gapOffset: 0,
+      unit: Unit.mm,
+      elements: [
+        DividerElement(y: 100, startX: 20, width: 560),
+      ],
+    );
+
+    test('compilers throw UnsupportedFeatureError on unlowered RowElement/DividerElement', () {
+      expect(
+        () => compileToTSCBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+      expect(
+        () => compileToZPLBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+      expect(
+        () => compileToEPLBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+      expect(
+        () => compileToESCPOSBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+      expect(
+        () => compileToCPCLBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+      expect(
+        () => compileToDPLBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+      expect(
+        () => compileToIPLBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+      expect(
+        () => compileToSBPLBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+      expect(
+        () => compileToStarPRNTBytes(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
+      );
+    });
+
+    test('PreviewScene throws UnsupportedFeatureError on unrendered RowElement/DividerElement in Slice 1', () {
+      expect(
+        () => PreviewScene.fromResolved(testResolvedLabel),
+        throwsA(isA<UnsupportedFeatureError>()),
       );
     });
   });

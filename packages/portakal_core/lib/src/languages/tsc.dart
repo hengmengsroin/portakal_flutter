@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../byte_writer.dart';
+import '../errors.dart';
 import '../types.dart';
 import 'tsc_writer.dart';
 
@@ -192,6 +193,11 @@ Uint8List compileToTSCBytes(
 
       case RowElement():
       case DividerElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'TSC compiler does not support ${el.runtimeType} in Slice 1',
+          );
+        }
         break;
     }
   }

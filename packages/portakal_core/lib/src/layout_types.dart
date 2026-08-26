@@ -1,3 +1,4 @@
+import 'builder.dart';
 import 'errors.dart';
 import 'types.dart';
 
@@ -16,7 +17,7 @@ sealed class LabelCell {
   });
 
   /// Fixed-width cell with exact width in dots.
-  const factory LabelCell.fixed(
+  factory LabelCell.fixed(
     int width, {
     required String text,
     LabelTextAlign align,
@@ -25,7 +26,7 @@ sealed class LabelCell {
   }) = _FixedLabelCell;
 
   /// Proportional flex cell distributing available row width by integer weight.
-  const factory LabelCell.flex(
+  factory LabelCell.flex(
     int flex, {
     required String text,
     LabelTextAlign align,
@@ -36,24 +37,34 @@ sealed class LabelCell {
 
 class _FixedLabelCell extends LabelCell {
   final int width;
-  const _FixedLabelCell(
+  _FixedLabelCell(
     this.width, {
     required super.text,
-    super.align,
-    super.bold,
-    super.underline,
-  }) : assert(width > 0, 'Fixed cell width must be greater than 0');
+    super.align = LabelTextAlign.left,
+    super.bold = false,
+    super.underline = false,
+  }) {
+    if (width <= 0) {
+      throw InvalidConfigError(
+        'Fixed cell width must be greater than 0, got $width',
+      );
+    }
+  }
 }
 
 class _FlexLabelCell extends LabelCell {
   final int flex;
-  const _FlexLabelCell(
+  _FlexLabelCell(
     this.flex, {
     required super.text,
-    super.align,
-    super.bold,
-    super.underline,
-  }) : assert(flex > 0, 'Flex weight must be greater than 0');
+    super.align = LabelTextAlign.left,
+    super.bold = false,
+    super.underline = false,
+  }) {
+    if (flex <= 0) {
+      throw InvalidConfigError('Flex weight must be greater than 0, got $flex');
+    }
+  }
 }
 
 /// Sizing and alignment definition for a table column.
@@ -62,13 +73,13 @@ sealed class LabelColumn {
   const LabelColumn({this.align = LabelTextAlign.left});
 
   /// Fixed-width column with exact width in dots.
-  const factory LabelColumn.fixed(
+  factory LabelColumn.fixed(
     int width, {
     LabelTextAlign align,
   }) = _FixedLabelColumn;
 
   /// Proportional flex column distributing available table width by integer weight.
-  const factory LabelColumn.flex(
+  factory LabelColumn.flex(
     int flex, {
     LabelTextAlign align,
   }) = _FlexLabelColumn;
@@ -76,14 +87,140 @@ sealed class LabelColumn {
 
 class _FixedLabelColumn extends LabelColumn {
   final int width;
-  const _FixedLabelColumn(this.width, {super.align})
-      : assert(width > 0, 'Fixed column width must be greater than 0');
+  _FixedLabelColumn(this.width, {super.align = LabelTextAlign.left}) {
+    if (width <= 0) {
+      throw InvalidConfigError(
+        'Fixed column width must be greater than 0, got $width',
+      );
+    }
+  }
 }
 
 class _FlexLabelColumn extends LabelColumn {
   final int flex;
-  const _FlexLabelColumn(this.flex, {super.align})
-      : assert(flex > 0, 'Flex weight must be greater than 0');
+  _FlexLabelColumn(this.flex, {super.align = LabelTextAlign.left}) {
+    if (flex <= 0) {
+      throw InvalidConfigError('Flex weight must be greater than 0, got $flex');
+    }
+  }
+}
+
+/// Structured table helper for repeated row generation sharing the parent builder's sequential state.
+abstract interface class LabelTable {
+  /// Add a row of text cells matching the table column definitions.
+  LabelTable row(
+    List<String> cells, {
+    int size = 1,
+    bool bold = false,
+    int? advance,
+  });
+
+  /// Add a horizontal divider line across the table width.
+  LabelTable divider({int thickness = 1, int? advance, int? margin});
+
+  /// Advance vertical document space by [amount] dots without emitting an AST element.
+  LabelTable space(int amount);
+}
+
+class _LabelTable implements LabelTable {
+  final LabelBuilder _builder;
+  final List<LabelColumn> _columns;
+  final int _gap;
+  final int? _defaultAdvance;
+
+  _LabelTable(
+    this._builder, {
+    required List<LabelColumn> columns,
+    int gap = 0,
+    int? defaultAdvance,
+  })  : _columns = List.unmodifiable(columns),
+        _gap = gap,
+        _defaultAdvance = defaultAdvance {
+    if (_columns.isEmpty) {
+      throw const InvalidConfigError('Table columns must not be empty');
+    }
+    if (gap < 0) {
+      throw InvalidConfigError('Table gap must be non-negative, got $gap');
+    }
+    if (defaultAdvance != null && defaultAdvance <= 0) {
+      throw InvalidConfigError(
+        'Table defaultAdvance must be greater than 0, got $defaultAdvance',
+      );
+    }
+  }
+
+  @override
+  LabelTable row(
+    List<String> cells, {
+    int size = 1,
+    bool bold = false,
+    int? advance,
+  }) {
+    if (cells.length != _columns.length) {
+      throw InvalidConfigError(
+        'Table row cell count (${cells.length}) does not match column count (${_columns.length})',
+      );
+    }
+    if (size < 1) {
+      throw InvalidConfigError('Table row size must be at least 1, got $size');
+    }
+    if (advance != null && advance <= 0) {
+      throw InvalidConfigError(
+        'Table row advance must be greater than 0, got $advance',
+      );
+    }
+
+    final children = <LabelCell>[];
+    for (var i = 0; i < cells.length; i++) {
+      final text = cells[i];
+      final col = _columns[i];
+      switch (col) {
+        case _FixedLabelColumn(:final width):
+          children.add(
+            LabelCell.fixed(
+              width,
+              text: text,
+              align: col.align,
+              bold: bold,
+            ),
+          );
+        case _FlexLabelColumn(:final flex):
+          children.add(
+            LabelCell.flex(
+              flex,
+              text: text,
+              align: col.align,
+              bold: bold,
+            ),
+          );
+      }
+    }
+
+    _builder.rowCells(
+      children: children,
+      size: size,
+      gap: _gap,
+      advance: advance ?? _defaultAdvance,
+    );
+
+    return this;
+  }
+
+  @override
+  LabelTable divider({int thickness = 1, int? advance, int? margin}) {
+    _builder.divider(
+      thickness: thickness,
+      advance: advance ?? _defaultAdvance,
+      margin: margin,
+    );
+    return this;
+  }
+
+  @override
+  LabelTable space(int amount) {
+    _builder.space(amount);
+    return this;
+  }
 }
 
 /// Sizing specification for column width allocation.
@@ -91,6 +228,43 @@ typedef ColumnSizingSpec = ({int? fixedWidth, int? flex});
 
 /// Internal deterministic width allocator for structured rows and tables.
 class LayoutGeometry {
+  /// Allocates cell coordinates and widths for a list of [LabelCell] definitions.
+  static List<({int x, int width})> allocateCells({
+    required int startX,
+    required int availableWidth,
+    int gap = 0,
+    required List<LabelCell> cells,
+  }) {
+    final specs = cells.map((cell) {
+      return switch (cell) {
+        _FixedLabelCell(:final width) => (fixedWidth: width, flex: null),
+        _FlexLabelCell(:final flex) => (fixedWidth: null, flex: flex),
+      };
+    }).toList();
+
+    return allocateColumns(
+      startX: startX,
+      availableWidth: availableWidth,
+      gap: gap,
+      specs: specs,
+    );
+  }
+
+  /// Internal factory for constructing a [LabelTable] implementation.
+  static LabelTable createTable(
+    LabelBuilder builder, {
+    required List<LabelColumn> columns,
+    int gap = 0,
+    int? defaultAdvance,
+  }) {
+    return _LabelTable(
+      builder,
+      columns: columns,
+      gap: gap,
+      defaultAdvance: defaultAdvance,
+    );
+  }
+
   /// Allocates column coordinates and widths across [availableWidth] dots.
   ///
   /// - [startX]: Starting X coordinate for the first column.

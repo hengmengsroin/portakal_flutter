@@ -147,6 +147,11 @@ Uint8List compileToIPLBytes(
 
       case RowElement():
       case DividerElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'IPL compiler does not support ${el.runtimeType} in Slice 1',
+          );
+        }
         break;
     }
   }

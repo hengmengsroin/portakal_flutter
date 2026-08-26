@@ -116,6 +116,11 @@ Uint8List compileToSBPLBytes(
 
       case RowElement():
       case DividerElement():
+        if (policy == UnsupportedFeaturePolicy.throwError) {
+          throw UnsupportedFeatureError(
+            'SBPL compiler does not support ${el.runtimeType} in Slice 1',
+          );
+        }
         break;
     }
   }

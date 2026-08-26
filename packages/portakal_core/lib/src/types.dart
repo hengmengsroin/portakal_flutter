@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'encoding.dart';
+import 'errors.dart';
 
 /// Policy for handling unsupported elements or features in target compiler.
 enum UnsupportedFeaturePolicy {
@@ -146,24 +147,14 @@ enum LabelTextAlign {
   const LabelTextAlign(this.identifier);
 }
 
-/// Dedicated styling options for text elements and row cells.
+/// Dedicated styling options for row cells.
 class LabelTextStyle {
-  final String? font;
-  final int? xScale;
-  final int? yScale;
-  final int? rotation;
-  final bool? bold;
-  final bool? underline;
-  final bool? reverse;
+  final bool bold;
+  final bool underline;
 
   const LabelTextStyle({
-    this.font,
-    this.xScale,
-    this.yScale,
-    this.rotation,
-    this.bold,
-    this.underline,
-    this.reverse,
+    this.bold = false,
+    this.underline = false,
   });
 }
 
@@ -536,14 +527,20 @@ class RowElement extends LabelElement {
   final int y;
   final int startX;
   final int width;
+  final int size;
   final List<RowCellElement> cells;
 
-  const RowElement({
+  RowElement({
     required this.y,
     required this.startX,
     required this.width,
-    required this.cells,
-  });
+    this.size = 1,
+    required List<RowCellElement> cells,
+  }) : cells = List.unmodifiable(cells) {
+    if (size < 1) {
+      throw InvalidConfigError('Row size must be at least 1, got $size');
+    }
+  }
 
   @override
   String get type => 'row';
