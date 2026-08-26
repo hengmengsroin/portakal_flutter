@@ -266,6 +266,40 @@ class ImageOptions {
   const ImageOptions({this.x, this.y, this.width, this.height});
 }
 
+/// Standard barcode symbologies supported across Portakal compilers and previewers.
+///
+/// Use with [BarcodeOptions.typed] for type-safe barcode configuration.
+enum BarcodeSymbology {
+  /// Code 128 (auto subset B/C)
+  code128('128'),
+
+  /// Code 39 (3 of 9)
+  code39('39'),
+
+  /// EAN-13 (European Article Number 13)
+  ean13('EAN13'),
+
+  /// EAN-8 (European Article Number 8)
+  ean8('EAN8'),
+
+  /// UPC-A (Universal Product Code A)
+  upca('UPCA'),
+
+  /// UPC-E (Universal Product Code E zero-suppressed)
+  upce('UPCE'),
+
+  /// ITF (Interleaved 2 of 5)
+  itf('ITF'),
+
+  /// Codabar / NW-7
+  codabar('CODABAR');
+
+  /// Canonical string identifier stored in [BarcodeOptions.type].
+  final String identifier;
+
+  const BarcodeSymbology(this.identifier);
+}
+
 /// Options for barcode elements.
 class BarcodeOptions {
   final int x;
@@ -289,6 +323,34 @@ class BarcodeOptions {
     this.wide,
     this.alignment,
   });
+
+  /// Creates type-safe barcode options using [BarcodeSymbology].
+  ///
+  /// Lowers the typed [symbology] into the canonical string representation
+  /// consumed by Portakal compilers and previewers.
+  factory BarcodeOptions.typed({
+    required int x,
+    required int y,
+    required BarcodeSymbology symbology,
+    required int height,
+    int? readable,
+    int? rotation,
+    int? narrow,
+    int? wide,
+    int? alignment,
+  }) {
+    return BarcodeOptions(
+      x: x,
+      y: y,
+      type: symbology.identifier,
+      height: height,
+      readable: readable,
+      rotation: rotation,
+      narrow: narrow,
+      wide: wide,
+      alignment: alignment,
+    );
+  }
 }
 
 /// Options for QRCode elements.

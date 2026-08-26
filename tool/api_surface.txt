@@ -6,7 +6,7 @@
 ## PACKAGE: portakal_core
 Entrypoint: packages/portakal_core/lib/portakal_core.dart
 
-Total Public Declarations: 1524
+Total Public Declarations: 1536
 
     constructor CPCLParseResult({required this.elements, this.widthDots = 0, this.heightDots = 0, this.dpi = 200}) (in /packages/portakal_core/lib/src/parsers/cpcl.dart)
     constructor CpclPrinter({CpclEncoding encoding = const CpclEncoding.legacy()}) (in /packages/portakal_core/lib/src/native/cpcl_printer.dart)
@@ -43,6 +43,7 @@ Total Public Declarations: 1524
     constructor ZplPrinter({ZplEncoding encoding = const ZplEncoding.utf8()}) (in /packages/portakal_core/lib/src/native/zpl_printer.dart)
     constructor const BarcodeElement({required this.content, required this.options}) (in /packages/portakal_core/lib/src/types.dart)
     constructor const BarcodeOptions({required this.x, required this.y, required this.type, required this.height, this.readable, this.rotation, this.narrow, this.wide, this.alignment}) (in /packages/portakal_core/lib/src/types.dart)
+    constructor const BarcodeSymbology(this.identifier) (in /packages/portakal_core/lib/src/types.dart)
     constructor const BoxElement({required this.options}) (in /packages/portakal_core/lib/src/types.dart)
     constructor const BoxOptions({required this.x, required this.y, required this.width, required this.height, this.thickness, this.radius}) (in /packages/portakal_core/lib/src/types.dart)
     constructor const ChunkOptions({this.chunkSize = 512, this.chunkDelay}) (in /packages/portakal_core/lib/src/transport.dart)
@@ -205,12 +206,21 @@ Total Public Declarations: 1524
     constructor const ZplQrEcc(this.code) (in /packages/portakal_core/lib/src/native/zpl_types.dart)
     constructor const ZplQrModel(this.value) (in /packages/portakal_core/lib/src/native/zpl_types.dart)
     constructor const ZplRotation(this.code) (in /packages/portakal_core/lib/src/native/zpl_types.dart)
+    constructor factory BarcodeOptions.typed({required int x, required int y, required BarcodeSymbology symbology, required int height, int? readable, int? rotation, int? narrow, int? wide, int? alignment}) (in /packages/portakal_core/lib/src/types.dart)
     constructor factory LabelCell.fixed(int width, {required String text, LabelTextAlign align, bool bold, bool underline}) (in /packages/portakal_core/lib/src/layout_types.dart)
     constructor factory LabelCell.flex(int flex, {required String text, LabelTextAlign align, bool bold, bool underline}) (in /packages/portakal_core/lib/src/layout_types.dart)
     constructor factory LabelColumn.fixed(int width, {LabelTextAlign align}) (in /packages/portakal_core/lib/src/layout_types.dart)
     constructor factory LabelColumn.flex(int flex, {LabelTextAlign align}) (in /packages/portakal_core/lib/src/layout_types.dart)
     constructor factory PreviewScene.fromBuilder(LabelBuilder builder, {String? languageName}) (in /packages/portakal_core/lib/src/preview_scene.dart)
     constructor factory PreviewScene.fromResolved(ResolvedLabel label, {String? languageName}) (in /packages/portakal_core/lib/src/preview_scene.dart)
+    enum-value BarcodeSymbology.codabar (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.code128 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.code39 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.ean13 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.ean8 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.itf (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.upca (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.upce (in /packages/portakal_core/lib/src/types.dart)
     enum-value ConnectionState.connected (in /packages/portakal_core/lib/src/transport.dart)
     enum-value ConnectionState.connecting (in /packages/portakal_core/lib/src/transport.dart)
     enum-value ConnectionState.disconnected (in /packages/portakal_core/lib/src/transport.dart)
@@ -537,6 +547,7 @@ Total Public Declarations: 1524
     field final ReverseOptions ReverseElement.options (in /packages/portakal_core/lib/src/types.dart)
     field final String BarcodeElement.content (in /packages/portakal_core/lib/src/types.dart)
     field final String BarcodeOptions.type (in /packages/portakal_core/lib/src/types.dart)
+    field final String BarcodeSymbology.identifier (in /packages/portakal_core/lib/src/types.dart)
     field final String CpclBarcodeType.code (in /packages/portakal_core/lib/src/native/cpcl_types.dart)
     field final String DPLCommand.params (in /packages/portakal_core/lib/src/parsers/dpl.dart)
     field final String DPLCommand.type (in /packages/portakal_core/lib/src/parsers/dpl.dart)
@@ -1399,6 +1410,7 @@ Total Public Declarations: 1524
   class ZplEncoding (in /packages/portakal_core/lib/src/encoding.dart)
   class ZplLang (in /packages/portakal_core/lib/src/lang/zpl.dart)
   class ZplPrinter (in /packages/portakal_core/lib/src/native/zpl_printer.dart)
+  enum BarcodeSymbology (in /packages/portakal_core/lib/src/types.dart)
   enum ConnectionState (in /packages/portakal_core/lib/src/transport.dart)
   enum CpclBarcodeType (in /packages/portakal_core/lib/src/native/cpcl_types.dart)
   enum CpclRotation (in /packages/portakal_core/lib/src/native/cpcl_types.dart)
@@ -1538,7 +1550,7 @@ Total Public Declarations: 1524
 ## PACKAGE: portakal_flutter
 Entrypoint: packages/portakal_flutter/lib/portakal_flutter.dart
 
-Total Public Declarations: 1534
+Total Public Declarations: 1546
 
     constructor CPCLParseResult({required this.elements, this.widthDots = 0, this.heightDots = 0, this.dpi = 200}) (in /packages/portakal_core/lib/src/parsers/cpcl.dart)
     constructor CpclPrinter({CpclEncoding encoding = const CpclEncoding.legacy()}) (in /packages/portakal_core/lib/src/native/cpcl_printer.dart)
@@ -1577,6 +1589,7 @@ Total Public Declarations: 1534
     constructor ZplPrinter({ZplEncoding encoding = const ZplEncoding.utf8()}) (in /packages/portakal_core/lib/src/native/zpl_printer.dart)
     constructor const BarcodeElement({required this.content, required this.options}) (in /packages/portakal_core/lib/src/types.dart)
     constructor const BarcodeOptions({required this.x, required this.y, required this.type, required this.height, this.readable, this.rotation, this.narrow, this.wide, this.alignment}) (in /packages/portakal_core/lib/src/types.dart)
+    constructor const BarcodeSymbology(this.identifier) (in /packages/portakal_core/lib/src/types.dart)
     constructor const BoxElement({required this.options}) (in /packages/portakal_core/lib/src/types.dart)
     constructor const BoxOptions({required this.x, required this.y, required this.width, required this.height, this.thickness, this.radius}) (in /packages/portakal_core/lib/src/types.dart)
     constructor const ChunkOptions({this.chunkSize = 512, this.chunkDelay}) (in /packages/portakal_core/lib/src/transport.dart)
@@ -1740,12 +1753,21 @@ Total Public Declarations: 1534
     constructor const ZplQrEcc(this.code) (in /packages/portakal_core/lib/src/native/zpl_types.dart)
     constructor const ZplQrModel(this.value) (in /packages/portakal_core/lib/src/native/zpl_types.dart)
     constructor const ZplRotation(this.code) (in /packages/portakal_core/lib/src/native/zpl_types.dart)
+    constructor factory BarcodeOptions.typed({required int x, required int y, required BarcodeSymbology symbology, required int height, int? readable, int? rotation, int? narrow, int? wide, int? alignment}) (in /packages/portakal_core/lib/src/types.dart)
     constructor factory LabelCell.fixed(int width, {required String text, LabelTextAlign align, bool bold, bool underline}) (in /packages/portakal_core/lib/src/layout_types.dart)
     constructor factory LabelCell.flex(int flex, {required String text, LabelTextAlign align, bool bold, bool underline}) (in /packages/portakal_core/lib/src/layout_types.dart)
     constructor factory LabelColumn.fixed(int width, {LabelTextAlign align}) (in /packages/portakal_core/lib/src/layout_types.dart)
     constructor factory LabelColumn.flex(int flex, {LabelTextAlign align}) (in /packages/portakal_core/lib/src/layout_types.dart)
     constructor factory PreviewScene.fromBuilder(LabelBuilder builder, {String? languageName}) (in /packages/portakal_core/lib/src/preview_scene.dart)
     constructor factory PreviewScene.fromResolved(ResolvedLabel label, {String? languageName}) (in /packages/portakal_core/lib/src/preview_scene.dart)
+    enum-value BarcodeSymbology.codabar (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.code128 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.code39 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.ean13 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.ean8 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.itf (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.upca (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.upce (in /packages/portakal_core/lib/src/types.dart)
     enum-value ConnectionState.connected (in /packages/portakal_core/lib/src/transport.dart)
     enum-value ConnectionState.connecting (in /packages/portakal_core/lib/src/transport.dart)
     enum-value ConnectionState.disconnected (in /packages/portakal_core/lib/src/transport.dart)
@@ -2077,6 +2099,7 @@ Total Public Declarations: 1534
     field final ReverseOptions ReverseElement.options (in /packages/portakal_core/lib/src/types.dart)
     field final String BarcodeElement.content (in /packages/portakal_core/lib/src/types.dart)
     field final String BarcodeOptions.type (in /packages/portakal_core/lib/src/types.dart)
+    field final String BarcodeSymbology.identifier (in /packages/portakal_core/lib/src/types.dart)
     field final String CpclBarcodeType.code (in /packages/portakal_core/lib/src/native/cpcl_types.dart)
     field final String DPLCommand.params (in /packages/portakal_core/lib/src/parsers/dpl.dart)
     field final String DPLCommand.type (in /packages/portakal_core/lib/src/parsers/dpl.dart)
@@ -2941,6 +2964,7 @@ Total Public Declarations: 1534
   class ZplEncoding (in /packages/portakal_core/lib/src/encoding.dart)
   class ZplLang (in /packages/portakal_core/lib/src/lang/zpl.dart)
   class ZplPrinter (in /packages/portakal_core/lib/src/native/zpl_printer.dart)
+  enum BarcodeSymbology (in /packages/portakal_core/lib/src/types.dart)
   enum ConnectionState (in /packages/portakal_core/lib/src/transport.dart)
   enum CpclBarcodeType (in /packages/portakal_core/lib/src/native/cpcl_types.dart)
   enum CpclRotation (in /packages/portakal_core/lib/src/native/cpcl_types.dart)
