@@ -10,6 +10,7 @@ export 'src/errors.dart';
 export 'src/utils.dart';
 export 'src/builder.dart';
 export 'src/profiles.dart';
+export 'src/layout_types.dart' show LabelCell, LabelColumn;
 
 // Utilities
 export 'src/image.dart';

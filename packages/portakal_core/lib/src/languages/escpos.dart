@@ -140,6 +140,10 @@ Uint8List compileToESCPOS(
           );
         }
         break;
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 

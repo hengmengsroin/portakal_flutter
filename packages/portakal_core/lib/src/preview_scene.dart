@@ -909,6 +909,10 @@ class PreviewScene {
 
       case RawElement():
         return null;
+
+      case RowElement():
+      case DividerElement():
+        return null;
     }
   }
 

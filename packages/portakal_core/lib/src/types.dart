@@ -136,6 +136,37 @@ class TextOptions {
   });
 }
 
+/// Text alignment options for label cells and columns.
+enum LabelTextAlign {
+  left('left'),
+  center('center'),
+  right('right');
+
+  final String identifier;
+  const LabelTextAlign(this.identifier);
+}
+
+/// Dedicated styling options for text elements and row cells.
+class LabelTextStyle {
+  final String? font;
+  final int? xScale;
+  final int? yScale;
+  final int? rotation;
+  final bool? bold;
+  final bool? underline;
+  final bool? reverse;
+
+  const LabelTextStyle({
+    this.font,
+    this.xScale,
+    this.yScale,
+    this.rotation,
+    this.bold,
+    this.underline,
+    this.reverse,
+  });
+}
+
 /// Options for box elements.
 class BoxOptions {
   final int x;
@@ -481,6 +512,59 @@ class RawElement extends LabelElement {
 
   @override
   String get type => 'raw';
+}
+
+/// Immutable, pre-resolved cell within a [RowElement].
+class RowCellElement {
+  final String text;
+  final int x;
+  final int width;
+  final LabelTextAlign align;
+  final LabelTextStyle style;
+
+  const RowCellElement({
+    required this.text,
+    required this.x,
+    required this.width,
+    this.align = LabelTextAlign.left,
+    this.style = const LabelTextStyle(),
+  });
+}
+
+/// Horizontal row element containing structured, pre-positioned cells.
+class RowElement extends LabelElement {
+  final int y;
+  final int startX;
+  final int width;
+  final List<RowCellElement> cells;
+
+  const RowElement({
+    required this.y,
+    required this.startX,
+    required this.width,
+    required this.cells,
+  });
+
+  @override
+  String get type => 'row';
+}
+
+/// Horizontal divider separator element.
+class DividerElement extends LabelElement {
+  final int y;
+  final int thickness;
+  final int startX;
+  final int width;
+
+  const DividerElement({
+    required this.y,
+    this.thickness = 1,
+    required this.startX,
+    required this.width,
+  });
+
+  @override
+  String get type => 'divider';
 }
 
 /// Configuration for creating a label.

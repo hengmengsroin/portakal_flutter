@@ -177,6 +177,10 @@ Uint8List compileToEPLBytes(
 
       case RawElement():
         EplCommandWriter.writeRawBytes(writer, el.bytes);
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 

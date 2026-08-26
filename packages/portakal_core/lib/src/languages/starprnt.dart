@@ -137,6 +137,10 @@ Uint8List compileToStarPRNT(
           );
         }
         break;
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 

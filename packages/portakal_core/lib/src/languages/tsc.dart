@@ -189,6 +189,10 @@ Uint8List compileToTSCBytes(
 
       case RawElement():
         TscCommandWriter.writeRawBytes(writer, el.bytes);
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 

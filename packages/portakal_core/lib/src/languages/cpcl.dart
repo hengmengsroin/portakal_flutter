@@ -150,6 +150,10 @@ Uint8List compileToCPCLBytes(
 
       case RawElement():
         CpclCommandWriter.writeRawBytes(writer, el.bytes);
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 

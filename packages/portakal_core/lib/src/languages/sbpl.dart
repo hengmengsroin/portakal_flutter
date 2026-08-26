@@ -113,6 +113,10 @@ Uint8List compileToSBPLBytes(
 
       case RawElement():
         SbplCommandWriter.writeRawBytes(writer, el.bytes);
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 

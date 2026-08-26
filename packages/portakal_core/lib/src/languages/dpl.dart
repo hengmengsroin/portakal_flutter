@@ -148,6 +148,10 @@ Uint8List compileToDPLBytes(
 
       case RawElement():
         DplCommandWriter.writeRawBytes(writer, el.bytes);
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 

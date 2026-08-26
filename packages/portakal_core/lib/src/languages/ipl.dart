@@ -144,6 +144,10 @@ Uint8List compileToIPLBytes(
 
       case RawElement():
         IplCommandWriter.writeRawBytes(writer, el.bytes);
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 

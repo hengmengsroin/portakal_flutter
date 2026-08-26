@@ -233,6 +233,10 @@ Uint8List compileToZPLBytes(
 
       case RawElement():
         ZplCommandWriter.writeRawBytes(writer, el.bytes);
+
+      case RowElement():
+      case DividerElement():
+        break;
     }
   }
 
