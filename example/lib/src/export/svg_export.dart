@@ -19,8 +19,8 @@ typedef SvgFileSaver = Future<SvgDownloadResult> Function(String filename, Strin
 /// 6. Appends `.svg` extension if not already present.
 String sanitizeSvgFilename(String name) {
   var base = name.trim();
-  if (base.toLowerCase().endsWith('.svg')) {
-    base = base.substring(0, base.length - 4);
+  while (base.toLowerCase().endsWith('.svg')) {
+    base = base.substring(0, base.length - 4).trim();
   }
   var sanitized = base
       .toLowerCase()

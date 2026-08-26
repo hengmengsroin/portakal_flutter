@@ -30,17 +30,22 @@ void main() {
     test('Collapses consecutive underscores and trims boundary underscores', () {
       expect(sanitizeSvgFilename('___Multiple___Underscores___'), equals('multiple_underscores.svg'));
       expect(sanitizeSvgFilename('  Spaces   and    Tabs   '), equals('spaces_and_tabs.svg'));
+      expect(sanitizeSvgFilename('  Demo   Label  '), equals('demo_label.svg'));
     });
 
     test('Does not duplicate .svg extension if already present', () {
       expect(sanitizeSvgFilename('customer_receipt.svg'), equals('customer_receipt.svg'));
       expect(sanitizeSvgFilename('Medicine / Price Label.svg'), equals('medicine_price_label.svg'));
+      expect(sanitizeSvgFilename('demo.svg.svg'), equals('demo.svg'));
     });
 
-    test('Handles edge-case empty or symbols-only input safely', () {
+    test('Handles edge-case empty, slashes-only, unicode, or symbols-only input safely', () {
       expect(sanitizeSvgFilename(''), equals('label.svg'));
       expect(sanitizeSvgFilename('   '), equals('label.svg'));
+      expect(sanitizeSvgFilename('///'), equals('label.svg'));
+      expect(sanitizeSvgFilename(r'\\\'), equals('label.svg'));
       expect(sanitizeSvgFilename('!@#\$%^&*()'), equals('label.svg'));
+      expect(sanitizeSvgFilename('Café ☕ / 100%'), equals('caf_100.svg'));
     });
   });
 

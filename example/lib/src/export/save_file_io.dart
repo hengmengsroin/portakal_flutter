@@ -9,7 +9,18 @@ import 'svg_export.dart';
 /// On macOS, Windows, and Linux desktop environments, prompts the user with a native
 /// Save As dialog (NSSavePanel on macOS) allowing them to select their destination.
 /// If dialog interaction is unavailable or fails, falls back to direct filesystem write.
+/// Mobile platforms (Android/iOS) return a descriptive unsupported error result.
 Future<SvgDownloadResult> saveFilePlatform(String filename, String content) async {
+  // Explicit check for mobile platforms where saving to public user-visible storage
+  // requires specialized media store or document picker permissions.
+  if (Platform.isAndroid || Platform.isIOS) {
+    return SvgDownloadResult.failure(
+      filename: filename,
+      errorMessage:
+          'SVG download to external storage is not supported on ${Platform.isAndroid ? "Android" : "iOS"}.',
+    );
+  }
+
   try {
     const typeGroup = XTypeGroup(
       label: 'Scalable Vector Graphics (*.svg)',
@@ -41,7 +52,7 @@ Future<SvgDownloadResult> saveFilePlatform(String filename, String content) asyn
       savedLocation: saveLocation.path,
     );
   } catch (e) {
-    // If native dialog is not supported in current environment, fallback to direct filesystem write
+    // If native dialog is not supported in current environment (e.g. headless/CLI), fallback to direct filesystem write
     return _fallbackDirectSave(filename, content, originalError: e);
   }
 }

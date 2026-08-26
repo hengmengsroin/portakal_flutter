@@ -133,7 +133,7 @@ void main() {
       expect(find.textContaining('ESC/POS receipt compiler does not support geometric'), findsOneWidget);
     });
 
-    testWidgets('Detail page Download SVG action exports canonical SVG and displays feedback', (
+    testWidgets('Detail page has exactly one Download SVG action and displays feedback', (
       WidgetTester tester,
     ) async {
       final example = ExampleCatalog.getById('simple_text')!;
@@ -147,17 +147,20 @@ void main() {
             fileSaver: (filename, content) async {
               savedFile = filename;
               savedData = content;
-              return SvgDownloadResult.success(filename: filename);
+              return SvgDownloadResult.success(
+                filename: filename,
+                savedLocation: '/Users/test/Downloads/$filename',
+              );
             },
           ),
         ),
       );
 
-      // Verify Download SVG buttons exist
+      // Verify exactly ONE Download SVG button exists in the entire detail page
       expect(find.byKey(const Key('download_svg_button')), findsOneWidget);
-      expect(find.byKey(const Key('preview_download_svg_button')), findsOneWidget);
+      expect(find.byTooltip('Download SVG'), findsOneWidget);
 
-      // Tap the AppBar Download SVG button
+      // Tap the single Download SVG button
       await tester.tap(find.byKey(const Key('download_svg_button')));
       await tester.pumpAndSettle();
 
@@ -166,8 +169,8 @@ void main() {
       expect(savedData, contains('<svg'));
       expect(savedData, contains('</svg>'));
 
-      // Verify success SnackBar
-      expect(find.text('SVG saved: simple_text.svg'), findsOneWidget);
+      // Verify success SnackBar displays the saved destination path
+      expect(find.text('Saved SVG to /Users/test/Downloads/simple_text.svg'), findsOneWidget);
     });
 
     testWidgets('Detail page Download SVG handles user cancellation without error', (
@@ -186,7 +189,7 @@ void main() {
         ),
       );
 
-      // Tap the AppBar Download SVG button
+      // Tap the Download SVG button
       await tester.tap(find.byKey(const Key('download_svg_button')));
       await tester.pumpAndSettle();
 
@@ -213,12 +216,59 @@ void main() {
         ),
       );
 
-      // Tap preview Download SVG button
-      await tester.tap(find.byKey(const Key('preview_download_svg_button')));
+      // Tap Download SVG button
+      await tester.tap(find.byKey(const Key('download_svg_button')));
       await tester.pumpAndSettle();
 
       // Verify error SnackBar
       expect(find.text('Failed to save SVG: Permission denied'), findsOneWidget);
+    });
+
+    testWidgets('Detail page didUpdateWidget refreshes ResolvedLabel when exampleCase changes on same state', (
+      WidgetTester tester,
+    ) async {
+      final example1 = ExampleCatalog.getById('simple_text')!;
+      final example2 = ExampleCatalog.getById('customer_receipt')!;
+      String? exportedContent;
+
+      // Pump initial example
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExampleDetailPage(
+            exampleCase: example1,
+            fileSaver: (filename, content) async {
+              exportedContent = content;
+              return SvgDownloadResult.success(filename: filename);
+            },
+          ),
+        ),
+      );
+
+      expect(find.text('Simple Text & Frame'), findsOneWidget);
+
+      // Update widget with new exampleCase on the same State instance
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ExampleDetailPage(
+            exampleCase: example2,
+            fileSaver: (filename, content) async {
+              exportedContent = content;
+              return SvgDownloadResult.success(filename: filename);
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Customer Dining Receipt'), findsOneWidget);
+
+      // Trigger export on updated state
+      await tester.tap(find.byKey(const Key('download_svg_button')));
+      await tester.pumpAndSettle();
+
+      // Verify exported SVG is for customer_receipt, NOT simple_text
+      expect(exportedContent, contains('PORTAKAL CAFE'));
+      expect(exportedContent, contains('TOTAL'));
     });
 
     testWidgets('App smoke launch with PortakalApp and PortakalHardwareApp', (

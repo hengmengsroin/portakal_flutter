@@ -24,7 +24,7 @@ class ExampleDetailPage extends StatefulWidget {
 }
 
 class _ExampleDetailPageState extends State<ExampleDetailPage> {
-  late final ResolvedLabel _resolvedJob;
+  late ResolvedLabel _resolvedJob;
   late ExampleProtocol _selectedProtocol;
 
   Uint8List? _compiledBytes;
@@ -47,6 +47,19 @@ class _ExampleDetailPageState extends State<ExampleDetailPage> {
     }
 
     _compileCurrentProtocol();
+  }
+
+  @override
+  void didUpdateWidget(ExampleDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.exampleCase != widget.exampleCase) {
+      _resolvedJob = widget.exampleCase.buildLabel().resolve();
+      if (widget.exampleCase.testedProtocols.isNotEmpty &&
+          !widget.exampleCase.testedProtocols.contains(_selectedProtocol)) {
+        _selectedProtocol = widget.exampleCase.testedProtocols.first;
+      }
+      _compileCurrentProtocol();
+    }
   }
 
   void _compileCurrentProtocol() {
@@ -190,10 +203,13 @@ class _ExampleDetailPageState extends State<ExampleDetailPage> {
       final result = await export.save(customSaver: widget.fileSaver);
       if (!mounted) return;
       if (result.isSuccess) {
+        final locationMsg = (result.savedLocation != null && result.savedLocation != 'Browser downloads')
+            ? 'Saved SVG to ${result.savedLocation}'
+            : 'SVG downloaded: ${result.filename}';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('SVG saved: ${result.filename}'),
-            duration: const Duration(seconds: 2),
+            content: Text(locationMsg),
+            duration: const Duration(seconds: 3),
           ),
         );
       } else if (result.isCancelled) {
@@ -229,12 +245,6 @@ class _ExampleDetailPageState extends State<ExampleDetailPage> {
         backgroundColor: Colors.deepOrange.shade700,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            key: const Key('download_svg_button'),
-            icon: const Icon(Icons.download),
-            tooltip: 'Download SVG',
-            onPressed: _handleDownloadSvg,
-          ),
           IconButton(
             icon: const Icon(Icons.copy_all),
             tooltip: 'Copy Source Path',
@@ -337,7 +347,7 @@ class _ExampleDetailPageState extends State<ExampleDetailPage> {
                             ),
                             const SizedBox(width: 6),
                             IconButton(
-                              key: const Key('preview_download_svg_button'),
+                              key: const Key('download_svg_button'),
                               icon: const Icon(Icons.download, size: 20),
                               tooltip: 'Download SVG',
                               visualDensity: VisualDensity.compact,

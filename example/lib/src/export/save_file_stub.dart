@@ -4,6 +4,6 @@ import 'svg_export.dart';
 Future<SvgDownloadResult> saveFilePlatform(String filename, String content) async {
   return SvgDownloadResult.failure(
     filename: filename,
-    errorMessage: 'File saving is not supported on this platform.',
+    errorMessage: 'SVG download is not supported on this platform.',
   );
 }
