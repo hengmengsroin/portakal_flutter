@@ -271,10 +271,7 @@ class ImageOptions {
 /// Use with [BarcodeOptions.typed] for type-safe barcode configuration.
 enum BarcodeSymbology {
   /// Code 128 (auto subset B/C).
-  code128('128'),
-
-  /// Code 39 (3 of 9).
-  code39('39');
+  code128('128');
 
   /// Canonical string identifier stored in [BarcodeOptions.type].
   final String identifier;
