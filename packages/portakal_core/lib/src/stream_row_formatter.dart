@@ -192,14 +192,7 @@ class StreamRowFormatter {
       final cell = cells[i];
       final cellChars = segmentCharWidths[segIndex++];
 
-      final formattedText = _formatCellText(cell, cellChars);
-      segments.add(
-        StreamRowSegment(
-          text: formattedText,
-          bold: cell.style.bold,
-          underline: cell.style.underline,
-        ),
-      );
+      _emitCellSegments(segments, cell, cellChars);
 
       if (i < cells.length - 1) {
         final gapChars = segmentCharWidths[segIndex++];
@@ -255,8 +248,12 @@ class StreamRowFormatter {
     );
   }
 
-  /// Truncates runes safely and applies horizontal padding to match [cellChars].
-  static String _formatCellText(RowCellElement cell, int cellChars) {
+  /// Emits unstyled padding segments and styled text segment into [segments] for [cell].
+  static void _emitCellSegments(
+    List<StreamRowSegment> segments,
+    RowCellElement cell,
+    int cellChars,
+  ) {
     final runes = cell.text.runes.toList(growable: false);
 
     String visibleText;
@@ -271,20 +268,64 @@ class StreamRowFormatter {
       runeLen = runes.length;
     }
 
+    // Empty cell: emit entire allocation as plain unstyled spaces without bold/underline
+    if (visibleText.isEmpty) {
+      segments.add(StreamRowSegment(text: ' ' * cellChars));
+      return;
+    }
+
     final extra = cellChars - runeLen;
     if (extra <= 0) {
-      return visibleText;
+      segments.add(
+        StreamRowSegment(
+          text: visibleText,
+          bold: cell.style.bold,
+          underline: cell.style.underline,
+        ),
+      );
+      return;
     }
 
     switch (cell.align) {
       case LabelTextAlign.left:
-        return visibleText + (' ' * extra);
+        segments.add(
+          StreamRowSegment(
+            text: visibleText,
+            bold: cell.style.bold,
+            underline: cell.style.underline,
+          ),
+        );
+        segments.add(StreamRowSegment(text: ' ' * extra));
+        break;
+
       case LabelTextAlign.right:
-        return (' ' * extra) + visibleText;
+        segments.add(StreamRowSegment(text: ' ' * extra));
+        segments.add(
+          StreamRowSegment(
+            text: visibleText,
+            bold: cell.style.bold,
+            underline: cell.style.underline,
+          ),
+        );
+        break;
+
       case LabelTextAlign.center:
         final leftPad = extra ~/ 2;
         final rightPad = extra - leftPad;
-        return (' ' * leftPad) + visibleText + (' ' * rightPad);
+        if (leftPad > 0) {
+          segments.add(StreamRowSegment(text: ' ' * leftPad));
+        }
+        segments.add(
+          StreamRowSegment(
+            text: visibleText,
+            bold: cell.style.bold,
+            underline: cell.style.underline,
+          ),
+        );
+        if (rightPad > 0) {
+          segments.add(StreamRowSegment(text: ' ' * rightPad));
+        }
+        break;
     }
   }
 }

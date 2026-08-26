@@ -64,7 +64,7 @@ void main() {
       );
     });
 
-    test('formats 2-cell receipt row (3:1) with exact 48 character budget', () {
+    test('formats 2-cell receipt row (3:1) with exact 48 character budget and unstyled padding', () {
       final label = makeLabel(widthDots: 576, dpi: 203);
       final row = RowElement(
         y: 100,
@@ -84,15 +84,25 @@ void main() {
 
       final plan = StreamRowFormatter.formatRow(label, row);
       expect(plan.size, equals(1));
-      expect(plan.segments.length, equals(2));
+      // Cell 0: 'Latte' (5 chars) + right padding (31 spaces)
+      // Cell 1: left padding (7 spaces) + '$2.50' (5 chars)
+      expect(plan.segments.length, equals(4));
 
-      // Cell 0: 432/576 * 48 = 36 chars ("Latte" + 31 spaces)
-      expect(plan.segments[0].text.length, equals(36));
-      expect(plan.segments[0].text, equals('Latte'.padRight(36)));
+      expect(plan.segments[0].text, equals('Latte'));
+      expect(plan.segments[0].bold, isFalse);
+      expect(plan.segments[0].underline, isFalse);
 
-      // Cell 1: 144/576 * 48 = 12 chars (7 spaces + "$2.50")
-      expect(plan.segments[1].text.length, equals(12));
-      expect(plan.segments[1].text, equals(r'$2.50'.padLeft(12)));
+      expect(plan.segments[1].text, equals(' ' * 31));
+      expect(plan.segments[1].bold, isFalse);
+      expect(plan.segments[1].underline, isFalse);
+
+      expect(plan.segments[2].text, equals(' ' * 7));
+      expect(plan.segments[2].bold, isFalse);
+      expect(plan.segments[2].underline, isFalse);
+
+      expect(plan.segments[3].text, equals(r'$2.50'));
+      expect(plan.segments[3].bold, isFalse);
+      expect(plan.segments[3].underline, isFalse);
 
       final combined = plan.segments.map((s) => s.text).join();
       expect(combined.length, equals(48));
@@ -127,7 +137,7 @@ void main() {
       expect(combined, contains(r'$18.00'));
     });
 
-    test('preserves whitespace for empty leading and middle cells', () {
+    test('preserves whitespace for empty leading and middle cells without styling', () {
       final label = makeLabel(widthDots: 576, dpi: 203);
       final row = RowElement(
         y: 150,
@@ -135,19 +145,22 @@ void main() {
         width: 576,
         size: 1,
         cells: [
-          const RowCellElement(text: '', x: 0, width: 240),
+          const RowCellElement(
+            text: '',
+            x: 0,
+            width: 240,
+            style: LabelTextStyle(bold: true, underline: true), // empty cell should ignore styles
+          ),
           const RowCellElement(text: 'TOTAL', x: 240, width: 168),
           const RowCellElement(text: r'$165.00', x: 408, width: 168, align: LabelTextAlign.right),
         ],
       );
 
       final plan = StreamRowFormatter.formatRow(label, row);
-      // Cell 0 text should be 20 spaces
+      // Cell 0 text should be 20 spaces unstyled
       expect(plan.segments[0].text, equals(' ' * 20));
-      // Cell 1 text: "TOTAL" left aligned in 14 chars
-      expect(plan.segments[1].text, equals('TOTAL'.padRight(14)));
-      // Cell 2 text: "$165.00" right aligned in 14 chars
-      expect(plan.segments[2].text, equals(r'$165.00'.padLeft(14)));
+      expect(plan.segments[0].bold, isFalse);
+      expect(plan.segments[0].underline, isFalse);
 
       final combined = plan.segments.map((s) => s.text).join();
       expect(combined.length, equals(48));
@@ -192,8 +205,6 @@ void main() {
       // Effective capacity = 48 ~/ 2 = 24 chars
       final combined = plan.segments.map((s) => s.text).join();
       expect(combined.length, equals(24));
-      expect(plan.segments[0].text, equals('BIG'.padRight(12)));
-      expect(plan.segments[1].text, equals('TEXT'.padLeft(12)));
     });
 
     test('formats DividerElement with thickness 1 as hyphen and > 1 as equal sign', () {
@@ -261,16 +272,98 @@ void main() {
       final label = makeLabel(elements: [row]);
       final bytes = compileToESCPOS(label);
 
-      // Verify exact line feed count:
-      // Init (ESC @ = 2 bytes)
-      // Row content (48 bytes ASCII) + 1 LF (0x0A)
-      // Cut (GS V B 3 = 4 bytes)
+      // Verify exact line feed count: exactly ONE line feed
       final lfCount = bytes.where((b) => b == 0x0A).length;
-      expect(lfCount, equals(1)); // exactly ONE line feed
+      expect(lfCount, equals(1));
 
       final text = latin1.decode(bytes);
       expect(text, contains('Coffee'));
       expect(text, contains(r'$5.00'));
+    });
+
+    test('underlines right-aligned cell content ONLY and not leading padding spaces', () {
+      final row = RowElement(
+        y: 100,
+        startX: 0,
+        width: 576,
+        size: 1,
+        cells: [
+          const RowCellElement(text: 'Item', x: 0, width: 432),
+          const RowCellElement(
+            text: 'TOTAL',
+            x: 432,
+            width: 144,
+            align: LabelTextAlign.right,
+            style: LabelTextStyle(underline: true),
+          ),
+        ],
+      );
+      final label = makeLabel(elements: [row]);
+      final bytes = compileToESCPOS(label);
+
+      // Verify sequence:
+      // Item ... spaces ... ESC - 1 ... TOTAL ... ESC - 0 ... LF
+      final totalIdx = bytes.indexOf(0x54); // 'T' in TOTAL
+      final underlineOnIdx = bytes.indexOf(0x2D); // '-' in ESC - 1
+      expect(underlineOnIdx, isNot(-1));
+      // Underline ON command (0x1B 0x2D 0x01) must appear immediately before 'TOTAL'
+      expect(underlineOnIdx < totalIdx, isTrue);
+
+      // Spaces before 'TOTAL' must occur before underline ON command
+      final spaceBeforeTotal = bytes.sublist(0, underlineOnIdx).where((b) => b == 0x20).length;
+      expect(spaceBeforeTotal, greaterThan(30)); // Left cell padding + right cell leading padding
+    });
+
+    test('underlines center-aligned cell content ONLY and not padding spaces', () {
+      final row = RowElement(
+        y: 100,
+        startX: 0,
+        width: 576,
+        size: 1,
+        cells: [
+          const RowCellElement(
+            text: 'CTR',
+            x: 0,
+            width: 576,
+            align: LabelTextAlign.center,
+            style: LabelTextStyle(underline: true),
+          ),
+        ],
+      );
+      final label = makeLabel(elements: [row]);
+      final bytes = compileToESCPOS(label);
+
+      expect(bytes, containsAllInOrder([
+        0x20, // leading spaces
+        0x1B, 0x2D, 0x01, // Underline ON
+        0x43, 0x54, 0x52, // 'CTR'
+        0x1B, 0x2D, 0x00, // Underline OFF
+        0x20, // trailing spaces
+        0x0A, // LF
+      ]));
+    });
+
+    test('empty styled cell does NOT emit bold or underline commands', () {
+      final row = RowElement(
+        y: 100,
+        startX: 0,
+        width: 576,
+        size: 1,
+        cells: [
+          const RowCellElement(
+            text: '',
+            x: 0,
+            width: 576,
+            style: LabelTextStyle(bold: true, underline: true),
+          ),
+        ],
+      );
+      final label = makeLabel(elements: [row]);
+      final bytes = compileToESCPOS(label);
+
+      // Must NOT contain ESC E 1 or ESC - 1
+      expect(bytes, isNot(containsAllInOrder([0x1B, 0x45, 0x01])));
+      expect(bytes, isNot(containsAllInOrder([0x1B, 0x2D, 0x01])));
     });
 
     test('manages per-cell bold and underline styles and resets before LF and next element', () {
@@ -361,6 +454,37 @@ void main() {
       final text = latin1.decode(bytes);
       expect(text, contains('Coffee'));
       expect(text, contains(r'$5.00'));
+    });
+
+    test('underlines right-aligned cell content ONLY and not leading padding spaces in Star PRNT', () {
+      final row = RowElement(
+        y: 100,
+        startX: 0,
+        width: 576,
+        size: 1,
+        cells: [
+          const RowCellElement(text: 'Item', x: 0, width: 432),
+          const RowCellElement(
+            text: 'TOTAL',
+            x: 432,
+            width: 144,
+            align: LabelTextAlign.right,
+            style: LabelTextStyle(underline: true),
+          ),
+        ],
+      );
+      final label = makeLabel(elements: [row]);
+      final bytes = compileToStarPRNT(label);
+
+      // Verify sequence in Star PRNT:
+      // spaces ... ESC - 1 ... TOTAL ... ESC - 0 ... LF
+      expect(bytes, containsAllInOrder([
+        0x20, // leading spaces
+        0x1B, 0x2D, 0x01, // Underline ON
+        0x54, 0x4F, 0x54, 0x41, 0x4C, // 'TOTAL'
+        0x1B, 0x2D, 0x00, // Underline OFF
+        0x0A, // LF
+      ]));
     });
 
     test('manages per-cell bold and underline styles with ESC E/F and ESC -', () {
