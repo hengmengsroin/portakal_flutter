@@ -22,8 +22,8 @@ enum IplRotation {
 
 /// Supported 1D and 2D barcode symbologies in IPL.
 enum IplBarcodeType {
-  /// Code 128 (symbology code 0).
-  code128(0),
+  /// Code 128 (symbology code 6).
+  code128(6),
 
   /// Code 39 (symbology code 0).
   code39(0),

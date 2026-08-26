@@ -6,7 +6,7 @@
 ## PACKAGE: portakal_core
 Entrypoint: packages/portakal_core/lib/portakal_core.dart
 
-Total Public Declarations: 1529
+Total Public Declarations: 1530
 
     constructor CPCLParseResult({required this.elements, this.widthDots = 0, this.heightDots = 0, this.dpi = 200}) (in /packages/portakal_core/lib/src/parsers/cpcl.dart)
     constructor CpclPrinter({CpclEncoding encoding = const CpclEncoding.legacy()}) (in /packages/portakal_core/lib/src/native/cpcl_printer.dart)
@@ -214,6 +214,7 @@ Total Public Declarations: 1529
     constructor factory PreviewScene.fromBuilder(LabelBuilder builder, {String? languageName}) (in /packages/portakal_core/lib/src/preview_scene.dart)
     constructor factory PreviewScene.fromResolved(ResolvedLabel label, {String? languageName}) (in /packages/portakal_core/lib/src/preview_scene.dart)
     enum-value BarcodeSymbology.code128 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.code39 (in /packages/portakal_core/lib/src/types.dart)
     enum-value ConnectionState.connected (in /packages/portakal_core/lib/src/transport.dart)
     enum-value ConnectionState.connecting (in /packages/portakal_core/lib/src/transport.dart)
     enum-value ConnectionState.disconnected (in /packages/portakal_core/lib/src/transport.dart)
@@ -1543,7 +1544,7 @@ Total Public Declarations: 1529
 ## PACKAGE: portakal_flutter
 Entrypoint: packages/portakal_flutter/lib/portakal_flutter.dart
 
-Total Public Declarations: 1539
+Total Public Declarations: 1540
 
     constructor CPCLParseResult({required this.elements, this.widthDots = 0, this.heightDots = 0, this.dpi = 200}) (in /packages/portakal_core/lib/src/parsers/cpcl.dart)
     constructor CpclPrinter({CpclEncoding encoding = const CpclEncoding.legacy()}) (in /packages/portakal_core/lib/src/native/cpcl_printer.dart)
@@ -1754,6 +1755,7 @@ Total Public Declarations: 1539
     constructor factory PreviewScene.fromBuilder(LabelBuilder builder, {String? languageName}) (in /packages/portakal_core/lib/src/preview_scene.dart)
     constructor factory PreviewScene.fromResolved(ResolvedLabel label, {String? languageName}) (in /packages/portakal_core/lib/src/preview_scene.dart)
     enum-value BarcodeSymbology.code128 (in /packages/portakal_core/lib/src/types.dart)
+    enum-value BarcodeSymbology.code39 (in /packages/portakal_core/lib/src/types.dart)
     enum-value ConnectionState.connected (in /packages/portakal_core/lib/src/transport.dart)
     enum-value ConnectionState.connecting (in /packages/portakal_core/lib/src/transport.dart)
     enum-value ConnectionState.disconnected (in /packages/portakal_core/lib/src/transport.dart)

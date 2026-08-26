@@ -111,6 +111,7 @@ Uint8List compileToIPLBytes(
 
       case BarcodeElement():
         final o = el.options;
+        final symbologyCode = o.type == '128' ? 6 : 0;
         IplCommandWriter.writeBarcodeField(
           writer,
           fieldNumber: 1,
@@ -118,7 +119,7 @@ Uint8List compileToIPLBytes(
           height: o.height,
           wideMultiplier: o.wide ?? 2,
           content: el.content,
-          symbologyCode: 0,
+          symbologyCode: symbologyCode,
         );
 
       case QRCodeElement():

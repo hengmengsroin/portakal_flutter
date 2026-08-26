@@ -271,7 +271,7 @@ void main() {
 
     group('Barcodes & QR Codes', () {
       test('emits 1D barcode with format definition and data frame', () {
-        final printer = IplPrinter()
+        final printer128 = IplPrinter()
           ..barcode(
             y: 20,
             content: '123456',
@@ -281,9 +281,25 @@ void main() {
             type: IplBarcodeType.code128,
           );
 
-        final text = latin1.decode(printer.toBytes());
+        final text128 = latin1.decode(printer128.toBytes());
         expect(
-          text,
+          text128,
+          equals('\x02B1;o0;f0;c6;h40;w2;d0,20;\x03\n\x02123456\x03\n'),
+        );
+
+        final printer39 = IplPrinter()
+          ..barcode(
+            y: 20,
+            content: '123456',
+            fieldNumber: 1,
+            height: 40,
+            wideMultiplier: 2,
+            type: IplBarcodeType.code39,
+          );
+
+        final text39 = latin1.decode(printer39.toBytes());
+        expect(
+          text39,
           equals('\x02B1;o0;f0;c0;h40;w2;d0,20;\x03\n\x02123456\x03\n'),
         );
       });

@@ -287,13 +287,25 @@ void main() {
 
       expect(
         text,
-        contains('\x02B1;o0;f0;c0;h40;w2;d0,20;\x03\n\x02123456\x03\n'),
+        contains('\x02B1;o0;f0;c6;h40;w2;d0,20;\x03\n\x02123456\x03\n'),
       );
       expect(
         text,
         contains(
           '\x02B2;o0;f0;c21;w4;h4;d0,80;\x03\n\x02https://example.com\x03\n',
         ),
+      );
+
+      // Verify Code 39 emits c0
+      final code39Builder = label(const LabelConfig(width: 40, height: 30))
+          .barcode(
+            'CODE39',
+            const BarcodeOptions(x: 10, y: 20, type: '39', height: 40),
+          );
+      final code39Output = ipl.compileBytes(code39Builder);
+      expect(
+        latin1.decode(code39Output),
+        contains('\x02B1;o0;f0;c0;h40;w2;d0,20;\x03\n\x02CODE39\x03\n'),
       );
     });
 
