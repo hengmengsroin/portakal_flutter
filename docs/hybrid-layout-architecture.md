@@ -6,12 +6,17 @@ Portakal 1.2 implements **Hybrid Layout DX**: combining intuitive sequential doc
 
 ## 1. Architectural Principles & Non-Goals
 
-### Non-Goals
-- **No Flutter layout dependency in core**: `portakal_core` remains 100% pure-Dart with zero dependencies on `dart:ui` or Flutter layout.
-- **No Yoga / Flexbox C++ engine**: Sizing is deterministic and pure-Dart.
-- **No Intrinsic text measurement**: Thermal printers format text according to firmware ROM font geometries; host-side font metrics are not assumed.
-- **No TableElement in AST**: Tables are authoring-time helpers that lower into horizontal `RowElement`s.
-- **No Wrapping / Multi-line cell auto-wrap in 1.2**: Single-line physical cells preserve predictability.
+### Architectural Philosophy
+- **Minimal Semantic AST Additions**: The AST adds only two concrete, target-agnostic layout nodes: `RowElement` and `DividerElement`.
+- **Authoring-Time Lowering**: `sequentialLabel(...)` and `.table(...)` are purely fluent authoring helpers that compute deterministic geometry at build time and emit standard AST nodes.
+- **Pure-Dart Core**: `portakal_core` remains 100% pure-Dart with zero dependencies on Flutter, `dart:ui`, or native C++ layout engines.
+
+### Explicit Non-Goals
+- **No Generic Layout Tree**: No widget tree, no `TableElement`, no `FlexElement`, no `ColumnElement` in the AST.
+- **No C++ / Yoga / Layout Engine**: Geometry is calculated directly in pure Dart without external binary overhead.
+- **No Intrinsic Text Measurement / Auto-Wrapping**: Thermal printers format text according to firmware ROM font geometries. Host-side font metrics are not assumed. Single-line cells preserve predictability across hardware.
+- **No Pagination Engine**: Continuous and fixed-height media boundaries are managed predictably by configured dimensions.
+- **No Flutter Widget Tree in Core**: `portakal_core` generates pure command bytes; UI preview widgets reside strictly in `portakal_flutter`.
 
 ---
 
@@ -42,7 +47,7 @@ Portakal 1.2 implements **Hybrid Layout DX**: combining intuitive sequential doc
                                   |
                                   v
 +-------------------------------------------------------------------+
-|                        Semantic AST Layer                         |
+|                    Minimal Semantic AST Layer                     |
 |                                                                   |
 |   - RowElement(y, startX, width, size, [RowCellElement, ...])     |
 |   - DividerElement(y, startX, width, thickness)                   |
@@ -59,6 +64,7 @@ Portakal 1.2 implements **Hybrid Layout DX**: combining intuitive sequential doc
 |                                   |   |  StreamRowFormatter               |
 |  - RowElement -> positioned text  |   |  - RowElement -> formatted line   |
 |  - DividerElement -> vector line  |   |  - DividerElement -> ASCII line   |
+|  - Authentic barcode commands     |   |  - Unstyled padding isolation     |
 +-----------------------------------+   +-----------------------------------+
          |                                                 |
          +------------------------+------------------------+

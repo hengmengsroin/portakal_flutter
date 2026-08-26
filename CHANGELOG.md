@@ -24,10 +24,11 @@ Portakal 1.2 introduces **Hybrid Layout DX**: sequential document-style authorin
 - **IPL Code 128 Lowering**: Corrected Intermec IPL barcode lowering where Code 128 previously emitted format selector `c0` (Code 39). Now emits authentic `c6` for Code 128 and `c0` for Code 39. Updated `IplBarcodeType.code128` from `0` to `6`.
 
 ### Compatibility
-- **100% Source-Compatible**: `label(config)` remains available for exact coordinate canvas authoring.
+- **100% Source-Compatible**: `label(config)` retains existing exact-canvas API and legacy coordinate semantics without sequential advancement.
+- **No Unintended Legacy Byte Regressions**: All 8 other protocol compilers and exact-coordinate layouts produce byte-for-byte identical streams.
 - **Non-Breaking Barcode API**: `const BarcodeOptions(type: String, ...)` remains non-deprecated and fully functional as an escape hatch for custom or printer-specific symbologies (e.g. `type: 'EAN13'`).
 - **Exact Coordinate Escape Hatch**: Inside a `sequentialLabel`, providing `x` or `y` on an element places it at exact coordinates without advancing sequential document state.
-- **Intentional IPL Byte Change**: IPL Code 128 output changes from `c0` to `c6` to fix symbology encoding on Intermec hardware.
+- **Intentional IPL Byte Change**: IPL Code 128 output changes from `c0` (incorrect Code 39 selector) to `c6` (authentic Code 128 selector) to fix symbology encoding on Intermec hardware.
 
 ### Known Limitations
 - **Visual Alignment Across Hardware**: Alignment fidelity varies across target printer firmware. PreviewScene and ZPL support native bounded alignment; ESC/POS and Star PRNT use space-padded character grids; other label protocols anchor at cell start coordinates.

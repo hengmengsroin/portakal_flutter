@@ -1,7 +1,7 @@
 # Universal LabelBuilder & Sequential Layout Guide
 
 Portakal 1.2 introduces **Hybrid Layout DX**: two complementary authoring models sharing the same deterministic compilation pipeline and preview renderer:
-- **`label(config)`**: Exact-canvas coordinate layout.
+- **`label(config)`**: Exact-canvas coordinate layout. Retains existing legacy exact-canvas semantics without performing sequential progression.
 - **`sequentialLabel(config)`**: Document-style vertical layout with automatic progression, semantic rows, dividers, and tables.
 
 ---
@@ -52,16 +52,19 @@ badge
   .qrcode('https://example.com', const QRCodeOptions(x: 300, y: 100, cellWidth: 4));
 ```
 
+> [!NOTE]
+> `label(config)` retains the existing exact-canvas API and legacy coordinate semantics. It does not perform sequential advancement.
+
 ---
 
 ## 2. Sequential Layout Rhythm & Spacing
 
 When created via `sequentialLabel(config, {int? margin, int? lineAdvance})`:
-- **Default Margin**: Computed as `2.5mm` converted to dots based on the target DPI (e.g. 20 dots at 203 DPI).
-- **Default Line Advance**: Computed as `3.5mm` converted to dots based on the target DPI (e.g. 28 dots at 203 DPI).
+- **Default Margin**: Computed as `2.5mm` converted to dots based on the target DPI (e.g. 20 dots at 203 DPI, 30 dots at 300 DPI).
+- **Default Line Advance**: Computed as `3.5mm` converted to dots based on the target DPI (e.g. 28 dots at 203 DPI, 41 dots at 300 DPI).
 - Explicit `margin` and `lineAdvance` arguments are specified in **dots**.
 
-### Sequential Spacing
+### Sequential Spacing & Dividers
 - **`space(int amount)`**: Advances the vertical document position (`currentY`) by `amount` dots without emitting any AST node.
 - **`divider({int thickness = 1, int? advance, int? margin})`**: Emits a semantic `DividerElement` across the usable width and advances vertical state.
 
@@ -70,8 +73,10 @@ When created via `sequentialLabel(config, {int? margin, int? lineAdvance})`:
 ## 3. The Exact Coordinate Escape Hatch
 
 Inside a `sequentialLabel`:
-- **Both `x` and `y` omitted** $\rightarrow$ Placed sequentially at `_startX` and `_currentY`, then advances `_currentY` by `_lineAdvance`.
-- **Either `x` or `y` supplied** $\rightarrow$ Placed at exact coordinates. **Exact elements do not advance sequential position.**
+- **Coordinate-free text** (`options.x == null && options.y == null`) $\rightarrow$ Positioned at `_startX` and `_currentY`, advancing `_currentY` by `_lineAdvance`.
+- **Sequential elements** (`row()`, `rowCells()`, `table().row()`, `divider()`) $\rightarrow$ Positioned at `_currentY` and advance the vertical document position.
+- **`space(dots)`** $\rightarrow$ Explicitly advances the vertical document position without emitting an AST node.
+- **Any element with explicit coordinates** (e.g. `text` with `x` or `y`, `barcode`, `qrcode`, `box`, `line`, `circle`, `ellipse`, `image`, `reverse`, `erase`) $\rightarrow$ Placed at exact coordinates and **does not advance `_currentY`**.
 
 This enables clean progressive disclosure and mixed layouts:
 ```dart
@@ -80,7 +85,7 @@ final doc = sequentialLabel(config);
 doc.text('Customer Invoice');
 doc.row('Invoice #', 'INV-2026-001');
 
-// Exact box and QR code placed independently:
+// Exact box and QR code placed independently without altering document progression:
 doc.box(const BoxOptions(x: 10, y: 500, width: 600, height: 120));
 doc.qrcode('https://pay.example.com', const QRCodeOptions(x: 480, y: 510, cellWidth: 3));
 
@@ -177,7 +182,7 @@ builder.barcode(
 |---|---|---|---|
 | **`RowElement`** | Positioned text fields with deterministic resolved X coordinates | Single formatted text line allocated across monospaced character grid | Full visual bounding layout with precise typography |
 | **`DividerElement`** | Native geometric horizontal line | Textual ASCII separator line (`---`) | High-resolution vector line |
-| **`BarcodeElement`** | Native barcode commands (`^BC`/`^B3`, `c6`/`c0`, etc.) | Native barcode command bytes (Function B `73`/`69`) | High-contrast visual barcode pattern |
+| **`BarcodeElement`** | Native barcode commands (`^BC`/`^B3`, `c6`/`c0`, `ESC BG`/`ESC B1`, etc.) | Native barcode command bytes (ESC/POS `GS k 73`/`69`, Star `ESC b 5`/`1`) | High-contrast visual barcode pattern |
 
 ### Alignment Fidelity
 - **PreviewScene & ZPL**: Native bounded center/right text alignment.
