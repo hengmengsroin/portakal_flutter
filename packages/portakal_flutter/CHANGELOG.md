@@ -1,3 +1,12 @@
+## 1.2.0-rc.1
+
+Companion Flutter package release for Portakal 1.2 Hybrid Layout.
+
+### Added
+- Re-exported core Hybrid Layout elements (`RowElement`, `DividerElement`, `LabelCell`, `LabelColumn`, `LabelTextAlign`, `LabelTextStyle`, `BarcodeSymbology`, `sequentialLabel`) from `portakal_core`.
+- Updated `LabelPreview` with visual SVG and Canvas rendering for `RowElement` (fixed and flex columns) and `DividerElement` vector lines.
+- Updated dependency constraint to `portakal_core: ^1.2.0-rc.1`.
+
 ## 1.1.0
 
 ### Added

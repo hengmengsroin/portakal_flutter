@@ -265,14 +265,14 @@ packages:
       path: "../packages/portakal_core"
       relative: true
     source: path
-    version: "1.1.0"
+    version: "1.2.0-rc.1"
   portakal_flutter:
     dependency: "direct main"
     description:
       path: "../packages/portakal_flutter"
       relative: true
     source: path
-    version: "1.1.0"
+    version: "1.2.0-rc.1"
   posix:
     dependency: transitive
     description:

@@ -1,3 +1,38 @@
+## 1.2.0-rc.1
+
+Portakal 1.2 introduces **Hybrid Layout DX**: sequential document-style authoring, semantic horizontal rows, tables, dividers, stream receipt formatting, and type-safe barcode configuration while preserving full backward compatibility with exact-canvas coordinate layout.
+
+### Added
+- **Sequential Document Authoring**: Added top-level `sequentialLabel(config, {margin, lineAdvance})` entry point for document-style vertical layout with automatic vertical progression.
+- **Semantic Rows**: Added `row(left, right)` for familiar 3:1 left/right pairs and `rowCells([LabelCell, ...])` for custom fixed and flex horizontal composition.
+- **Structured Tables**: Added `builder.table(columns: [...])` returning `LabelTable` for repeated row generation sharing the parent builder's sequential document state.
+- **Semantic Dividers & Spacing**: Added `divider({thickness, advance, margin})` emitting `DividerElement` and `space(amount)` advancing vertical state without emitting an AST node.
+- **Universal AST Elements**: Added `RowElement`, `RowCellElement`, `DividerElement`, `LabelCell`, `LabelColumn`, `LabelTextAlign`, and `LabelTextStyle`.
+- **Stream Row Formatter**: Added `StreamRowFormatter` lowering `RowElement` and `DividerElement` into formatted monospaced character lines for ESC/POS and Star PRNT with unstyled padding separation.
+- **Stream Compiler Override**: Added optional `charsPerLine` parameter to `compileToESCPOS`, `compileToESCPOSBytes`, `compileToStarPRNT`, and `compileToStarPRNTBytes`.
+- **Type-Safe Barcodes**: Added `enum BarcodeSymbology { code128, code39 }` and `BarcodeOptions.typed(...)` factory constructor lowering directly into canonical string identifiers.
+- **PreviewScene Lowering**: Added full visual SVG layout for `RowElement` and vector lines for `DividerElement`.
+- **AST-Based API Snapshot Tool**: Upgraded `tool/generate_api_snapshot.dart` to a structural Dart AST analyzer capturing complete signatures, parameter types, default values, and export filters.
+
+### Improved
+- **Developer Experience**: Drastically reduced manual Y coordinate bookkeeping in receipt, ticket, and invoice layouts.
+- **Example Gallery**: Migrated restaurant receipts, kitchen tickets, queue slips, and commercial invoices to sequential document authoring and type-safe barcodes.
+
+### Fixed
+- **IPL Code 128 Lowering**: Corrected Intermec IPL barcode lowering where Code 128 previously emitted format selector `c0` (Code 39). Now emits authentic `c6` for Code 128 and `c0` for Code 39. Updated `IplBarcodeType.code128` from `0` to `6`.
+
+### Compatibility
+- **100% Source-Compatible**: `label(config)` retains existing exact-canvas API and legacy coordinate semantics without sequential advancement.
+- **No Unintended Legacy Byte Regressions**: All 8 other protocol compilers and exact-coordinate layouts produce byte-for-byte identical streams.
+- **Non-Breaking Barcode API**: `const BarcodeOptions(type: String, ...)` remains non-deprecated and fully functional as an escape hatch for custom or printer-specific symbologies (e.g. `type: 'EAN13'`).
+- **Exact Coordinate Escape Hatch**: Inside a `sequentialLabel`, providing `x` or `y` on an element places it at exact coordinates without advancing sequential document state.
+- **Intentional IPL Byte Change**: IPL Code 128 output changes from `c0` (incorrect Code 39 selector) to `c6` (authentic Code 128 selector) to fix symbology encoding on Intermec hardware.
+
+### Known Limitations
+- **Visual Alignment Across Hardware**: Alignment fidelity varies across target printer firmware. PreviewScene and ZPL support native bounded alignment; ESC/POS and Star PRNT use space-padded character grids; other label protocols anchor at cell start coordinates.
+- **Stream Unicode Glyphs**: Monospaced stream character-grid allocation does not guarantee visual glyph width for complex scripts (Khmer, CJK, emoji) where printer firmware font shaping governs physical output.
+- **Typed Barcode Scope**: `BarcodeSymbology` is intentionally constrained to `code128` and `code39` where authentic semantic identity is guaranteed across all 9 supported compilers.
+
 ## 1.1.0
 
 ### Added
