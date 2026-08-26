@@ -242,18 +242,7 @@ void main() {
       ],
     );
 
-    test('Stream compilers throw UnsupportedFeatureError on unlowered RowElement/DividerElement in Slice 3', () {
-      expect(
-        () => compileToESCPOSBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
-      expect(
-        () => compileToStarPRNTBytes(testResolvedLabel),
-        throwsA(isA<UnsupportedFeatureError>()),
-      );
-    });
-
-    test('Page compilers and PreviewScene successfully process RowElement/DividerElement in Slice 3', () {
+    test('All 9 compilers and PreviewScene successfully process RowElement/DividerElement in Slice 4', () {
       expect(compileToTSCBytes(testResolvedLabel), isNotEmpty);
       expect(compileToZPLBytes(testResolvedLabel), isNotEmpty);
       expect(compileToEPLBytes(testResolvedLabel), isNotEmpty);
@@ -261,6 +250,8 @@ void main() {
       expect(compileToDPLBytes(testResolvedLabel), isNotEmpty);
       expect(compileToIPLBytes(testResolvedLabel), isNotEmpty);
       expect(compileToSBPLBytes(testResolvedLabel), isNotEmpty);
+      expect(compileToESCPOSBytes(testResolvedLabel), isNotEmpty);
+      expect(compileToStarPRNTBytes(testResolvedLabel), isNotEmpty);
       expect(PreviewScene.fromResolved(testResolvedLabel).items, isNotEmpty);
     });
   });

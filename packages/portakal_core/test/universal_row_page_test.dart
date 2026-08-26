@@ -301,42 +301,5 @@ void main() {
         expect(sbplStr, contains('\x1BH0015\x1BV0080\x1BFW02H0570'));
       });
     });
-
-    // ==========================================
-    // ESC/POS & Star PRNT Guard Stubs
-    // ==========================================
-    group('Stream Protocol Stubs (Explicit UnsupportedFeatureError)', () {
-      test('ESC/POS throws UnsupportedFeatureError on RowElement', () {
-        final label = makeLabel([twoCellRow], widthDots: 576, heightDots: 800);
-        expect(
-          () => compileToESCPOS(label),
-          throwsA(isA<UnsupportedFeatureError>()),
-        );
-      });
-
-      test('ESC/POS throws UnsupportedFeatureError on DividerElement', () {
-        final label = makeLabel([divider], widthDots: 576, heightDots: 800);
-        expect(
-          () => compileToESCPOS(label),
-          throwsA(isA<UnsupportedFeatureError>()),
-        );
-      });
-
-      test('Star PRNT throws UnsupportedFeatureError on RowElement', () {
-        final label = makeLabel([twoCellRow], widthDots: 576, heightDots: 800);
-        expect(
-          () => compileToStarPRNT(label),
-          throwsA(isA<UnsupportedFeatureError>()),
-        );
-      });
-
-      test('Star PRNT throws UnsupportedFeatureError on DividerElement', () {
-        final label = makeLabel([divider], widthDots: 576, heightDots: 800);
-        expect(
-          () => compileToStarPRNT(label),
-          throwsA(isA<UnsupportedFeatureError>()),
-        );
-      });
-    });
   });
 }

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../byte_writer.dart';
 import '../encoding.dart';
 import '../errors.dart';
+import '../stream_row_formatter.dart';
 import '../types.dart';
 import 'starprnt_writer.dart';
 
@@ -12,9 +13,12 @@ import 'starprnt_writer.dart';
 /// If [encoding] is supplied, text is encoded using the configured [CodePageEncoder]
 /// and code page table selection (`ESC GS t <characterTable>`) is emitted if requested.
 /// If omitted, defaults to [StarPrntEncoding.defaultEncoding] ([StarPrntEncoding.legacy]).
+///
+/// If [charsPerLine] is provided, overrides standard Font A media width capacity detection.
 Uint8List compileToStarPRNT(
   ResolvedLabel label, {
   StarPrntEncoding? encoding,
+  int? charsPerLine,
   UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
 }) {
   final enc = encoding ?? StarPrntEncoding.defaultEncoding;
@@ -139,13 +143,20 @@ Uint8List compileToStarPRNT(
         break;
 
       case RowElement():
+        final plan = StreamRowFormatter.formatRow(
+          label,
+          el,
+          charsPerLine: charsPerLine,
+        );
+        _emitStreamRow(writer, plan, encoder, enc.replaceUnsupported);
+
       case DividerElement():
-        if (policy == UnsupportedFeaturePolicy.throwError) {
-          throw UnsupportedFeatureError(
-            'Star PRNT compiler does not support ${el.runtimeType} in Slice 1',
-          );
-        }
-        break;
+        final plan = StreamRowFormatter.formatDivider(
+          label,
+          el,
+          charsPerLine: charsPerLine,
+        );
+        _emitStreamRow(writer, plan, encoder, enc.replaceUnsupported);
     }
   }
 
@@ -159,6 +170,68 @@ Uint8List compileToStarPRNT(
 Uint8List compileToStarPRNTBytes(
   ResolvedLabel label, {
   StarPrntEncoding? encoding,
+  int? charsPerLine,
   UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
 }) =>
-    compileToStarPRNT(label, encoding: encoding, policy: policy);
+    compileToStarPRNT(
+      label,
+      encoding: encoding,
+      charsPerLine: charsPerLine,
+      policy: policy,
+    );
+
+void _emitStreamRow(
+  PrinterByteWriter writer,
+  StreamRowPlan plan,
+  CodePageEncoder encoder,
+  bool replaceUnsupported,
+) {
+  if (plan.size > 1) {
+    StarPrntCommandWriter.writeCharacterSize(
+      writer,
+      widthMultiplier: plan.size,
+      heightMultiplier: plan.size,
+    );
+  }
+
+  bool currentBold = false;
+  bool currentUnderline = false;
+
+  for (final seg in plan.segments) {
+    if (seg.text.isEmpty) continue;
+
+    if (seg.bold != currentBold) {
+      currentBold = seg.bold;
+      StarPrntCommandWriter.writeBold(writer, currentBold);
+    }
+
+    if (seg.underline != currentUnderline) {
+      currentUnderline = seg.underline;
+      StarPrntCommandWriter.writeUnderline(writer, currentUnderline ? 1 : 0);
+    }
+
+    StarPrntCommandWriter.writeText(
+      writer,
+      seg.text,
+      encoder,
+      replaceUnsupported: replaceUnsupported,
+    );
+  }
+
+  if (currentUnderline) {
+    StarPrntCommandWriter.writeUnderline(writer, 0);
+  }
+  if (currentBold) {
+    StarPrntCommandWriter.writeBold(writer, false);
+  }
+
+  StarPrntCommandWriter.writeLineFeed(writer);
+
+  if (plan.size > 1) {
+    StarPrntCommandWriter.writeCharacterSize(
+      writer,
+      widthMultiplier: 1,
+      heightMultiplier: 1,
+    );
+  }
+}

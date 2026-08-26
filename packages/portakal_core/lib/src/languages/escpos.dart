@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import '../byte_writer.dart';
 import '../encoding.dart';
 import '../errors.dart';
+import '../stream_row_formatter.dart';
 import '../types.dart';
 import 'escpos_writer.dart';
 
@@ -12,9 +13,12 @@ import 'escpos_writer.dart';
 /// If [encoding] is provided, text is encoded using the configured [CodePageEncoder]
 /// and table selection commands (`ESC t <tableId>`) are emitted accordingly.
 /// If omitted, defaults to standard CP437 without emitting redundant table switches.
+///
+/// If [charsPerLine] is provided, overrides standard Font A media width capacity detection.
 Uint8List compileToESCPOS(
   ResolvedLabel label, {
   EscPosEncoding? encoding,
+  int? charsPerLine,
   UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
 }) {
   final enc = encoding ?? const EscPosEncoding.cp437(sendTableSelect: false);
@@ -142,13 +146,20 @@ Uint8List compileToESCPOS(
         break;
 
       case RowElement():
+        final plan = StreamRowFormatter.formatRow(
+          label,
+          el,
+          charsPerLine: charsPerLine,
+        );
+        _emitStreamRow(writer, plan, encoder, enc.replaceUnsupported);
+
       case DividerElement():
-        if (policy == UnsupportedFeaturePolicy.throwError) {
-          throw UnsupportedFeatureError(
-            'ESC/POS compiler does not support ${el.runtimeType} in Slice 1',
-          );
-        }
-        break;
+        final plan = StreamRowFormatter.formatDivider(
+          label,
+          el,
+          charsPerLine: charsPerLine,
+        );
+        _emitStreamRow(writer, plan, encoder, enc.replaceUnsupported);
     }
   }
 
@@ -162,6 +173,63 @@ Uint8List compileToESCPOS(
 Uint8List compileToESCPOSBytes(
   ResolvedLabel label, {
   EscPosEncoding? encoding,
+  int? charsPerLine,
   UnsupportedFeaturePolicy policy = UnsupportedFeaturePolicy.throwError,
 }) =>
-    compileToESCPOS(label, encoding: encoding, policy: policy);
+    compileToESCPOS(
+      label,
+      encoding: encoding,
+      charsPerLine: charsPerLine,
+      policy: policy,
+    );
+
+void _emitStreamRow(
+  PrinterByteWriter writer,
+  StreamRowPlan plan,
+  CodePageEncoder encoder,
+  bool replaceUnsupported,
+) {
+  if (plan.size > 1) {
+    EscPosCommandWriter.writeTextSize(
+      writer,
+      width: plan.size,
+      height: plan.size,
+    );
+  }
+
+  bool currentBold = false;
+  bool currentUnderline = false;
+
+  for (final seg in plan.segments) {
+    if (seg.text.isEmpty) continue;
+
+    if (seg.bold != currentBold) {
+      currentBold = seg.bold;
+      EscPosCommandWriter.writeBold(writer, currentBold);
+    }
+
+    if (seg.underline != currentUnderline) {
+      currentUnderline = seg.underline;
+      EscPosCommandWriter.writeUnderline(writer, currentUnderline ? 1 : 0);
+    }
+
+    final textBytes = encoder.encode(
+      seg.text,
+      replaceUnsupported: replaceUnsupported,
+    );
+    writer.writeBytes(textBytes);
+  }
+
+  if (currentUnderline) {
+    EscPosCommandWriter.writeUnderline(writer, 0);
+  }
+  if (currentBold) {
+    EscPosCommandWriter.writeBold(writer, false);
+  }
+
+  EscPosCommandWriter.writeLineFeed(writer);
+
+  if (plan.size > 1) {
+    EscPosCommandWriter.writeTextSize(writer, width: 1, height: 1);
+  }
+}
