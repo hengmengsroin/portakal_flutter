@@ -1,16 +1,37 @@
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+
+/// Generates a canonical, deterministic structural API surface snapshot
+/// of all publicly exported symbols in the Portakal SDK.
+///
+/// Uses the Dart Analyzer AST parser to capture complete structural signatures:
+/// - Class modifiers (abstract, interface, sealed, final, base, mixin)
+/// - Inheritance & interfaces (extends, implements, with)
+/// - Constructors (const, factory, named, parameter types, defaults, required)
+/// - Methods (static, getters, setters, return types, parameter types, defaults)
+/// - Fields & properties
+/// - Enums (values and enhanced enum members)
+/// - Typedefs and extensions
+/// - Top-level functions (return types, parameter types, defaults, required)
+/// - Export graph combinators (respecting show/hide)
 class ApiSnapshotGenerator {
+  final String rootDir;
+
+  ApiSnapshotGenerator({String? rootDir})
+      : rootDir = rootDir ?? Directory.current.path;
+
   String generate() {
-    final rootDir = Directory.current.path;
     final sb = StringBuffer();
 
     sb.writeln(
         '# ==============================================================================');
     sb.writeln(
-        '# PORTAKAL SDK — PUBLIC API SURFACE SNAPSHOT (PHASE 5A / 1.0 FREEZE AUDIT)');
+        '# PORTAKAL SDK — PUBLIC API SURFACE SNAPSHOT (STRUCTURAL SIGNATURE AUDIT)');
     sb.writeln(
-        '# Generated for 1.0 contract verification & regression tracking');
+        '# Canonical exported API contracts, types, modifiers, and signatures');
     sb.writeln(
         '# ==============================================================================');
     sb.writeln();
@@ -24,24 +45,33 @@ class ApiSnapshotGenerator {
       sb.writeln('Entrypoint: packages/$pkg/lib/$pkg.dart');
       sb.writeln();
 
-      final exportedFiles = _getRecursiveExports(barrelFile.path);
-      final allSymbols = <String>[];
+      final exports = _resolveExports(barrelFile.path);
+      final allDeclarations = <String>[];
 
-      for (final filePath in exportedFiles) {
+      for (final entry in exports.entries) {
+        final filePath = entry.key;
+        final filter = entry.value;
         final relPath = filePath.replaceFirst(rootDir, '');
         final file = File(filePath);
         if (!file.existsSync()) continue;
 
-        final lines = file.readAsLinesSync();
-        _extractPublicSymbols(relPath, lines, allSymbols);
+        final content = file.readAsStringSync();
+        final parseResult = parseString(
+          content: content,
+          throwIfDiagnostics: false,
+        );
+
+        final visitor = _ApiExtractVisitor(relPath: relPath, filter: filter);
+        parseResult.unit.accept(visitor);
+        allDeclarations.addAll(visitor.symbols);
       }
 
-      allSymbols.sort();
+      allDeclarations.sort();
 
-      sb.writeln('Total Public Declarations: ${allSymbols.length}');
+      sb.writeln('Total Public Declarations: ${allDeclarations.length}');
       sb.writeln();
-      for (final sym in allSymbols) {
-        sb.writeln('  $sym');
+      for (final decl in allDeclarations) {
+        sb.writeln('  $decl');
       }
       sb.writeln();
       sb.writeln(
@@ -52,206 +82,277 @@ class ApiSnapshotGenerator {
     return sb.toString();
   }
 
-  Set<String> _getRecursiveExports(String entryPath) {
+  Map<String, _ExportFilter> _resolveExports(String entryPath) {
+    final result = <String, _ExportFilter>{};
     final visited = <String>{};
-    final queue = <String>[entryPath];
+    final queue = <_ExportQueueItem>[
+      _ExportQueueItem(path: entryPath, filter: _ExportFilter.all())
+    ];
 
     while (queue.isNotEmpty) {
-      final current = queue.removeAt(0);
-      if (!visited.add(current)) continue;
+      final item = queue.removeAt(0);
+      final currentPath = item.path;
+      final currentFile = File(currentPath);
+      if (!currentFile.existsSync()) continue;
 
-      final file = File(current);
-      if (!file.existsSync()) continue;
+      final content = currentFile.readAsStringSync();
+      final parseResult = parseString(
+        content: content,
+        throwIfDiagnostics: false,
+      );
 
-      final lines = file.readAsLinesSync();
-      for (final line in lines) {
-        final match =
-            RegExp(r'''^\s*export\s+['"]([^'"]+)['"]''').firstMatch(line);
-        if (match != null) {
-          final uri = match.group(1)!;
-          String target;
+      for (final directive in parseResult.unit.directives) {
+        if (directive is ExportDirective) {
+          final uri = directive.uri.stringValue;
+          if (uri == null) continue;
+
+          String targetPath;
           if (uri.startsWith('package:portakal_core/')) {
-            target =
-                '${Directory.current.path}/packages/portakal_core/lib/${uri.substring('package:portakal_core/'.length)}';
+            targetPath =
+                '$rootDir/packages/portakal_core/lib/${uri.substring('package:portakal_core/'.length)}';
           } else if (uri.startsWith('package:portakal_flutter/')) {
-            target =
-                '${Directory.current.path}/packages/portakal_flutter/lib/${uri.substring('package:portakal_flutter/'.length)}';
+            targetPath =
+                '$rootDir/packages/portakal_flutter/lib/${uri.substring('package:portakal_flutter/'.length)}';
           } else if (uri.startsWith('package:')) {
             continue;
           } else {
-            target = Uri.file('${file.parent.path}/$uri')
+            targetPath = Uri.file('${currentFile.parent.path}/$uri')
                 .normalizePath()
                 .toFilePath();
           }
-          queue.add(target);
-        }
-      }
-    }
-    return visited;
-  }
 
-  void _extractPublicSymbols(
-      String relPath, List<String> lines, List<String> output) {
-    String? currentClass;
-    bool inClass = false;
+          final showList = <String>{};
+          final hideList = <String>{};
 
-    for (int i = 0; i < lines.length; i++) {
-      final rawLine = lines[i];
-      final line = rawLine.trim();
-
-      if (line.startsWith('//') ||
-          line.startsWith('/*') ||
-          line.startsWith('*') ||
-          line.startsWith('@') ||
-          line.startsWith('import ') ||
-          line.startsWith('export ') ||
-          line.isEmpty) {
-        continue;
-      }
-
-      // Detect top-level classes / sealed / abstract / interface
-      final classMatch = RegExp(
-              r'''^(?:(?:abstract|sealed|final|base|interface)\s+)*class\s+([A-Za-z0-9_]+)(?:<[^>]+>)?(?:\s+(?:extends|implements|with)\s+.*)?\s*\{?''')
-          .firstMatch(line);
-      if (classMatch != null &&
-          !rawLine.startsWith(' ') &&
-          !rawLine.startsWith('\t')) {
-        final name = classMatch.group(1)!;
-        if (!name.startsWith('_')) {
-          output.add('class $name (in $relPath)');
-          currentClass = name;
-          inClass = true;
-        }
-        continue;
-      }
-
-      // Detect enums
-      final enumMatch =
-          RegExp(r'''^enum\s+([A-Za-z0-9_]+)\s*\{?''').firstMatch(line);
-      if (enumMatch != null &&
-          !rawLine.startsWith(' ') &&
-          !rawLine.startsWith('\t')) {
-        final name = enumMatch.group(1)!;
-        if (!name.startsWith('_')) {
-          output.add('enum $name (in $relPath)');
-          currentClass = name;
-          inClass = true;
-        }
-        continue;
-      }
-
-      // Detect typedefs
-      final typedefMatch =
-          RegExp(r'''^typedef\s+([A-Za-z0-9_]+)\s*=''').firstMatch(line);
-      if (typedefMatch != null &&
-          !rawLine.startsWith(' ') &&
-          !rawLine.startsWith('\t')) {
-        final name = typedefMatch.group(1)!;
-        if (!name.startsWith('_')) {
-          output.add('typedef $name (in $relPath)');
-        }
-        continue;
-      }
-
-      // Detect top-level variables / constants / singletons
-      final topVarMatch = RegExp(
-              r'''^(?:const|final)\s+(?:[A-Za-z0-9_<>,?]+\s+)?([a-zA-Z0-9_]+)\s*=''')
-          .firstMatch(line);
-      if (topVarMatch != null &&
-          !rawLine.startsWith(' ') &&
-          !rawLine.startsWith('\t')) {
-        final name = topVarMatch.group(1)!;
-        if (!name.startsWith('_')) {
-          output.add('const/final $name (in $relPath)');
-        }
-        continue;
-      }
-
-      // Detect top-level functions
-      if (!rawLine.startsWith(' ') && !rawLine.startsWith('\t')) {
-        final funcMatch = RegExp(
-                r'''^(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*\(''')
-            .firstMatch(line);
-        if (funcMatch != null) {
-          final name = funcMatch.group(1)!;
-          if (!name.startsWith('_') &&
-              ![
-                'if',
-                'for',
-                'while',
-                'switch',
-                'catch',
-                'return',
-                'class',
-                'enum',
-                'mixin',
-                'typedef'
-              ].contains(name)) {
-            output.add('function $name() (in $relPath)');
-          }
-        }
-      }
-
-      // Class members
-      if (inClass && currentClass != null) {
-        if ((!rawLine.startsWith(' ') && !rawLine.startsWith('\t')) &&
-            line.startsWith('}')) {
-          inClass = false;
-          currentClass = null;
-          continue;
-        }
-
-        // Public method / getter / setter / constructor in class
-        if (rawLine.startsWith('  ') || rawLine.startsWith('\t')) {
-          // Constructor
-          final ctorMatch = RegExp(
-                  r'''^\s*(?:const\s+)?([A-Za-z0-9_]+)(?:\.([a-zA-Z0-9_]+))?\s*\([^;{]*\)''')
-              .firstMatch(rawLine);
-          if (ctorMatch != null) {
-            final cName = ctorMatch.group(1)!;
-            final namedCtor = ctorMatch.group(2);
-            if (cName == currentClass) {
-              if (namedCtor == null || !namedCtor.startsWith('_')) {
-                final fullCtor =
-                    namedCtor == null ? '$cName()' : '$cName.$namedCtor()';
-                output.add('  member $currentClass.$fullCtor (in $relPath)');
-                continue;
+          for (final combinator in directive.combinators) {
+            if (combinator is ShowCombinator) {
+              for (final name in combinator.shownNames) {
+                showList.add(name.name);
+              }
+            } else if (combinator is HideCombinator) {
+              for (final name in combinator.hiddenNames) {
+                hideList.add(name.name);
               }
             }
           }
 
-          // Skip statements inside methods
-          final trimmed = rawLine.trim();
-          if (trimmed.startsWith('throw ') ||
-              trimmed.startsWith('return ') ||
-              trimmed.startsWith('yield ') ||
-              trimmed.startsWith('assert(')) {
-            continue;
+          final directiveFilter = _ExportFilter(
+            shown: showList.isEmpty ? null : showList,
+            hidden: hideList,
+          );
+
+          final combinedFilter = item.filter.combine(directiveFilter);
+
+          if (result.containsKey(targetPath)) {
+            result[targetPath] = result[targetPath]!.merge(combinedFilter);
+          } else {
+            result[targetPath] = combinedFilter;
           }
 
-          // Method or getter
-          final memberMatch = RegExp(
-                  r'''^\s*(?:(?:static|final|const|abstract|override)\s+)*(?:[A-Za-z0-9_<>,?]+\s+)+([a-zA-Z0-9_]+)\s*(?:\(|=>|;)''')
-              .firstMatch(rawLine);
-          if (memberMatch != null) {
-            final mName = memberMatch.group(1)!;
-            if (!mName.startsWith('_') &&
-                ![
-                  'if',
-                  'for',
-                  'while',
-                  'switch',
-                  'catch',
-                  'return',
-                  'throw',
-                  'rethrow',
-                  'super',
-                  'this'
-                ].contains(mName)) {
-              output.add('  member $currentClass.$mName (in $relPath)');
-            }
+          if (visited.add(targetPath)) {
+            queue.add(_ExportQueueItem(path: targetPath, filter: combinedFilter));
           }
         }
+      }
+    }
+
+    return result;
+  }
+}
+
+class _ExportQueueItem {
+  final String path;
+  final _ExportFilter filter;
+
+  _ExportQueueItem({required this.path, required this.filter});
+}
+
+class _ExportFilter {
+  final Set<String>? shown;
+  final Set<String> hidden;
+
+  const _ExportFilter({this.shown, this.hidden = const {}});
+
+  factory _ExportFilter.all() => const _ExportFilter();
+
+  bool allows(String name) {
+    if (hidden.contains(name)) return false;
+    if (shown != null && !shown!.contains(name)) return false;
+    return true;
+  }
+
+  _ExportFilter combine(_ExportFilter child) {
+    Set<String>? newShown;
+    if (shown != null && child.shown != null) {
+      newShown = shown!.intersection(child.shown!);
+    } else if (shown != null) {
+      newShown = shown;
+    } else if (child.shown != null) {
+      newShown = child.shown;
+    }
+
+    final newHidden = {...hidden, ...child.hidden};
+    return _ExportFilter(shown: newShown, hidden: newHidden);
+  }
+
+  _ExportFilter merge(_ExportFilter other) {
+    Set<String>? newShown;
+    if (shown != null && other.shown != null) {
+      newShown = {...shown!, ...other.shown!};
+    } else {
+      newShown = null;
+    }
+    final newHidden = hidden.intersection(other.hidden);
+    return _ExportFilter(shown: newShown, hidden: newHidden);
+  }
+}
+
+class _ApiExtractVisitor extends RecursiveAstVisitor<void> {
+  final String relPath;
+  final _ExportFilter filter;
+  final List<String> symbols = [];
+  String? currentParent;
+
+  _ApiExtractVisitor({required this.relPath, required this.filter});
+
+  String _normalize(String s) => s.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    final name = node.name.lexeme;
+    if (!name.startsWith('_') && filter.allows(name)) {
+      final returnType = node.returnType?.toSource() ?? 'dynamic';
+      final typeParams = node.functionExpression.typeParameters?.toSource() ?? '';
+      final params = _normalize(node.functionExpression.parameters?.toSource() ?? '()');
+      symbols.add('function $returnType $name$typeParams$params (in $relPath)');
+    }
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    final src = node.toSource();
+    final braceIdx = src.indexOf('{');
+    final header = _normalize(braceIdx != -1 ? src.substring(0, braceIdx) : src);
+
+    final nameMatch = RegExp(r'class\s+([A-Za-z0-9_]+)').firstMatch(header);
+    final className = nameMatch?.group(1);
+    if (className == null || className.startsWith('_') || !filter.allows(className)) {
+      return;
+    }
+
+    symbols.add('$header (in $relPath)');
+
+    final prevParent = currentParent;
+    currentParent = className;
+    super.visitClassDeclaration(node);
+    currentParent = prevParent;
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    final src = node.toSource();
+    final braceIdx = src.indexOf('{');
+    final header = _normalize(braceIdx != -1 ? src.substring(0, braceIdx) : src);
+
+    final nameMatch = RegExp(r'enum\s+([A-Za-z0-9_]+)').firstMatch(header);
+    final enumName = nameMatch?.group(1);
+    if (enumName == null || enumName.startsWith('_') || !filter.allows(enumName)) {
+      return;
+    }
+
+    symbols.add('$header (in $relPath)');
+
+    final prevParent = currentParent;
+    currentParent = enumName;
+    super.visitEnumDeclaration(node);
+    currentParent = prevParent;
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    if (currentParent == null) return;
+    symbols.add('  enum-value $currentParent.${node.name.lexeme} (in $relPath)');
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (currentParent == null) return;
+    final ctorName = node.name?.lexeme;
+    if (ctorName != null && ctorName.startsWith('_')) return;
+
+    final isConst = node.constKeyword != null ? 'const ' : '';
+    final isFactory = node.factoryKeyword != null ? 'factory ' : '';
+    final name = ctorName != null ? '$currentParent.$ctorName' : currentParent!;
+    final params = _normalize(node.parameters.toSource());
+    symbols.add('  constructor $isConst$isFactory$name$params (in $relPath)');
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (currentParent == null) return;
+    final name = node.name.lexeme;
+    if (name.startsWith('_')) return;
+
+    final isStatic = node.isStatic ? 'static ' : '';
+    if (node.isGetter) {
+      final type = node.returnType?.toSource() ?? 'dynamic';
+      symbols.add('  method $isStatic$type get $currentParent.$name (in $relPath)');
+    } else if (node.isSetter) {
+      final params = _normalize(node.parameters?.toSource() ?? '()');
+      symbols.add('  method ${isStatic}set $currentParent.$name$params (in $relPath)');
+    } else {
+      final type = node.returnType?.toSource() ?? 'dynamic';
+      final typeParams = node.typeParameters?.toSource() ?? '';
+      final params = _normalize(node.parameters?.toSource() ?? '()');
+      symbols.add('  method $isStatic$type $currentParent.$name$typeParams$params (in $relPath)');
+    }
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    if (currentParent == null) return;
+    final isStatic = node.isStatic ? 'static ' : '';
+    final isConst = node.fields.isConst ? 'const ' : '';
+    final isFinal = node.fields.isFinal ? 'final ' : '';
+    final type = node.fields.type?.toSource();
+    final typeStr = type != null ? '$type ' : '';
+
+    for (final v in node.fields.variables) {
+      final name = v.name.lexeme;
+      if (!name.startsWith('_')) {
+        symbols.add('  field $isStatic$isConst$isFinal$typeStr$currentParent.$name (in $relPath)');
+      }
+    }
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    final name = node.name.lexeme;
+    if (!name.startsWith('_') && filter.allows(name)) {
+      symbols.add('${_normalize(node.toSource())} (in $relPath)');
+    }
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    final name = node.name.lexeme;
+    if (!name.startsWith('_') && filter.allows(name)) {
+      symbols.add('${_normalize(node.toSource())} (in $relPath)');
+    }
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    final isConst = node.variables.isConst ? 'const ' : '';
+    final isFinal = node.variables.isFinal ? 'final ' : '';
+    final type = node.variables.type?.toSource();
+    final typeStr = type != null ? '$type ' : '';
+
+    for (final v in node.variables.variables) {
+      final name = v.name.lexeme;
+      if (!name.startsWith('_') && filter.allows(name)) {
+        symbols.add('top-var $isConst$isFinal$typeStr$name (in $relPath)');
       }
     }
   }
@@ -264,6 +365,5 @@ void main() {
   final outFile = File('${Directory.current.path}/tool/api_surface.txt');
   outFile.parent.createSync(recursive: true);
   outFile.writeAsStringSync(snapshot);
-  print(
-      'API snapshot written to tool/api_surface.txt (${snapshot.length} bytes)');
+  print('API snapshot written to tool/api_surface.txt (${snapshot.length} bytes)');
 }
