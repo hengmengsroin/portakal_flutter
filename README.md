@@ -73,22 +73,34 @@ import 'dart:typed_data';
 import 'package:portakal_core/portakal_core.dart';
 
 void main() {
-  // 1. Build universal label layout
-  final builder = label(const LabelConfig(width: 80, height: 50))
-    ..text('Invoice Item', const TextOptions(x: 10, y: 10, size: 2, bold: true))
-    ..barcode('ITEM-9988', const BarcodeOptions(x: 10, y: 60, type: '128', height: 50))
-    ..qrcode('https://example.com/invoice/9988', const QRCodeOptions(x: 10, y: 130, cellWidth: 3))
-    ..box(const BoxOptions(x: 5, y: 5, width: 620, height: 380, thickness: 2));
+  // 1. Build document layout sequentially (no manual Y calculation required)
+  final receipt = sequentialLabel(const LabelConfig(width: 80, height: 80, unit: Unit.mm))
+    ..text('PORTAKAL CAFE', const TextOptions(size: 2, bold: true))
+    ..divider()
+    ..row('Iced Latte', r'$2.50')
+    ..row('Butter Croissant', r'$2.00')
+    ..divider()
+    ..row('TOTAL', r'$4.50', bold: true)
+    ..barcode(
+      'ORD-8821',
+      BarcodeOptions.typed(
+        x: 20,
+        y: 450,
+        symbology: BarcodeSymbology.code128,
+        height: 50,
+      ),
+    );
 
   // 2. Resolve once into an immutable job
-  final ResolvedLabel job = builder.resolve();
+  final ResolvedLabel job = receipt.resolve();
 
   // 3. Generate pure Dart SVG preview string for web / server-side verification
   final String svg = renderPreview(job);
 
   // 4. Compile the exact same job to printer command bytes
-  final Uint8List zplBytes = zpl.compileResolved(job);
+  final Uint8List escposBytes = escpos.compileResolved(job);
   final Uint8List tscBytes = tsc.compileResolved(job);
+  final Uint8List zplBytes = zpl.compileResolved(job);
 }
 ```
 

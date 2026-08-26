@@ -5,9 +5,9 @@ import 'package:example/src/examples/example_case.dart';
 import 'package:example/src/examples/example_catalog.dart';
 
 void main() {
-  group('Example Catalog & Registry Integrity Tests (19 Cases)', () {
-    test('Catalog contains exactly 19 use cases across all domain categories', () {
-      expect(ExampleCatalog.allCases.length, equals(19));
+  group('Example Catalog & Registry Integrity Tests (20 Cases)', () {
+    test('Catalog contains exactly 20 use cases across all domain categories', () {
+      expect(ExampleCatalog.allCases.length, equals(20));
       expect(ExampleCategory.values.length, equals(9));
 
       for (final category in ExampleCategory.values) {

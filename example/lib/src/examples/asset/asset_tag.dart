@@ -16,10 +16,10 @@ LabelBuilder buildAssetTagLabel() {
       .text('Do Not Remove', const TextOptions(x: 15, y: 130, size: 1))
       .barcode(
         'IT000184',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 15,
           y: 150,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 35,
           readable: 0,
         ),

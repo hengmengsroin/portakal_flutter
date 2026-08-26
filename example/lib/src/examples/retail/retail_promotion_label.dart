@@ -21,10 +21,10 @@ LabelBuilder buildRetailPromotionLabel() {
       // Promotional Code128 Barcode
       .barcode(
         'PROMO-CF99',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 25,
           y: 200,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 60,
           readable: 1,
         ),

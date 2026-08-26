@@ -89,10 +89,10 @@ class _PreviewBeforePrintScreenState extends State<PreviewBeforePrintScreen> {
         )
         .barcode(
           '123456789',
-          const BarcodeOptions(
+          BarcodeOptions.typed(
             x: 40,
             y: 580,
-            type: '128',
+            symbology: BarcodeSymbology.code128,
             height: 60,
             readable: 1,
           ),

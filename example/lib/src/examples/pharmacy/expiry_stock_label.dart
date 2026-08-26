@@ -18,10 +18,10 @@ LabelBuilder buildExpiryStockLabel() {
       // Tracking Barcode
       .barcode(
         'PCM-2401-EXP',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 40,
           y: 195,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 60,
           readable: 1,
         ),

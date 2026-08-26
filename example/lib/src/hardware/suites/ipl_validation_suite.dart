@@ -107,7 +107,7 @@ class IplValidationSuite implements ProtocolValidationSuite {
           requiresScanner: true,
           validationKind: ValidationKind.barcode,
           expectedSha256:
-              '03bf77a0a9d3c4313cad776ddc4d994f6ab6f9ed28b7345a86cef00be6afd14e',
+              '62ef91652b9ca4e1f54ab5898f09c7192087b748f5d53ee8940312f4717b378a',
           generator: () => (IplPrinter()
                 ..advancedMode()
                 ..programMode()

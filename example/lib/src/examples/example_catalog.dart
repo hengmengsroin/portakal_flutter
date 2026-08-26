@@ -3,6 +3,7 @@ import 'example_case.dart';
 import 'general/bitmap_logo_example.dart';
 import 'general/invoice_example.dart';
 import 'general/simple_text_example.dart';
+import 'general/table_layout_example.dart';
 import 'general/unicode_text_example.dart';
 import 'logistics/shipping_label.dart';
 import 'logistics/small_parcel_label.dart';
@@ -19,9 +20,9 @@ import 'tickets/visitor_badge.dart';
 import 'warehouse/inventory_item_label.dart';
 import 'warehouse/location_bin_label.dart';
 
-/// Central catalog registry containing all 19 Portakal use cases.
+/// Central catalog registry containing all 20 Portakal use cases.
 class ExampleCatalog {
-  /// All 19 executable Portakal use case definitions.
+  /// All 20 executable Portakal use case definitions.
   static final List<ExampleCase> allCases = [
     // Getting Started
     simpleTextCase,
@@ -56,6 +57,7 @@ class ExampleCatalog {
     assetTagCase,
 
     // General & Advanced
+    tableLayoutCase,
     invoiceCase,
     bitmapLogoCase,
     unicodeTextCase,

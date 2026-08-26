@@ -16,10 +16,10 @@ LabelBuilder buildInventoryItemLabel() {
       // Code128 Barcode
       .barcode(
         'ADP-USBC-01',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 25,
           y: 220,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 70,
           readable: 1,
         ),

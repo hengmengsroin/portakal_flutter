@@ -16,10 +16,10 @@ LabelBuilder buildMedicinePriceLabel() {
       // Inventory Barcode
       .barcode(
         'AMX240801',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 25,
           y: 125,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 55,
           readable: 1,
         ),

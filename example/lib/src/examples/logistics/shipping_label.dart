@@ -37,10 +37,10 @@ LabelBuilder buildShippingLabel() {
       .text('PKL202608250001', const TextOptions(x: 30, y: 720, size: 3, bold: true))
       .barcode(
         'PKL202608250001',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 40,
           y: 780,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 150,
           readable: 1,
         ),

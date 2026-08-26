@@ -1,52 +1,63 @@
 import 'package:portakal_flutter/portakal_flutter.dart';
 import '../example_case.dart';
 
-/// Customer dining and retail POS receipt (80mm media).
+/// Customer dining and retail POS receipt (80mm media) authored using sequential document layout.
 LabelBuilder buildCustomerReceiptLabel() {
-  return label(const LabelConfig(width: 80, height: 80, copies: 1))
+  final receipt = sequentialLabel(const LabelConfig(width: 80, height: 80, copies: 1));
+
+  receipt
       // Brand Header
-      .text('PORTAKAL CAFE', const TextOptions(x: 210, y: 20, size: 2, bold: true))
-      .text('Riverside Blvd, Phnom Penh', const TextOptions(x: 215, y: 55, size: 1))
-      .text('Tel: +855 23 888 999', const TextOptions(x: 240, y: 80, size: 1))
-      .line(const LineOptions(x1: 20, y1: 105, x2: 620, y2: 105, thickness: 1))
+      .text('PORTAKAL CAFE', const TextOptions(size: 2, bold: true))
+      .text('Riverside Blvd, Phnom Penh', const TextOptions(size: 1))
+      .text('Tel: +855 23 888 999', const TextOptions(size: 1))
+      .divider()
       // Transaction Info
-      .text('Receipt: #POS-8821', const TextOptions(x: 20, y: 120, size: 1))
-      .text('Date: 2026-08-25 14:32', const TextOptions(x: 420, y: 120, size: 1))
-      .line(const LineOptions(x1: 20, y1: 145, x2: 620, y2: 145, thickness: 1))
-      // Item List
-      .text('1 x Iced Latte (Large)', const TextOptions(x: 20, y: 165, size: 1, bold: true))
-      .text('\$2.50', const TextOptions(x: 550, y: 165, size: 1))
-      .text('1 x Butter Croissant', const TextOptions(x: 20, y: 195, size: 1, bold: true))
-      .text('\$2.00', const TextOptions(x: 550, y: 195, size: 1))
-      .text('1 x Mineral Water 500ml', const TextOptions(x: 20, y: 225, size: 1, bold: true))
-      .text('\$1.00', const TextOptions(x: 550, y: 225, size: 1))
-      .line(const LineOptions(x1: 20, y1: 260, x2: 620, y2: 260, thickness: 1))
+      .row('Receipt: #POS-8821', 'Date: 2026-08-25 14:32')
+      .divider();
+
+  // Item List using table
+  final itemsTable = receipt.table(
+    columns: [
+      LabelColumn.flex(3),
+      LabelColumn.flex(1, align: LabelTextAlign.right),
+    ],
+  );
+
+  itemsTable
+    ..row(['1 x Iced Latte (Large)', r'$2.50'], bold: true)
+    ..row(['1 x Butter Croissant', r'$2.00'], bold: true)
+    ..row(['1 x Mineral Water 500ml', r'$1.00'], bold: true);
+
+  receipt
+      .divider()
       // Calculation Summary
-      .text('Subtotal:', const TextOptions(x: 400, y: 275, size: 1))
-      .text('\$5.50', const TextOptions(x: 550, y: 275, size: 1))
-      .text('VAT / Tax (10%):', const TextOptions(x: 400, y: 300, size: 1))
-      .text('\$0.55', const TextOptions(x: 550, y: 300, size: 1))
-      .text('TOTAL:', const TextOptions(x: 400, y: 330, size: 2, bold: true))
-      .text('\$6.05', const TextOptions(x: 530, y: 330, size: 2, bold: true))
-      .line(const LineOptions(x1: 20, y1: 370, x2: 620, y2: 370, thickness: 1))
+      .row('Subtotal:', r'$5.50')
+      .row('VAT / Tax (10%):', r'$0.55')
+      .row('TOTAL:', r'$6.05', bold: true, size: 2)
+      .divider()
       // Tender & Payment
-      .text('Payment: CASH USD', const TextOptions(x: 20, y: 385, size: 1))
-      .text('Tendered: \$10.00', const TextOptions(x: 20, y: 410, size: 1))
-      .text('Change: \$3.95', const TextOptions(x: 20, y: 435, size: 1, bold: true))
-      // Digital Invoice QR Code
-      .text('Scan for electronic tax receipt:', const TextOptions(x: 20, y: 475, size: 1))
-      .qrcode(
-        'https://receipt.portakal.io/r/POS-8821',
-        const QRCodeOptions(x: 480, y: 440, cellWidth: 3),
-      )
-      .text('Thank you for dining with us!', const TextOptions(x: 210, y: 550, size: 1, bold: true));
+      .row('Payment:', 'CASH USD')
+      .row('Tendered:', r'$10.00')
+      .row('Change:', r'$3.95', bold: true)
+      .space(10)
+      // Digital Invoice QR Code (demonstrating exact coordinate escape hatch in sequential document)
+      .text('Scan for electronic tax receipt:', const TextOptions(size: 1));
+
+  receipt.qrcode(
+    'https://receipt.portakal.io/r/POS-8821',
+    const QRCodeOptions(x: 480, y: 440, cellWidth: 3),
+  );
+
+  receipt.text('Thank you for dining with us!', const TextOptions(x: 210, y: 550, size: 1, bold: true));
+
+  return receipt;
 }
 
 final customerReceiptCase = ExampleCase(
   id: 'customer_receipt',
   title: 'Customer Dining Receipt',
   description:
-      'Itemized customer dining receipt featuring formatted item rows, tax computations, cash tender details, and an e-invoice QR code.',
+      'Itemized customer dining receipt authored with sequential document flow, semantic dividers, item table, and tax computations.',
   category: ExampleCategory.restaurant,
   recommendedMedia: '80mm Continuous',
   sourcePath: 'lib/src/examples/restaurant/customer_receipt.dart',

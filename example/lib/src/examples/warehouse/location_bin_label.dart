@@ -14,10 +14,10 @@ LabelBuilder buildLocationBinLabel() {
       // Location Barcode
       .barcode(
         'A-03-07-B12',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 280,
           y: 110,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 100,
           readable: 1,
         ),

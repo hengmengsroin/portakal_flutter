@@ -147,5 +147,33 @@ void main() {
       expect(mockBuffer, isNotEmpty);
       expect(mockBuffer.length, equals(bytes.length));
     });
+
+    test('7. Portakal 1.2 Hybrid Layout & Typed Barcode Workflow', () {
+      final receipt = sequentialLabel(const LabelConfig(width: 80, height: 80, unit: Unit.mm))
+        ..text('PORTAKAL CAFE', const TextOptions(size: 2, bold: true))
+        ..divider()
+        ..row('Iced Latte', r'$2.50')
+        ..row('Butter Croissant', r'$2.00')
+        ..divider()
+        ..row('TOTAL', r'$4.50', bold: true)
+        ..barcode(
+          'ORD-8821',
+          BarcodeOptions.typed(
+            x: 20,
+            y: 450,
+            symbology: BarcodeSymbology.code128,
+            height: 50,
+          ),
+        );
+
+      final ResolvedLabel job = receipt.resolve();
+      final Uint8List escposBytes = escpos.compileResolved(job);
+      final Uint8List tscBytes = tsc.compileResolved(job);
+      final Uint8List zplBytes = zpl.compileResolved(job);
+
+      expect(escposBytes, isNotEmpty);
+      expect(tscBytes, isNotEmpty);
+      expect(zplBytes, isNotEmpty);
+    });
   });
 }

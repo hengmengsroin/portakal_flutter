@@ -13,10 +13,10 @@ LabelBuilder buildBitmapLogoLabel() {
       .text('Batch: PKL-2026-08', const TextOptions(x: 100, y: 95, size: 1))
       .barcode(
         'PKL9948201',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 40,
           y: 140,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 50,
           readable: 1,
         ),

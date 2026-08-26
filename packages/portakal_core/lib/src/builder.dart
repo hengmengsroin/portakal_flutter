@@ -20,7 +20,7 @@ LabelBuilder label(LabelConfig config) {
 /// Create a sequential document-style label builder.
 ///
 /// Sequential builders automatically track vertical document progression (`_currentY`)
-/// and support structured layout helpers like [divider], [space], [row], [rowCells], and [table].
+/// and support structured layout helpers like [LabelBuilder.divider], [LabelBuilder.space], [LabelBuilder.row], [LabelBuilder.rowCells], and [LabelBuilder.table].
 LabelBuilder sequentialLabel(
   LabelConfig config, {
   int? margin,
@@ -118,7 +118,7 @@ class LabelBuilder {
 
   /// Add a text element.
   ///
-  /// In sequential mode ([sequentialLabel]), if both [options.x] and [options.y] are `null`,
+  /// In sequential mode ([sequentialLabel]), if both `options.x` and `options.y` are `null`,
   /// the text is positioned at the current sequential cursor `(x: _startX, y: _currentY)`
   /// and `_currentY` advances by `_lineAdvance`.
   /// If either coordinate is supplied, it is treated as an exact-canvas escape hatch and

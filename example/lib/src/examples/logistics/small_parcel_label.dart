@@ -15,10 +15,10 @@ LabelBuilder buildSmallParcelLabel() {
       // Routing Barcode
       .barcode(
         'PKG-10294',
-        const BarcodeOptions(
+        BarcodeOptions.typed(
           x: 40,
           y: 145,
-          type: '128',
+          symbology: BarcodeSymbology.code128,
           height: 80,
           readable: 1,
         ),

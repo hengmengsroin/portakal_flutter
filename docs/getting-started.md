@@ -16,110 +16,75 @@ Portakal is a universal thermal and label printer SDK for Dart and Flutter. It g
 ## 2. Installation
 
 ### Pure Dart Projects (CLI / Backend / Microservices)
-
-Add `portakal_core` to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  portakal_core: ^1.0.0
-```
-
-Or via terminal:
-
 ```bash
 dart pub add portakal_core
 ```
 
 ### Flutter Applications
-
-Add `portakal_flutter` to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  portakal_flutter: ^1.0.0
-```
-
-Or via terminal:
-
 ```bash
 flutter pub add portakal_flutter
 ```
 
 ---
 
-## 3. Your First Print Job in 60 Seconds
+## 3. Your First Print Job in ~15 Lines (Universal Hybrid Layout)
 
-### A. Receipt Printing (ESC/POS)
-
-Generate receipt command bytes using the native `EscPosPrinter`:
+With Portakal 1.2 `sequentialLabel`, you author a document-style receipt once, preview it in Flutter, and compile it to any printer protocol without manually computing Y coordinates:
 
 ```dart
 import 'dart:typed_data';
 import 'package:portakal_core/portakal_core.dart';
 
 void main() {
-  final printer = EscPosPrinter()
-    ..initialize()
-    ..align(EscPosAlignment.center)
-    ..bold(true)
-    ..textSize(width: 2, height: 2)
-    ..textLine('Coffee Shop')
-    ..bold(false)
-    ..textSize(width: 1, height: 1)
-    ..align(EscPosAlignment.left)
-    ..feedLines(1)
-    ..textLine('1x Espresso         \$3.50')
-    ..textLine('1x Croissant        \$4.00')
-    ..feedLines(1)
-    ..bold(true)
-    ..textLine('Total:              \$7.50')
-    ..bold(false)
-    ..feedLines(3)
-    ..cut();
+  // 1. Build document sequentially
+  final receipt = sequentialLabel(const LabelConfig(width: 80, height: 80, unit: Unit.mm))
+    ..text('PORTAKAL CAFE', const TextOptions(size: 2, bold: true))
+    ..divider()
+    ..row('Latte', r'$2.50')
+    ..row('Cake', r'$3.00')
+    ..divider()
+    ..row('TOTAL', r'$5.50', bold: true);
 
-  final Uint8List bytes = printer.toBytes();
-  print('Generated ${bytes.length} ESC/POS bytes ready for transport.');
-}
-```
+  // 2. Resolve once
+  final job = receipt.resolve();
 
-### B. Shipping Label (TSC / TSPL2)
+  // 3. Compile to any target protocol
+  final Uint8List escposBytes = escpos.compileResolved(job);
+  final Uint8List tscBytes = tsc.compileResolved(job);
+  final Uint8List zplBytes = zpl.compileResolved(job);
 
-Generate label command bytes using the native `TscPrinter`:
-
-```dart
-import 'dart:typed_data';
-import 'package:portakal_core/portakal_core.dart';
-
-void main() {
-  final printer = TscPrinter()
-    ..sizeDots(800, 1200)
-    ..cls()
-    ..text(
-      x: 50,
-      y: 50,
-      text: 'EXPRESS SHIPPING',
-      xMultiplication: 2,
-      yMultiplication: 2,
-    )
-    ..barcode(
-      x: 50,
-      y: 120,
-      type: TscBarcodeType.code128,
-      height: 80,
-      content: 'TRACK-998877',
-    )
-    ..qrCode(x: 50, y: 240, content: 'https://track.example.com/998877')
-    ..print()
-    ..toBytes();
-
-  final Uint8List bytes = printer.toBytes();
-  print('Generated ${bytes.length} TSC label bytes ready for transport.');
+  print('Generated ${escposBytes.length} ESC/POS bytes & ${tscBytes.length} TSC bytes.');
 }
 ```
 
 ---
 
-## 4. The Byte-Native Contract & Transport Boundary
+## 4. Exact-Canvas Positioning (Labels, Badges, Assets)
+
+When designing complex asset tags or multi-column barcodes where exact coordinates are desired, use `label(config)`:
+
+```dart
+final badge = label(const LabelConfig(width: 60, height: 40, unit: Unit.mm))
+  ..box(const BoxOptions(x: 10, y: 10, width: 460, height: 300, thickness: 2))
+  ..text('VISITOR PASS', const TextOptions(x: 30, y: 30, size: 2, bold: true))
+  ..barcode(
+    'VIS-001',
+    BarcodeOptions.typed(
+      x: 30,
+      y: 100,
+      symbology: BarcodeSymbology.code128,
+      height: 60,
+      readable: 1,
+    ),
+  );
+
+final job = badge.resolve();
+final Uint8List zplBytes = zpl.compileResolved(job);
+```
+
+---
+
+## 5. The Byte-Native Contract & Transport Boundary
 
 > [!IMPORTANT]
 > **Portakal generates command bytes — it does not manage printer network connections, Bluetooth pairings, or USB endpoints directly.**
@@ -131,7 +96,6 @@ void main() {
 ```dart
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:portakal_core/portakal_core.dart';
 
 Future<void> sendToNetworkPrinter(String ipAddress, Uint8List commandBytes) async {
   final socket = await Socket.connect(ipAddress, 9100, timeout: const Duration(seconds: 5));
@@ -143,10 +107,10 @@ Future<void> sendToNetworkPrinter(String ipAddress, Uint8List commandBytes) asyn
 
 ---
 
-## 5. Next Steps
+## 6. Next Steps
 
-- [Core Concepts](concepts.md) — Understand the architecture, byte-native rule, and error handling.
-- [Universal LabelBuilder](universal-builder.md) — Design cross-protocol layouts with the fluent AST builder.
+- [Universal LabelBuilder & Layout Guide](universal-builder.md) — Document flow, tables, rows, dividers, and exact coordinate escape hatches.
+- [Hybrid Layout Architecture](hybrid-layout-architecture.md) — Technical design, AST lowering, and stream grid allocation.
 - [Native Protocol Builders](native-builders.md) — Direct 1:1 hardware control for all 9 supported protocols.
 - [Character Encodings](encoding.md) — Code pages, Euro sign (€), Cyrillic, Turkish, and UTF-8.
 - [Transport & Resilient Retries](transport.md) — Transport interface, chunked writes, and exponential backoff.

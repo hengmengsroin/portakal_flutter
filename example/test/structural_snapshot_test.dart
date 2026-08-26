@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:portakal_flutter/portakal_flutter.dart';
 import 'package:example/src/examples/example_catalog.dart';
 import 'package:example/src/examples/general/invoice_example.dart';
+import 'package:example/src/examples/general/table_layout_example.dart';
 import 'package:example/src/examples/logistics/shipping_label.dart';
 import 'package:example/src/examples/pharmacy/medicine_price_label.dart';
 import 'package:example/src/examples/restaurant/customer_receipt.dart';
@@ -156,8 +157,28 @@ void main() {
 
       expect(textItems.any((t) => t.text.contains('PORTAKAL CAFE')), isTrue);
       expect(textItems.any((t) => t.text.contains('TOTAL')), isTrue);
-      expect(textItems.any((t) => t.text.contains('\$6.05')), isTrue);
+      expect(textItems.any((t) => t.text.contains(r'$6.05')), isTrue);
       expect(qrItems.length, equals(1));
+    });
+
+    test('7. Structured Table Layout — Structural Acceptance', () {
+      final job = buildTableLayoutLabel().resolve();
+      final scene = PreviewScene.fromResolved(job);
+
+      expect(scene.widthDots, equals(job.widthDots));
+      expect(scene.heightDots, equals(job.heightDots));
+
+      final textItems = scene.items.whereType<PreviewTextItem>().toList();
+      final lineItems = scene.items.whereType<PreviewLineItem>().toList();
+      final barcodeItems = scene.items.whereType<PreviewBarcodeItem>().toList();
+
+      expect(textItems.any((t) => t.text.contains('INVENTORY AUDIT REPORT')), isTrue);
+      expect(textItems.any((t) => t.text.contains('PKG-101')), isTrue);
+      expect(textItems.any((t) => t.text.contains('Direct Thermal Paper Roll')), isTrue);
+      expect(textItems.any((t) => t.text.contains(r'$217.00')), isTrue);
+      expect(lineItems.length, greaterThanOrEqualTo(3));
+      expect(barcodeItems.length, equals(1));
+      expect(barcodeItems.first.payload, equals('AUD-20260825-104'));
     });
   });
 }
