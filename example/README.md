@@ -1,6 +1,6 @@
 # 🍊 Portakal Example Gallery & Hardware Validation Bench
 
-Interactive Flutter developer utility featuring a **19-use-case practical gallery** and a **hardware validation test bench** for testing physical printers across all 9 Portakal protocols.
+Interactive Flutter developer utility featuring a **20-use-case practical gallery** and a **hardware validation test bench** for testing physical printers across all 9 Portakal protocols.
 
 ---
 
@@ -23,7 +23,7 @@ flutter run -d <device-id>
 
 ## 2. Example Use Case Gallery
 
-The gallery contains **19 realistic, copyable printing templates** across 8 domains. Every example demonstrates the canonical **Preview-Before-Print** workflow:
+The gallery contains **20 realistic, copyable printing templates** across 8 domains. Every example demonstrates the canonical **Preview-Before-Print** workflow:
 
 ```
 Example Template (LabelBuilder)
@@ -55,6 +55,7 @@ builder.resolve() (Immutable ResolvedLabel)
 | **Tickets & Badges** | [Service Queue Number Ticket](lib/src/examples/tickets/queue_ticket.dart) | 60mm Cont. | Oversized queue number (A-042), wait time, position, timestamp | TSC, ZPL, EPL, CPCL, DPL, IPL, SBPL |
 | **Tickets & Badges** | [Visitor Attendance Badge](lib/src/examples/tickets/visitor_badge.dart) | 80×50mm | High-contrast reverse header, visitor/host details, validity date, QR | TSC, ZPL, EPL, CPCL |
 | **Asset Management** | [IT Hardware Asset Tag](lib/src/examples/asset/asset_tag.dart) | 50×25mm | Reverse property banner, asset serial ID, department, asset QR | TSC, ZPL, EPL, CPCL |
+| **General / Advanced** | [Structured Table & Column Layout](lib/src/examples/general/table_layout_example.dart) | 80×90mm | Multi-column table layout, mixed fixed/flex columns, alignment, divider thickness, Code128 | TSC, ZPL, EPL, CPCL, DPL, IPL, SBPL, Star PRNT, ESC/POS |
 | **General / Advanced** | [Commercial Invoice](lib/src/examples/general/invoice_example.dart) | 80×100mm | Corporate header, multi-row line items, calculation totals, barcode, QR | TSC, ZPL, EPL, CPCL, DPL, IPL, SBPL |
 | **General / Advanced** | [Monochrome Logo & Branding](lib/src/examples/general/bitmap_logo_example.dart) | 60×40mm | Embedded 64×64 1-bit monochrome raster bitmap, barcode, QR | TSC, ZPL, EPL, CPCL, ESC/POS, Star PRNT |
 | **General / Advanced** | [Multilingual & International Text](lib/src/examples/general/unicode_text_example.dart) | 70×50mm | English, French accents, Khmer, Japanese scripts with encoding guidance | ZPL (UTF-8) |

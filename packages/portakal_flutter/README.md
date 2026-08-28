@@ -79,7 +79,7 @@ Portakal produces **`Uint8List`** byte streams. Transmit raw bytes directly to y
 
 ---
 
-## 🎨 19-Use-Case Practical Example Gallery
+## 🎨 20-Use-Case Practical Example Gallery
 
 Explore runnable real-world templates in the [`example/`](https://github.com/hengmengsroin/portakal_flutter/tree/main/example) directory covering:
 - **Retail**: Price Labels (EAN-13), Discount & Promotion Tags
@@ -89,7 +89,7 @@ Explore runnable real-world templates in the [`example/`](https://github.com/hen
 - **Logistics**: Cross-Border Shipping Labels, Compact Courier Routing Tags
 - **Tickets & Badges**: Event Admission Tickets, Queue Number Slips, Visitor Badges
 - **Asset Management**: Enterprise IT Hardware Tags
-- **Advanced**: Commercial Invoices, 1-bit Monochrome Bitmaps, Multilingual Text
+- **Advanced**: Structured Multi-Column Tables, Commercial Invoices, 1-bit Monochrome Bitmaps, Multilingual Text
 
 ---
 

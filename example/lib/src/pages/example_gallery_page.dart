@@ -5,7 +5,7 @@ import '../transport/hardware_printer_transport.dart';
 import 'example_detail_page.dart';
 import 'hardware_validation_page.dart';
 
-/// Main Gallery Home Page displaying all 19 Portakal use cases organized by category.
+/// Main Gallery Home Page displaying all Portakal use cases organized by category.
 class ExampleGalleryPage extends StatefulWidget {
   final HardwarePrinterTransport? transport;
 
@@ -68,7 +68,7 @@ class _ExampleGalleryPageState extends State<ExampleGalleryPage> {
                   key: const Key('gallery_search_field'),
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search 19 practical use cases...',
+                    hintText: 'Search ${ExampleCatalog.allCases.length} practical use cases...',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
@@ -104,7 +104,7 @@ class _ExampleGalleryPageState extends State<ExampleGalleryPage> {
                       FilterChip(
                         key: const Key('category_all'),
                         selected: _selectedCategory == null,
-                        label: const Text('All (19)'),
+                        label: Text('All (${ExampleCatalog.allCases.length})'),
                         onSelected: (_) {
                           setState(() {
                             _selectedCategory = null;

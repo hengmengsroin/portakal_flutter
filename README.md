@@ -186,9 +186,9 @@ Future<void> sendToUsbPrinter(dynamic usbEndpoint, Uint8List bytes) async {
 
 ---
 
-## 🎨 19 Practical Real-World Printing Examples
+## 🎨 20 Practical Real-World Printing Examples
 
-The [`example/`](example/) application contains **19 production-style, copyable printing templates** across real-world domains with live visual preview, 9-protocol compilation, and raw byte inspection:
+The [`example/`](example/) application contains **20 production-style, copyable printing templates** across real-world domains with live visual preview, 9-protocol compilation, and raw byte inspection:
 
 > *Note: These are practical, real-world examples. Businesses should adapt fields, layout geometry, barcode symbologies, and regulatory disclosures to their specific domain and jurisdiction.*
 
@@ -210,6 +210,7 @@ The [`example/`](example/) application contains **19 production-style, copyable 
 | **Tickets & Badges** | **Service Queue Number Ticket** | 60mm Cont. | Oversized queue number (A-042), wait time, position, timestamp | TSC, ZPL, EPL, CPCL, DPL, IPL, SBPL | [`queue_ticket.dart`](example/lib/src/examples/tickets/queue_ticket.dart) |
 | **Tickets & Badges** | **Visitor Attendance Badge** | 80×50mm | High-contrast reverse header, visitor/host details, validity date, QR | TSC, ZPL, EPL, CPCL | [`visitor_badge.dart`](example/lib/src/examples/tickets/visitor_badge.dart) |
 | **Asset Management** | **IT Hardware Asset Tag** | 50×25mm | Reverse property banner, asset serial ID, department, asset QR | TSC, ZPL, EPL, CPCL | [`asset_tag.dart`](example/lib/src/examples/asset/asset_tag.dart) |
+| **General / Advanced** | 🌟 **Structured Table & Column Layout** | 80×90mm | Multi-column table layout, mixed fixed/flex columns, alignment, divider thickness, Code128 | TSC, ZPL, EPL, CPCL, DPL, IPL, SBPL, Star PRNT, ESC/POS | [`table_layout_example.dart`](example/lib/src/examples/general/table_layout_example.dart) |
 | **General / Advanced** | 🌟 **Commercial Invoice** | 80×100mm | Corporate header, multi-row line items, calculation totals, barcode, QR | TSC, ZPL, EPL, CPCL, DPL, IPL, SBPL | [`invoice_example.dart`](example/lib/src/examples/general/invoice_example.dart) |
 | **General / Advanced** | **Monochrome Logo & Branding** | 60×40mm | Embedded 64×64 1-bit monochrome raster bitmap, barcode, QR | TSC, ZPL, EPL, CPCL, ESC/POS, Star PRNT | [`bitmap_logo_example.dart`](example/lib/src/examples/general/bitmap_logo_example.dart) |
 | **General / Advanced** | **Multilingual & International Text** | 70×50mm | English, French accents, Khmer, Japanese scripts with encoding guidance | ZPL (UTF-8) | [`unicode_text_example.dart`](example/lib/src/examples/general/unicode_text_example.dart) |

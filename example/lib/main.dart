@@ -7,7 +7,7 @@ void main() {
   runApp(const PortakalApp());
 }
 
-/// Main Portakal Example Application featuring the 19-use-case gallery.
+/// Main Portakal Example Application featuring the 20-use-case gallery.
 class PortakalApp extends StatelessWidget {
   final HardwarePrinterTransport? transport;
 

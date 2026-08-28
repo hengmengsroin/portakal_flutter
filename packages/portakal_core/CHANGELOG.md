@@ -1,4 +1,4 @@
-## 1.2.0-rc.1
+## 1.2.0
 
 Portakal 1.2 introduces **Hybrid Layout DX**: sequential document-style authoring, semantic horizontal rows, tables, dividers, stream receipt formatting, and type-safe barcode configuration while preserving full backward compatibility with exact-canvas coordinate layout.
 
