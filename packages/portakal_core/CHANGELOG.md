@@ -1,3 +1,9 @@
+## 1.2.1
+
+### Documentation & Attribution
+- Added credit and acknowledgments to [productdevbook/portakal](https://github.com/productdevbook/portakal) for the foundational TypeScript printer SDK architecture.
+- Refined package documentation and cross-references.
+
 ## 1.2.0
 
 Portakal 1.2 introduces **Hybrid Layout DX**: sequential document-style authoring, semantic horizontal rows, tables, dividers, stream receipt formatting, and type-safe barcode configuration while preserving full backward compatibility with exact-canvas coordinate layout.

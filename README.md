@@ -156,6 +156,7 @@ await transport.write(utf8.encode(string));
 ### Conceptual Transport Integrations
 
 #### TCP / Network Socket (Port 9100 Raw JetDirect)
+
 ```dart
 import 'dart:io';
 import 'dart:typed_data';
@@ -169,6 +170,7 @@ Future<void> sendToNetworkPrinter(String ip, Uint8List bytes) async {
 ```
 
 #### Bluetooth Low Energy (Conceptual)
+
 ```dart
 Future<void> sendToBlePrinter(dynamic writeCharacteristic, Uint8List bytes) async {
   // Transmit raw bytes to your BLE plugin's write characteristic
@@ -177,6 +179,7 @@ Future<void> sendToBlePrinter(dynamic writeCharacteristic, Uint8List bytes) asyn
 ```
 
 #### USB / Serial (Conceptual)
+
 ```dart
 Future<void> sendToUsbPrinter(dynamic usbEndpoint, Uint8List bytes) async {
   // Transmit raw bytes to your USB interface
@@ -255,7 +258,7 @@ Printers are classified by their **implemented command language**, not solely by
 | **DPL** | Printers implementing DPL-compatible commands | Industrial asset tracking, compliance labeling |
 | **IPL** | Printers implementing IPL-compatible commands | High-throughput manufacturing and warehouse workflows |
 | **SBPL** | Printers implementing SBPL-compatible commands | High-resolution medical, electronics, and parcel labels |
-| **Star PRNT**| Printers implementing Star PRNT-compatible commands | Hospitality POS receipts, cloud kitchen order tickets |
+| **Star PRNT** | Printers implementing Star PRNT-compatible commands | Hospitality POS receipts, cloud kitchen order tickets |
 
 > [!TIP]
 > **Tested Protocols Definition**: In the example gallery, `testedProtocols` indicates that *this specific example's layout successfully compiles through those Portakal protocol implementations in the test suite under `UnsupportedFeaturePolicy.throwError`*. Always consult your physical printer's programming manual for supported command emulations.
@@ -306,6 +309,12 @@ try {
   - [SBPL](docs/protocols/sbpl.md)
   - [Star PRNT](docs/protocols/star.md)
 - [Migration Guide](docs/migration/pre-1.0-to-1.0.md) — Upgrading from pre-1.0 to Portakal 1.0.
+
+---
+
+## Credits & Acknowledgments
+
+This project is a Dart & Flutter implementation inspired by and based on the original TypeScript SDK [portakal](https://github.com/productdevbook/portakal) created by [@productdevbook](https://github.com/productdevbook). Special thanks to the original author and contributors for their outstanding work on universal thermal and label printer SDK architecture.
 
 ---
 

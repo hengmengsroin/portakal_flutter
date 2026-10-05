@@ -155,6 +155,12 @@ Widget buildReceiptView() {
 
 ---
 
+## Credits & Acknowledgments
+
+Portakal for Flutter is part of the Portakal ecosystem, inspired by and ported from the original TypeScript [portakal](https://github.com/productdevbook/portakal) SDK created by [@productdevbook](https://github.com/productdevbook). Special thanks to the original author and contributors.
+
+---
+
 ## License
 
 MIT License - see [LICENSE](LICENSE).

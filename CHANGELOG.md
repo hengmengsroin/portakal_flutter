@@ -1,10 +1,18 @@
 # Portakal Changelog
 
+## 1.2.1
+
+### Documentation & Attribution
+
+- Added upstream repository credit and acknowledgments to [productdevbook/portakal](https://github.com/productdevbook/portakal) for the foundational TypeScript SDK architecture.
+- Refined package documentation, attribution sections, and cross-references across `portakal_core` and `portakal_flutter`.
+
 ## 1.2.0
 
 Portakal 1.2 introduces **Hybrid Layout DX**: sequential document-style authoring, semantic horizontal rows, tables, dividers, stream receipt formatting, and type-safe barcode configuration while preserving full backward compatibility with exact-canvas coordinate layout.
 
 ### Added
+
 - **Sequential Document Authoring**: Added top-level `sequentialLabel(config, {margin, lineAdvance})` entry point for document-style vertical layout with automatic vertical progression.
 - **Semantic Rows**: Added `row(left, right)` for familiar 3:1 left/right pairs and `rowCells([LabelCell, ...])` for custom fixed and flex horizontal composition.
 - **Structured Tables**: Added `builder.table(columns: [...])` returning `LabelTable` for repeated row generation sharing the parent builder's sequential document state.
@@ -17,13 +25,16 @@ Portakal 1.2 introduces **Hybrid Layout DX**: sequential document-style authorin
 - **AST-Based API Snapshot Tool**: Upgraded `tool/generate_api_snapshot.dart` to a structural Dart AST analyzer capturing complete signatures, parameter types, default values, and export filters.
 
 ### Improved
+
 - **Developer Experience**: Drastically reduced manual Y coordinate bookkeeping in receipt, ticket, and invoice layouts.
 - **Example Gallery**: Migrated restaurant receipts, kitchen tickets, queue slips, and commercial invoices to sequential document authoring and type-safe barcodes.
 
 ### Fixed
+
 - **IPL Code 128 Lowering**: Corrected Intermec IPL barcode lowering where Code 128 previously emitted format selector `c0` (Code 39). Now emits authentic `c6` for Code 128 and `c0` for Code 39. Updated `IplBarcodeType.code128` from `0` to `6`.
 
 ### Compatibility
+
 - **100% Source-Compatible**: `label(config)` retains existing exact-canvas API and legacy coordinate semantics without sequential advancement.
 - **No Unintended Legacy Byte Regressions**: All 8 other protocol compilers and exact-coordinate layouts produce byte-for-byte identical streams.
 - **Non-Breaking Barcode API**: `const BarcodeOptions(type: String, ...)` remains non-deprecated and fully functional as an escape hatch for custom or printer-specific symbologies (e.g. `type: 'EAN13'`).
@@ -31,6 +42,7 @@ Portakal 1.2 introduces **Hybrid Layout DX**: sequential document-style authorin
 - **Intentional IPL Byte Change**: IPL Code 128 output changes from `c0` (incorrect Code 39 selector) to `c6` (authentic Code 128 selector) to fix symbology encoding on Intermec hardware.
 
 ### Known Limitations
+
 - **Visual Alignment Across Hardware**: Alignment fidelity varies across target printer firmware. PreviewScene and ZPL support native bounded alignment; ESC/POS and Star PRNT use space-padded character grids; other label protocols anchor at cell start coordinates.
 - **Stream Unicode Glyphs**: Monospaced stream character-grid allocation does not guarantee visual glyph width for complex scripts (Khmer, CJK, emoji) where printer firmware font shaping governs physical output.
 - **Typed Barcode Scope**: `BarcodeSymbology` is intentionally constrained to `code128` and `code39` where authentic semantic identity is guaranteed across all 9 supported compilers.
@@ -42,6 +54,7 @@ Portakal 1.2 introduces **Hybrid Layout DX**: sequential document-style authorin
 Stable production release of the Portakal Universal Thermal & Label Printer SDK.
 
 ### Added
+
 - Standardized canonical byte-native `.compile()` API returning `Uint8List` across all 9 protocol facades (`tsc`, `zpl`, `epl`, `escpos`, `cpcl`, `dpl`, `ipl`, `sbpl`, `star`).
 - Added `LabelBuilder.print([int copies = 1])` with eager positive integer validation.
 - Added typed `LabelBuilder.rawBytes(Uint8List)` and `LabelBuilder.rawAscii(String)` with ASCII validation and defensive copying.
@@ -53,11 +66,13 @@ Stable production release of the Portakal Universal Thermal & Label Printer SDK.
 - Added pure Dart SVG preview engine (`renderPreview`).
 
 ### Changed
+
 - Decoupled `portakal_core` into an independent pure-Dart package with zero Flutter/UI dependencies.
 - Standardized all protocol serializers on direct byte stream generation.
 - Updated Dart SDK minimum environment constraint to `^3.6.0` and Flutter to `>=3.27.0`.
 
 ### Deprecated
+
 - Deprecated `typedef Column = ReceiptColumn` in favor of `ReceiptColumn` (removal in 2.0).
 - Deprecated `compileBytes` method on language facades in favor of canonical `.compile()` (removal in 2.0).
 - Deprecated legacy String serializers `compileToTSC`, `compileToZPL`, `compileToEPL`, `compileToCPCL`, `compileToDPL`, `compileToIPL`, and `compileToSBPL` (removal in 2.0).
@@ -65,6 +80,7 @@ Stable production release of the Portakal Universal Thermal & Label Printer SDK.
 - Deprecated legacy `encodeTextForPrinter` helper in favor of `getEncoder(PrinterCodePage)` (removal in 2.0).
 
 ### Hardware Validation
+
 - Physical hardware validation on `Printer001-328F`: ESC/POS verified subset (PASS), TSC/TSPL2 verified subset (PASS), ZPL II emulation (N/S-DEVICE).
 - Byte-level golden SHA-256 validation suite for all 9 protocol compilers.
 

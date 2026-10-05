@@ -1,3 +1,9 @@
+## 1.2.1
+
+### Documentation & Attribution
+- Added credit and acknowledgments to [productdevbook/portakal](https://github.com/productdevbook/portakal) for the foundational TypeScript printer SDK architecture.
+- Updated dependency constraint to `portakal_core: ^1.2.1`.
+
 ## 1.2.0
 
 Companion Flutter package release for Portakal 1.2 Hybrid Layout.
